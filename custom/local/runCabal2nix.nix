@@ -1,4 +1,4 @@
-{ cabal2nix, hackageDb, nix, runCommand }:
+{ cabal2nix, glibcLocales, hackageDb, nix, runCommand }:
 
 with builtins;
 
@@ -11,6 +11,10 @@ runCommand "run-cabal2nix"
     NIX_REMOTE  = "daemon";
     NIX_PATH    = builtins.getEnv "NIX_PATH";
     buildInputs = [ cabal2nix nix ];
+
+    # Otherwise cabal2nix dies for accented characters
+    LANG           = "en_US.UTF-8";
+    LOCALE_ARCHIVE = "${glibcLocales}/lib/locale/locale-archive";
   }
   ''
     export HOME="$PWD/home"
