@@ -9,8 +9,6 @@ runCommand "get-hackagedb"
   }
   ''
     echo "$cacheTTL" > /dev/null
-
-    export HOME="$out"
     mkdir "$out"
-    cabal update
+    HOME="$out" cabal update
   ''
