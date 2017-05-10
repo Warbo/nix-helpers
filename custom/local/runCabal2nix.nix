@@ -1,4 +1,4 @@
-{ cabal2nix, glibcLocales, hackageDb, latestGit, lib, nix, runCommand }:
+{ cabal2nix, glibcLocales, hackageDb, latestGit, lib, runCommand, withNix }:
 
 with builtins;
 with lib;
@@ -6,11 +6,9 @@ with lib;
 { url, args ? [] }:
 
 runCommand "run-cabal2nix"
-  {
+  (withNix {
     inherit hackageDb;
-    NIX_REMOTE  = "daemon";
-    NIX_PATH    = builtins.getEnv "NIX_PATH";
-    buildInputs = [ cabal2nix nix ];
+    buildInputs = [ cabal2nix ];
 
     # Otherwise cabal2nix dies for accented characters
     LANG           = "en_US.UTF-8";
@@ -21,7 +19,7 @@ runCommand "run-cabal2nix"
     url = if hasPrefix "http" url && hasSuffix ".git" url
              then latestGit { inherit url; }
              else url;
-  }
+  })
   ''
     set -e
     export HOME="$PWD/home"
