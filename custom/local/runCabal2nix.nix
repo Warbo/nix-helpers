@@ -5,7 +5,7 @@ with lib;
 
 { url, args ? [] }:
 
-runCommand "run-cabal2nix"
+trace "FIXME: Can we use callCabal2nix yet?" runCommand "run-cabal2nix"
   (withNix {
     inherit hackageDb;
     buildInputs = [ cabal2nix ];
