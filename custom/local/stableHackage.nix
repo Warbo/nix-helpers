@@ -1,7 +1,7 @@
 { buildEnv, cabal-install, fetchFromGitHub, ghc, makeWrapper, runCommand,
   stdenv, writeScript }:
 
-with rec{
+with rec {
   all-cabal-files = fetchFromGitHub {
     owner  = "commercialhaskell";
     repo   = "all-cabal-files";
