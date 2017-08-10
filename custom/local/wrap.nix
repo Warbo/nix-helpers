@@ -64,8 +64,8 @@ with rec {
   #    single quotes); never treat double quotes as an escaping mechanism.
   set = n: v:
     with rec {
-      en =          escapeShellArg (escapeShellArg n);
-      ev = "'\"'" + escapeShellArg (escapeShellArg v) + "'\"'";
+      en =          escapeShellArg (escapeShellArg "${n}");
+      ev = "'\"'" + escapeShellArg (escapeShellArg "${v}") + "'\"'";
     };
     "--set ${en} ${ev}";
 
