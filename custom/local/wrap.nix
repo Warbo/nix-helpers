@@ -1,4 +1,4 @@
-{ lib, makeWrapper, python, runCommand, withArgsOf, withDeps, writeScript }:
+{ jq, lib, makeWrapper, python, runCommand, withArgsOf, withDeps, writeScript }:
 
 with builtins;
 with lib;
@@ -32,6 +32,59 @@ with rec {
           fi
           exit 1
         '';
+
+      haveDeps = runCommand "checkHaveDeps"
+        {
+          script = wrap {
+            name   = "haveDepsChecker";
+            vars   = {
+              A = "foo";
+              B = "hello world";
+              C = "Single 'quotes'";
+              D = ''Double "quotes"'';
+            };
+            paths  = [ jq python ];
+            script = ''
+              #!/usr/bin/env bash
+              command -v jq || {
+                echo "No jq" 1>&2
+                exit 1
+              }
+
+              command -v python || {
+                echo "No python" 1>&2
+                exit 1
+              }
+
+              [[ "x$A" = "xfoo" ]] || {
+                echo "No A?" 1>&2
+                env 1>&2
+                exit 1
+              }
+
+              [[ "x$B" = "xhello world" ]] || {
+                echo "No B?" 1>&2
+                env 1>&2
+                exit 1
+              }
+
+              [[ "x$C" = "xSingle 'quotes'" ]] || {
+                echo "No C?" 1>&2
+                env 1>&2
+                exit 1
+              }
+
+              [[ "x$D" = 'xDouble "quotes"' ]] || {
+                echo "No D?" 1>&2
+                env 1>&2
+                exit 1
+              }
+
+              echo "pass" > "$out"
+            '';
+          };
+        }
+        ''"$script"'';
     };
 
   # Try a bunch of strings with quotes, spaces, etc. and see if they survive
@@ -114,7 +167,7 @@ with rec {
         done
 
         echo "Getting vars" 1>&2
-        for N in $(seq 1 "$pathCount")
+        for N in $(seq 1 "$varCount")
         do
           # Use "variable variables" like with paths, but for the name and value
           NAME="varName$N"
