@@ -1,28 +1,33 @@
-{ runCommand, writeScript }:
+{ attrsToDirs, withNix, wrap }:
 
-runCommand "pipeToNix"
-  {
-    raw = writeScript "pipeToNix" ''
-      #!/usr/bin/env bash
-      set -e
+with builtins;
+with { nixy = withNix {}; };
 
-      # Dumps stdin to a temporary file, adds that file to the Nix store then
-      # deletes the temp file. If an argument is given, it's used as the file
-      # name (which Nix will prefix with a content hash).
+attrsToDirs {
+  bin = {
+    pipeToNix = wrap {
+      name   = "pipeToNix";
+      paths  = nixy.buildInputs;
+      vars   = removeAttrs nixy [ "buildInputs" ];
+      script = ''
+        #!/usr/bin/env bash
+        set -e
 
-      NAME="piped"
-      [[ -z "$1" ]] || NAME="$1"
+        # Dumps stdin to a temporary file, adds that file to the Nix store then
+        # deletes the temp file. If an argument is given, it's used as the file
+        # name (which Nix will prefix with a content hash).
 
-      SCRATCH=$(mktemp -d)
-      trap "rm -rf $SCRATCH" EXIT
+        NAME="piped"
+        [[ -z "$1" ]] || NAME="$1"
 
-      F="$SCRATCH/$NAME"
-      cat > "$F"
+        SCRATCH=$(mktemp -d)
+        trap "rm -rf $SCRATCH" EXIT
 
-      nix-store --add "$F"
-    '';
-  }
-  ''
-    mkdir -p "$out/bin"
-    cp "$raw" "$out/bin/pipeToNix"
-  ''
+        F="$SCRATCH/$NAME"
+        cat > "$F"
+
+        nix-store --add "$F"
+      '';
+    };
+  };
+}
