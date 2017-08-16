@@ -12,50 +12,47 @@
 # TODO: This duplicates some functionality of fetchgitrevision; wait for that
 # API to settle down, then use it here.
 
-self: super:
+{ cacert, fetchGitHashless, git, gnused, runCommand, sanitiseName }:
 
-with self;
 with builtins;
 
-{
-  # We need the url, but ref is optional (e.g. if we want a particular branch)
-  latestGit = { url, ref ? "HEAD" }@args:
-    with rec {
-      # We allow refs to be given in two ways: as a standalone env var...
-      key    = "${hashString "sha256" url}_${hashString "sha256" ref}";
-      keyRev = getEnv "nix_git_rev_${key}";
+# We need the url, but ref is optional (e.g. if we want a particular branch)
+{ url, ref ? "HEAD" }@args:
+  with rec {
+    # We allow refs to be given in two ways: as a standalone env var...
+    key    = "${hashString "sha256" url}_${hashString "sha256" ref}";
+    keyRev = getEnv "nix_git_rev_${key}";
 
-      # Or as an entry in a JSON table
-      repoRefStr = getEnv "REPO_REFS";
-      repoRefs   = if repoRefStr == ""
-                      then {}
-                      else fromJSON repoRefStr;
+    # Or as an entry in a JSON table
+    repoRefStr = getEnv "REPO_REFS";
+    repoRefs   = if repoRefStr == ""
+                    then {}
+                    else fromJSON repoRefStr;
 
-      # Get the commit ID for the given ref in the given repo.
-      newRev = import (runCommand
-        "repo-${sanitiseName ref}-${sanitiseName url}"
-        {
-          # Avoids caching. This is a cheap operation and needs to be up-to-date
-          version = toString currentTime;
+    # Get the commit ID for the given ref in the given repo.
+    newRev = import (runCommand
+      "repo-${sanitiseName ref}-${sanitiseName url}"
+      {
+        inherit ref url;
 
-          # Required for SSL
-          GIT_SSL_CAINFO = "${cacert}/etc/ssl/certs/ca-bundle.crt";
+        # Avoids caching. This is a cheap operation and needs to be up-to-date
+        version = toString currentTime;
 
-          buildInputs  = [ git gnused ];
-        }
-        ''
-          REV=$(git ls-remote "${url}" "${ref}") || exit 1
+        # Required for SSL
+        GIT_SSL_CAINFO = "${cacert}/etc/ssl/certs/ca-bundle.crt";
 
-          printf '"%s"' $(echo "$REV"        |
-                          head -n1           |
-                          sed -e 's/\s.*//g' ) > "$out"
-        '');
+        buildInputs = [ git gnused ];
+      }
+      ''
+        REV=$(git ls-remote "$url" "$ref") || exit 1
 
-      rev = if hasAttr url repoRefs
-               then getAttr url repoRefs
-               else if keyRev == ""
-                       then newRev
-                       else keyRev;
-    };
-    fetchGitHashless (removeAttrs (args // { inherit rev; }) [ "ref" ]);
-}
+        printf '"%s"' $(echo "$REV"        |
+                        head -n1           |
+                        sed -e 's/\s.*//g' ) > "$out"
+      '');
+
+    rev = repoRefs.url or (if keyRev == ""
+                              then newRev
+                              else keyRev);
+};
+fetchGitHashless (removeAttrs (args // { inherit rev; }) [ "ref" ])
