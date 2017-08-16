@@ -1,6 +1,6 @@
-self: super:
+{ cabal2nix, composeWithArgs, glibc, haskellPackages, lib, runCommand }:
 
-with builtins; with self.lib;
+with builtins; with lib;
 
 # Make a Nix package definition from a Cabal project. The result is a function,
 # accepting its dependencies as named arguments, returning a derivation. This
@@ -16,9 +16,7 @@ with builtins; with self.lib;
 # the package definition, but also preserves all of the named arguments required
 # for "haskellPackages.callPackage" to work.
 
-{
-
-nixFromCabal = src_: f:
+src_: f:
 
 assert typeOf src_ == "path" || isString src_ || isAttrs src_;
 assert isAttrs src_ || pathExists (if hasPrefix storeDir (unsafeDiscardStringContext src_)
@@ -27,7 +25,7 @@ assert isAttrs src_ || pathExists (if hasPrefix storeDir (unsafeDiscardStringCon
 assert f == null || isFunction f;
 
 let dir      = if isAttrs src_ then src_ else unsafeDiscardStringContext src_;
-    hsVer    = self.haskellPackages.ghc.version;
+    hsVer    = haskellPackages.ghc.version;
 
     fields   = let
       # Find the .cabal file and read properties from it
@@ -48,14 +46,14 @@ let dir      = if isAttrs src_ then src_ else unsafeDiscardStringContext src_;
       in { name = pkgName; version = pkgV; };
 
     # Produces a copy of the dir contents, along with a default.nix file
-    nixed = self.runCommand "nix-haskell"
+    nixed = runCommand "nix-haskell"
       {
         inherit dir;
         name             = "nixFromCabal-${hsVer}-${fields.name}-${fields.version}";
         preferLocalBuild = true; # We need dir to exist
         buildInputs      = [
-          self.cabal2nix
-          self.glibc  # For iconv
+          cabal2nix
+          glibc  # For iconv
         ];
       }
       ''
@@ -91,6 +89,4 @@ in
 # If we've been given a function "f", compose it with "result" using our
 # special-purpose function
 if f == null then result
-             else self.composeWithArgs f result;
-
-}
+             else composeWithArgs f result
