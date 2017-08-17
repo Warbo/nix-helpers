@@ -1,9 +1,10 @@
 # Builds a directory whose entries/content correspond to the names/values of
 # the given attrset. When a value is an attrset, the corresponding entry is
 # a directory, whose contents is generated with attrsToDirs on that value.
-{ isPath, runCommand }:
+{ isPath, lib, runCommand }:
 
 with builtins;
+with lib;
 with rec {
   toPaths = prefix: val:
     if isPath val || isDerivation val
