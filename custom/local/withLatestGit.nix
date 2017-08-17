@@ -1,4 +1,4 @@
-{ latestGit, lib, stdenv, substituteAll }:
+{ isCallable, latestGit, lib, stdenv, substituteAll }:
 
 with builtins;
 with lib;
@@ -6,7 +6,7 @@ with lib;
 # Use latestGit as src for a derivation, cache the commit ID in the environment
 { url, ref ? "HEAD", refIsRev ? false, srcToPkg, resultComposes ? false }:
 
-assert isFunction srcToPkg;
+assert isCallable srcToPkg;
 assert isString url;
 assert isString ref;
 assert isBool refIsRev;
@@ -27,9 +27,9 @@ with rec {
 };
 
 assert isAttrs source;
-assert hasAttr "rev" source;
-assert isAttrs result || isFunction result;
-assert resultComposes -> isFunction result;
+assert source ? rev;
+assert isAttrs result || isCallable result;
+assert resultComposes -> isCallable result;
 
 with rec {
   cacheRev = p:
@@ -41,13 +41,13 @@ with rec {
         val = rev;
       };
     });
-  drv = if isFunction result
+  drv = if isCallable result
            then if resultComposes
                    then result cacheRev
                    else args: cacheRev (result args)
            else cacheRev result;
 };
 
-assert isFunction result -> isFunction drv;
+assert isCallable result -> isCallable drv;
 assert isAttrs    result -> isAttrs    drv;
 drv
