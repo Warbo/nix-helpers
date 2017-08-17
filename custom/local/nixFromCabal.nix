@@ -1,4 +1,5 @@
-{ cabal2nix, composeWithArgs, glibc, haskellPackages, lib, runCommand }:
+{ cabal2nix, composeWithArgs, glibc, haskellPackages, isCallable, lib,
+  runCommand }:
 
 with builtins; with lib;
 
@@ -22,7 +23,7 @@ assert typeOf src_ == "path" || isString src_ || isAttrs src_;
 assert isAttrs src_ || pathExists (if hasPrefix storeDir (unsafeDiscardStringContext src_)
                                       then src_
                                       else "${src_}");
-assert f == null || isFunction f;
+assert f == null || isCallable f;
 
 let dir      = if isAttrs src_ then src_ else unsafeDiscardStringContext src_;
     hsVer    = haskellPackages.ghc.version;
