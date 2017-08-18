@@ -1,4 +1,5 @@
-{ jq, lib, makeWrapper, python, runCommand, withArgsOf, withDeps, writeScript }:
+{ jq, lib, makeWrapper, nixListToBashArray, python, runCommand, withArgsOf,
+  withDeps, writeScript }:
 
 with builtins;
 with lib;
@@ -125,53 +126,44 @@ with rec {
       f = if file == null then writeScript name script else file;
 
       # Store each path in a variable pathVarN
-      pathArgs = foldl' (rest: path: {
-                          count = rest.count + 1;
-                          args  = rest.args // {
-                            "pathVar${toString rest.count}" = path;
-                          };
-                        })
-                        { count = 1; args = {}; }
-                        paths;
+      pathData = nixListToBashArray { name = "pathVars"; args = paths; };
 
-      # Store each name in a variable varNameN and the corresponding value in a
-      # variable varVarN
-      varArgs = foldl' (rest: name: {
-                         count = rest.count + 1;
-                         names = rest.names // {
-                           "varName${toString rest.count}" = name;
-                         };
-                         args  = rest.args // {
-                           "varVar${toString rest.count}" = getAttr name vars;
-                         };
-                       })
-                       { count = 1; names = {}; args = {}; }
-                       (attrNames vars);
+      # Store each name in a variable varNamesN and the corresponding value in a
+      # variable varValsN. Their order is arbitrary, but must match up.
+      varNames    = attrNames vars;
+      varNameData = nixListToBashArray {
+        name = "varNames";
+        args = varNames;
+      };
+      varValData  = nixListToBashArray {
+        name = "varVals";
+        args = map (n: getAttr n vars) varNames;
+      };
     };
     runCommand name
-      (pathArgs.args // varArgs.args // varArgs.names // {
+      (pathData.env // varNameData.env // varValData.env // {
         inherit f;
-        pathCount   = length paths;
-        varCount    = length (attrNames vars);
         buildInputs = [ makeWrapper ];
       })
       ''
         ARGS=()
 
         echo "Getting paths" 1>&2
-        for N in $(seq 1 "$pathCount")
+        ${pathData.code}
+        for P in "''${pathVars[@]}"
         do
-          # Use a "variable variable" to look up "$pathVar$N" as a variable name
-           ARG="pathVar$N"
-          ARGS=("''${ARGS[@]}" "--prefix" "PATH" ":" "''${!ARG}/bin")
+          ARGS=("''${ARGS[@]}" "--prefix" "PATH" ":" "$P/bin")
         done
 
         echo "Getting vars" 1>&2
-        for N in $(seq 1 "$varCount")
+        ${varNameData.code}
+        ${ varValData.code}
+
+        # Loop through the indices of each name/value; this is slightly awkward
+        # since 'seq' likes to count from 1, but bash arrays start at 0.
+        for NPLUSONE in $(seq 1 "''${#varNames[@]}")
         do
-          # Use "variable variables" like with paths, but for the name and value
-          NAME="varName$N"
-           ARG="varVar$N"
+          N=$(( NPLUSONE - 1 ))
 
           # makeWrapper doesn't escape properly, so spaces, quote marks, dollar
           # signs, etc. will cause errors. Given a value FOO, makeWrapper will
@@ -199,12 +191,16 @@ with rec {
           # this is done by escaping single quotes wrapping in single quotes);
           # never treat double quotes as an escaping mechanism.
 
-           VAL="''${!ARG}"
-            BS='\'
-             T="'"
-           ESC=$(echo "$VAL" | sed -e "s/$T/$T$BS$BS$T$T/g")
 
-          ARGS=("''${ARGS[@]}" "--set" "''${!NAME}" "\"'$ESC'\"")
+          # These vars make escaping slightly less crazy (Bash single-quote
+          # escaping requires adjacent single-quotes, but we're in a Nix string
+          # that's enclosed in double single-quotes... sigh)
+          BS='\'
+           T="'"
+
+          ESC=$(echo "''${varVals[$N]}" | sed -e "s/$T/$T$BS$BS$T$T/g")
+
+          ARGS=("''${ARGS[@]}" "--set" "''${varNames[$N]}" "\"'$ESC'\"")
         done
 
         makeWrapper "$f" "$out" "''${ARGS[@]}"
