@@ -21,7 +21,10 @@
 with builtins;
 with lib;
 
-dir: mapAttrs (n: v: if v == "regular"
-                        then dir + "/${n}"
-                        else dirsToAttrs (dir + "/${n}"))
-              (readDir dir)
+with rec {
+  go = dir: mapAttrs (n: v: if v == "regular"
+                               then dir + "/${n}"
+                               else go (dir + "/${n}"))
+                     (readDir dir);
+};
+go
