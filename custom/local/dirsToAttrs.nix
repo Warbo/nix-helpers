@@ -16,15 +16,28 @@
 #       };
 #     };
 #
-{ lib }:
+{ isPath, lib }:
 
 with builtins;
 with lib;
 
 with rec {
-  go = dir: mapAttrs (n: v: if v == "regular"
+  go = dir: mapAttrs (n: v: if v == "regular" || v == "symlink"
                                then dir + "/${n}"
                                else go (dir + "/${n}"))
                      (readDir dir);
+
+  # Check that we can access some known files/directories
+  test =
+    with {
+      x = go ./..;
+    };
+    isAttrs x       &&
+    x ? local       &&
+    isAttrs x.local &&
+    x.local ? "dirsToAttrs.nix" &&
+    isPath x.local."dirsToAttrs.nix";
 };
+
+assert test;
 go
