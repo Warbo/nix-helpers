@@ -1,3 +1,6 @@
-{}:
+{ lib }:
+
 with builtins;
-x: typeOf x == "path"
+with lib;
+
+x: typeOf x == "path" || (typeOf x == "string" && hasPrefix "/" x)
