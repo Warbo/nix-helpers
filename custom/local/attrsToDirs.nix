@@ -50,9 +50,9 @@ attrs:
                      P="$out$STRIPPED"
 
               # Ensure parent directories exist
-              mkdir -vp "$(dirname "$P")"
+              mkdir -p "$(dirname "$P")"
 
               # Link value in place (saves space compared to copying)
-              ln -vs "''${VALUES[$N]}" "$P"
+              ln -s "''${VALUES[$N]}" "$P"
             done
           ''
