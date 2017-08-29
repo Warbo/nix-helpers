@@ -148,14 +148,12 @@ with rec {
       ''
         ARGS=()
 
-        echo "Getting paths" 1>&2
         ${pathData.code}
         for P in "''${pathVars[@]}"
         do
           ARGS=("''${ARGS[@]}" "--prefix" "PATH" ":" "$P/bin")
         done
 
-        echo "Getting vars" 1>&2
         ${varNameData.code}
         ${ varValData.code}
 
