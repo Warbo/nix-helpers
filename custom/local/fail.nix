@@ -1,13 +1,15 @@
-{ runCommand, writeScript }:
+{ backtrace, bash, mkBin }:
 
-with {
-  script = writeScript "error-logger" ''
+mkBin {
+  name   = "fail";
+  paths  = [ backtrace bash ];
+  script = ''
     #!/usr/bin/env bash
-    echo -e "$*" 1>&2
+    set -e
+    {
+      echo -e "$*"
+      backtrace
+    } 1>&2
     exit 1
   '';
-};
-runCommand "mk-fail" { inherit script; } ''
-  mkdir -p "$out/bin"
-  cp "$script" "$out/bin/fail"
-''
+}
