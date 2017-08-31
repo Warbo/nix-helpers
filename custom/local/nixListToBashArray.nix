@@ -16,7 +16,7 @@
 # 'code' snippet, which will loop over these distinct variables to construct a
 # single array (in this case, called "x")
 
-{ fail, lib, nothing, runCommand }:
+{ lib, nothing, runCommand }:
 
 with builtins;
 with lib;
@@ -77,9 +77,14 @@ with rec {
                     mixture nothing ];
          };
     with rec {
-      context = env // { buildInputs = [ fail ]; };
+      context = env;
 
       check = runCommand "check-NLTBA.nix" context ''
+        function fail() {
+          echo -e "$*" 1>&2
+          exit 1
+        }
+
         function match() {
           [[ "x$2" = "x$3" ]] || fail "Wrong $1 value '$2' (should be '$3')"
         }
