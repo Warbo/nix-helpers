@@ -1,5 +1,5 @@
-{ buildEnv, cabal-install, fetchFromGitHub, ghc, makeWrapper, runCommand,
-  stdenv, writeScript }:
+{ buildEnv, fetchFromGitHub, makeWrapper, nixpkgs1609, runCommand, stdenv,
+  writeScript }:
 
 with rec {
   all-cabal-files = fetchFromGitHub {
@@ -54,7 +54,7 @@ with rec {
 stdenv.mkDerivation {
   name        = "stable-cabal-config";
   src         = makeCabalConfigCmd;
-  buildInputs = [ cabal-install ghc makeWrapper ];
+  buildInputs = [ nixpkgs1609.cabal-install nixpkgs1609.ghc makeWrapper ];
   REPOCACHE   = repoCache;
   unpackPhase = "true";
 
