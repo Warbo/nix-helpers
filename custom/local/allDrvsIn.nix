@@ -1,3 +1,3 @@
-{ isDerivation, lib }:
+{ lib }:
 
-lib.collect isDerivation
+lib.collect lib.isDerivation
