@@ -16,10 +16,11 @@
 # 'code' snippet, which will loop over these distinct variables to construct a
 # single array (in this case, called "x")
 
-{ lib, nothing, runCommand }:
+# Take lib from nixpkgs1609, since other versions (e.g. 1603) mess up escaping
+{ nixpkgs1609, nothing, runCommand }:
 
 with builtins;
-with lib;
+with nixpkgs1609.lib;
 with rec {
   # This is the actual implementation
   go = { args, name }: rec {
