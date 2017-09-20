@@ -4,7 +4,7 @@
 with builtins;
 with lib;
 with rec {
-  checks = varChk // depChk;
+  checks = varChk // depChk // wrapChk;
 
   # Make sure that derivations given as paths and vars aren't forced during
   # evaluation (only at build time)
@@ -119,11 +119,51 @@ with rec {
                       MEDLEY = ''with" all 'of the" above'';
                     };
 
+  wrapChk = {
+    # Ensure files and scripts don't get unneeded wrappers if no env is given
+    unwrappedFile = runCommand "unwrappedFile"
+      {
+        val = wrap { name = "foo"; file = writeScript "bar" "baz"; };
+      }
+      ''
+        [[ -e "$val" ]] || {
+          echo "No such file '$val'" 1>&2
+          exit 1
+        }
+        [[ -h "$val" ]] || {
+          echo "Not a link '$val'" 1>&2
+          exit 1;
+        }
+        echo pass > "$out"
+      '';
+
+    unwrappedScript = runCommand "unwrappedScript"
+      {
+        val = wrap { name = "foo"; script = "bar"; };
+      }
+      ''
+        [[ -e "$val" ]] || {
+          echo "No such file '$val'" 1>&2
+          exit 1
+        }
+        [[ -h "$val" ]] || {
+          echo "Not a link '$val'" 1>&2
+          exit 1;
+        }
+        echo pass > "$out"
+      '';
+  };
+
   wrap = { paths ? [], vars ? {}, file ? null, script ? null, name ? "wrap" }:
     assert file != null || script != null ||
            abort "wrap needs 'file' or 'script' argument";
     with rec {
       f = if file == null then writeScript name script else file;
+
+      # Whether any extra env vars or paths are actually needed
+      needEnv = if paths == [] && vars == {}
+                   then "false"
+                   else "true";
 
       # Store each path in a variable pathVarN
       pathData = nixListToBashArray { name = "pathVars"; args = paths; };
@@ -142,10 +182,16 @@ with rec {
     };
     runCommand name
       (pathData.env // varNameData.env // varValData.env // {
-        inherit f;
+        inherit f needEnv;
         buildInputs = [ makeWrapper ];
       })
       ''
+        # Shortcut if no extra env, etc. is needed
+        $needEnv || {
+          ln -s "$f" "$out"
+          exit
+        }
+
         ARGS=()
 
         ${pathData.code}
