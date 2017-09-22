@@ -1,10 +1,3 @@
-{ hackagePackageNamesDrv, jq, runCommand }:
+{ mkStableHackageDb }:
 
-import (runCommand "hackage-package-names.nix"
-  {
-    inherit hackagePackageNamesDrv;
-    buildInputs = [ jq ];
-  }
-  ''
-    jq -R '.' < "$hackagePackageNamesDrv" | jq -s '.' | tr -d ',' > "$out"
-  '')
+(mkStableHackageDb {}).available
