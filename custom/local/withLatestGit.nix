@@ -4,7 +4,14 @@ with builtins;
 with lib;
 
 # Use latestGit as src for a derivation, cache the commit ID in the environment
-{ url, ref ? "HEAD", refIsRev ? false, srcToPkg, resultComposes ? false }:
+{
+  ref            ? "HEAD",
+  refIsRev       ? false,
+  resultComposes ? false,
+  srcToPkg,
+  stable         ? {},
+  url
+}:
 
 assert isCallable srcToPkg;
 assert isString url;
@@ -14,7 +21,7 @@ assert isBool resultComposes;
 assert refIsRev -> ref != "HEAD";
 
 with rec {
-  rawSource = latestGit { inherit url;
+  rawSource = latestGit { inherit url stable;
                           ref = if refIsRev then "" else ref; };
   source    = if refIsRev then stdenv.lib.overrideDerivation
                                  rawSource
