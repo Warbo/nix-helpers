@@ -60,7 +60,7 @@ with rec {
     ''
       set -o pipefail
       # Commit ID is first (awk) 'field' in the first 'record'. Wrap in quotes.
-      git ls-remote "$url" "$ref" | awk 'NR==1 {print "\""$1"\""}' > "$out"
+      git ls-remote "$url" $ref | awk 'NR==1 {print "\""$1"\""}' > "$out"
     '');
 
   # Logic for choosing between stable and unstable
