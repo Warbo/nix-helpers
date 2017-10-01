@@ -1,9 +1,11 @@
-{ jq, lib, makeWrapper, nixListToBashArray, python, runCommand, withArgsOf,
+{ jq, lib, nixpkgs1609, nixListToBashArray, python, runCommand, withArgsOf,
   withDeps, writeScript }:
 
 with builtins;
 with lib;
 with rec {
+  inherit (nixpkgs1609) makeWrapper;
+
   checks = varChk // depChk // wrapChk;
 
   # Make sure that derivations given as paths and vars aren't forced during
