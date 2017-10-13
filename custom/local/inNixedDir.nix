@@ -19,16 +19,26 @@ attrsToDirs {
         NAME="nixed-dir"
         [[ -z "$2" ]] || NAME="$2"
 
-        SCRATCH=$(mktemp -d)
-        trap "rm -rf $SCRATCH" EXIT
+        if [[ "$SKIP_NIX" -eq 1 ]]
+        then
+          INNER="$NAME"
+        else
+          SCRATCH=$(mktemp -d)
+          trap "rm -rf $SCRATCH" EXIT
+          INNER="$SCRATCH/$NAME"
+        fi
 
-        INNER="$SCRATCH/$NAME"
         mkdir -p "$INNER"
         pushd "$INNER" > /dev/null
           "$1"
         popd           > /dev/null
 
-        nix-store --add "$INNER"
+        if [[ "$SKIP_NIX" -eq 1 ]]
+        then
+          readlink -f "$INNER"
+        else
+          nix-store --add "$INNER"
+        fi
       '';
     };
   };
