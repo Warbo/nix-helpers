@@ -1,2 +1,2 @@
-{ runCommand }:
-runCommand "nothing" {} ''mkdir "$out"''
+{ dummyBuild }:
+dummyBuild "nothing"
