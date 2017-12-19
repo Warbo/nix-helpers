@@ -5,6 +5,8 @@ with builtins;
 with lib;
 
 {
+  name ? "",
+
   # Package location, containing a .cabal file, e.g. path, git repo, "cabal://"
   url,
 
@@ -18,7 +20,7 @@ with lib;
   packageDb ? stableHackageDb
 }:
 
-runCommand "run-cabal2nix"
+runCommand "run-cabal2nix${if name == "" then "" else "-${name}"}"
   (withNix {
     inherit packageDb;
     buildInputs = [ cabal2nix ];
