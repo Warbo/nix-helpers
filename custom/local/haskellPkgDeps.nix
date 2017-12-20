@@ -6,7 +6,7 @@ with lib;
   dir,
   extra-sources   ? [],
   hackageContents ? stableHackageDb,
-  name            ? "pkg"
+  name            ? "pkg",
   pkgs
 }:
 
