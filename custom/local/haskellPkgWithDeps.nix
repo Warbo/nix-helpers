@@ -1,11 +1,23 @@
 { cabalField, callPackage, haskell, haskellPkgDeps, lib, pkgs, reverse,
   runCabal2nix, stableHackageDb, withDeps }:
 
-{ dir, name ? null, hackageContents ? stableHackageDb }:
+{
+  dir,
+  extra-sources   ? [],
+  name            ? null,
+  hackageContents ? stableHackageDb,
+  hsPkgs
+}:
 
 with builtins;
 with lib;
 with rec {
+  deps = haskellPkgDeps {
+    inherit dir extra-sources hackageContents;
+    name = pName;
+    pkgs = hsPkgs;
+  };
+
   dropUntil = pred: xs: if xs == []
                            then xs
                            else if pred (head xs)
@@ -28,53 +40,47 @@ with rec {
                      then xs
                      else reverse (tail (reverse xs));
 
-  mkPkgSet  = { deps, hsPkgs }:
-    with rec {
-      # Run cabal2nix on each dependency
-      funcs = listToAttrs (map (url: rec {
-                                 name  = if url == dir
-                                            then pName
-                                            else pkgName url;
-                                 value = runCabal2nix { inherit name url; };
-                               })
-                               (init deps)) // { "${pName}" = dirPkg; };
+  # Run cabal2nix on each dependency
+  funcs = listToAttrs (map (url: rec {
+                             name  = if url == dir
+                                        then pName
+                                        else pkgName url;
+                             value = runCabal2nix { inherit name url; };
+                           })
+                           (init deps)) //
+          { "${pName}" = dirPkg; };
 
-      # Instantiate a single package from the head of the 'versions' list,
-      # taking dependencies from 'acc'. Insert the package into 'acc' and
-      # recurse on the tail of 'versions'. This will work thanks to the order of
-      # Cabal's install plan. It doesn't take dependencies of test suites or
-      # benchmarks into account, so we disable them.
-      go = acc: versions:
-        if versions == []
-           then acc
-           else with rec {
-                  pkg      = head versions;
-                  thisName = if "${pkg}" == "${dir}"
-                                then pName
-                                else pkgName pkg;
-                };
-                go (acc // {
-                     "${thisName}" = haskell.lib.dontCheck
-                                       (callPackageWith (pkgs // acc)
-                                                        (getAttr thisName funcs)
-                                                        {});
-                   })
-                   (tail versions);
+  # Instantiate a single package from the head of the 'versions' list,
+  # taking dependencies from 'acc'. Insert the package into 'acc' and
+  # recurse on the tail of 'versions'. This will work thanks to the order of
+  # Cabal's install plan. It doesn't take dependencies of test suites or
+  # benchmarks into account, so we disable them.
+  go = acc: versions:
+    if versions == []
+       then acc
+       else with rec {
+              pkg      = head versions;
+              thisName = if "${pkg}" == "${dir}"
+                            then pName
+                            else pkgName pkg;
+            };
+            go (acc // {
+                 "${thisName}" = haskell.lib.dontCheck
+                                   (callPackageWith (pkgs // acc)
+                                                    (getAttr thisName funcs)
+                                                    {});
+               })
+               (tail versions);
 
-      # All dependencies with their tests disabled, to prevent circular deps
-      untested = go (mapAttrs (n: v: if v == null || elem n [ "mkDerivation" ]
-                                        then v
-                                        else trace "Taking ${n} from hsPkgs" v)
-                              hsPkgs //
-                     mapAttrs (_: _: null)
-                              funcs)
-                    deps;
-    };
-    # The desired package, including tests
-    callPackageWith (pkgs // untested) (getAttr pName funcs) {};
+  # All dependencies with their tests disabled, to prevent circular deps
+  untested = go (mapAttrs (n: v: if v == null || elem n [ "mkDerivation" ]
+                                    then v
+                                    else trace "Taking ${n} from hsPkgs" v)
+                          hsPkgs //
+                 mapAttrs (_: _: null)
+                          funcs)
+                          deps;
 };
-mapAttrs (n: v: mkPkgSet {
-           deps   = import v;
-           hsPkgs = getAttr n haskell.packages;
-         })
-         (haskellPkgDeps { inherit dir hackageContents; name = pName; })
+
+# The desired package, including tests
+callPackageWith (pkgs // untested) (getAttr pName funcs) {}
