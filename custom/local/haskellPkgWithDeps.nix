@@ -14,8 +14,8 @@ with lib;
 with rec {
   deps = haskellPkgDeps {
     inherit dir extra-sources hackageContents;
+    inherit (hsPkgs) ghc;
     name = pName;
-    pkgs = hsPkgs;
   };
 
   dropUntil = pred: xs: if xs == []
@@ -40,15 +40,16 @@ with rec {
                      then xs
                      else reverse (tail (reverse xs));
 
+  nameOf = pkg: if hasPrefix "cabal://" pkg
+                   then pkgName pkg
+                   else cabalField { dir = pkg; field = "name"; };
+
   # Run cabal2nix on each dependency
   funcs = listToAttrs (map (url: rec {
-                             name  = if url == dir
-                                        then pName
-                                        else pkgName url;
+                             name  = nameOf url;
                              value = runCabal2nix { inherit name url; };
                            })
-                           (init deps)) //
-          { "${pName}" = dirPkg; };
+                           deps);
 
   # Instantiate a single package from the head of the 'versions' list,
   # taking dependencies from 'acc'. Insert the package into 'acc' and
@@ -60,9 +61,7 @@ with rec {
        then acc
        else with rec {
               pkg      = head versions;
-              thisName = if "${pkg}" == "${dir}"
-                            then pName
-                            else pkgName pkg;
+              thisName = nameOf pkg;
             };
             go (acc // {
                  "${thisName}" = haskell.lib.dontCheck
@@ -77,9 +76,8 @@ with rec {
                                     then v
                                     else trace "Taking ${n} from hsPkgs" v)
                           hsPkgs //
-                 mapAttrs (_: _: null)
-                          funcs)
-                          deps;
+                 mapAttrs (_: _: null) funcs)
+                deps;
 };
 
 # The desired package, including tests
