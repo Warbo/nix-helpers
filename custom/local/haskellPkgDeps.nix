@@ -42,7 +42,10 @@ with rec {
         cabal sandbox add-source --snapshot "$VAL"
       done
 
+      # The --reorder-goals option enables heuristics which make cabal more
+      # likely to succeed. It's off by default since it's slower.
       GOT=$(cabal install --dry-run           \
+                          --reorder-goals     \
                           --enable-tests      \
                           --enable-benchmarks) || {
         echo "$GOT" 1>&2
