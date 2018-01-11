@@ -1,5 +1,6 @@
-{ cabal-install, cabalField, dropWhile, fail, haskell, jq, lib, reverse,
-  runCommand, stableHackageDb, stringAsList, utillinux }:
+{ cabal-install, cabalField, dropWhile, fail, haskell, jq, lib,
+  nixListToBashArray, reverse, runCommand, stableHackageDb, stringAsList,
+  utillinux }:
 
 with lib;
 
@@ -12,12 +13,14 @@ with lib;
 }:
 
 with rec {
+  inherit (nixListToBashArray { name = "extraSources"; args = extra-sources; })
+          env code;
+
   deps = import (runCommand "haskell-${name}-deps.nix"
-    {
+    (env // {
       inherit dir hackageContents;
       buildInputs  = [ cabal-install fail ghc jq utillinux ];
-      extraSources = concatStringsSep "\n" extra-sources;
-    }
+    })
     ''
       set -e
       set -o pipefail
@@ -32,10 +35,12 @@ with rec {
 
       cd ./src
       cabal sandbox init
-      while read -r SRC
+
+      ${code}
+      for VAL in "''${extraSources[@]}"
       do
-        cabal sandbox add-source --snapshot "$SRC"
-      done < <(echo "$extraSources")
+        cabal sandbox add-source --snapshot "$VAL"
+      done
 
       GOT=$(cabal install --dry-run           \
                           --enable-tests      \
