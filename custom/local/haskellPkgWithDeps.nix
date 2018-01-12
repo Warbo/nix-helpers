@@ -1,7 +1,8 @@
 { cabalField, callPackage, haskell, haskellPkgDeps, lib, pkgs, reverse,
-  runCabal2nix, stableHackageDb, withDeps }:
+  runCabal2nix, runCommand, stableHackageDb, withDeps }:
 
 {
+  delay-failure   ? false,  # Replace eval-time failures with failing derivation
   dir,
   extra-sources   ? [],
   name            ? null,
@@ -13,7 +14,7 @@ with builtins;
 with lib;
 with rec {
   deps = haskellPkgDeps {
-    inherit dir extra-sources hackageContents;
+    inherit delay-failure dir extra-sources hackageContents;
     inherit (hsPkgs) ghc;
     name = pName;
   };
@@ -78,7 +79,27 @@ with rec {
                           hsPkgs //
                  mapAttrs (_: _: null) funcs)
                 deps;
+
+  # The desired package, including tests
+  fullPkg = callPackageWith (pkgs // untested) (getAttr pName funcs) {};
 };
 
-# The desired package, including tests
-callPackageWith (pkgs // untested) (getAttr pName funcs) {}
+if deps.delayedFailure or false
+   then runCommand "failed-${pName}"
+          {
+            inherit (deps) stderr;
+            msg = ''
+              We failed to solve this Haskell package's dependencies. To prevent
+              eval-time problems, the error was delayed to build time, in the
+              form of this failing package.
+
+              Contents of stderr follows.
+            '';
+          }
+          ''
+            set -e
+            echo "$msg"    1>&2
+            echo "$stderr" 1>&2
+            exit 1
+          ''
+   else fullPkg
