@@ -1,10 +1,11 @@
 { cabal-install, cabalField, dropWhile, fail, haskell, jq, lib,
   nixListToBashArray, reverse, runCommand, stableHackageDb, stringAsList,
-  utillinux }:
+  utillinux, writeScript }:
 
 with lib;
 
 {
+  delay-failure   ? false,  # Replace eval-time failures with failing derivation
   dir,
   extra-sources   ? [],
   hackageContents ? stableHackageDb,
@@ -20,6 +21,14 @@ with rec {
     (env // {
       inherit dir hackageContents;
       buildInputs  = [ cabal-install fail ghc jq utillinux ];
+      delayFailure = if delay-failure then "true" else "false";
+      failFile     = writeScript "delayed-failure.nix" ''
+        with builtins;
+        {
+          delayedFailure = true;
+          stderr         = readFile ./ERR;
+        }
+      '';
     })
     ''
       set -e
@@ -47,19 +56,28 @@ with rec {
       GOT=$(cabal install --dry-run           \
                           --reorder-goals     \
                           --enable-tests      \
-                          --enable-benchmarks) || {
-        echo "$GOT" 1>&2
-        echo "Error listing cabal dependencies" 1>&2
-        exit 1
+                          --enable-benchmarks 2> >(tee ERR)) || {
+        if "$delayFailure"
+        then
+          mkdir "$out"
+          cp ERR "$out/ERR"
+          cp "$failFile" "$out/default.nix"
+          exit 0
+        else
+          echo "$GOT" 1>&2
+          echo "Error listing cabal dependencies" 1>&2
+          exit 1
+        fi
       }
 
       MSG='the following would be installed'
       L=$(echo "$GOT" | grep -A 9999999 "$MSG" | tail -n+2 | tr -d ' ' |
           cut -d '(' -f1)
 
-      echo '['                            >  "$out"
-        echo "$L" | head -n-1 | jq -R '.' >> "$out"
-      echo ']'                            >> "$out"
+      mkdir "$out"
+      echo '['                            >  "$out/default.nix"
+        echo "$L" | head -n-1 | jq -R '.' >> "$out/default.nix"
+      echo ']'                            >> "$out/default.nix"
     '');
 
   extrasMap = listToAttrs (map (dir: {
@@ -85,4 +103,6 @@ with rec {
                               else "cabal://${dep}")
                      deps;
 };
-replacedDeps ++ [ dir ]
+if deps.delayedFailure or false
+   then deps
+   else replacedDeps ++ [ dir ]
