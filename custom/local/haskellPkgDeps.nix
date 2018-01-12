@@ -17,7 +17,7 @@ with rec {
   inherit (nixListToBashArray { name = "extraSources"; args = extra-sources; })
           env code;
 
-  deps = import (runCommand "haskell-${name}-deps.nix"
+  deps = import (runCommand "haskell-${name}-deps"
     (env // {
       inherit dir hackageContents;
       buildInputs  = [ cabal-install fail ghc jq utillinux ];
