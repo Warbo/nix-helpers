@@ -1,4 +1,4 @@
-{ buildEnv, fail, fetchFromGitHub, jq, mkBin, nixpkgs1609, python, runCommand,
+{ buildEnv, fail, fetchFromGitHub, jq, mkBin, nixpkgs1609, python, runCmd,
   stdenv, withDeps, writeScript }:
 
 { rev    ? "c008e28",
@@ -56,7 +56,7 @@ with rec {
     '';
   };
 
-  test = runCommand "test-stablehackage"
+  test = runCmd "test-stablehackage"
     {
       buildInputs = [ cmd nixpkgs1609.cabal-install nixpkgs1609.ghc ];
     }
@@ -82,27 +82,27 @@ rec {
 
   installer = withDeps [ test ] cmd;
 
-  installed = runCommand "stable-hackage-db" { buildInputs = [ installer ]; } ''
+  installed = runCmd "stable-hackage-db" { buildInputs = [ installer ]; } ''
     mkdir -p "$out"
     HOME="$out" makeCabalConfig
   '';
 
-  versionsDrv  = runCommand "hackage-package-versions" { inherit archive; } ''
+  versionsDrv = runCmd "hackage-package-versions" { inherit archive; } ''
     tar tf "$archive" | grep -o '^[^/]*/[^/]*/' |
                         sed  -e 's@/$@@g'       |
                         sed  -e 's@/@\t@g'      |
                         sort -u > "$out"
   '';
 
-  availableDrv = runCommand "hackage-package-names" { inherit versionsDrv; } ''
+  availableDrv = runCmd "hackage-package-names" { inherit versionsDrv; } ''
     cut -f1 < "$versionsDrv" | uniq > "$out"
   '';
 
-  versions  = import (runCommand "hackage-package-versions.nix"
+  versions = import (runCmd "hackage-package-versions.nix"
     {
       inherit versionsDrv;
       buildInputs = [ python ];
-      script = writeScript "version-gatherer.py" ''
+      script      = writeScript "version-gatherer.py" ''
         #!/usr/bin/env python
         import sys
 
