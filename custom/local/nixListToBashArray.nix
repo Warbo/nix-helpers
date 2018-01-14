@@ -17,7 +17,7 @@
 # single array (in this case, called "x")
 
 # Take lib from nixpkgs1609, since other versions (e.g. 1603) mess up escaping
-{ nixpkgs1609, nothing, runCommand }:
+{ nixpkgs1609, nothing, runCmd }:
 
 with builtins;
 with nixpkgs1609.lib;
@@ -80,7 +80,7 @@ with rec {
     with rec {
       context = env;
 
-      check = runCommand "check-NLTBA.nix" context ''
+      check = runCmd "check-NLTBA.nix" context ''
         function fail() {
           echo -e "$*" 1>&2
           exit 1
