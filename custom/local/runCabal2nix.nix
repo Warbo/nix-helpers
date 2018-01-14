@@ -1,4 +1,4 @@
-{ cabal2nix, glibcLocales, latestGit, lib, runCommand, stable, stableHackageDb,
+{ cabal2nix, glibcLocales, latestGit, lib, runCmd, stable, stableHackageDb,
   withNix }:
 
 with builtins;
@@ -20,7 +20,7 @@ with lib;
   packageDb ? stableHackageDb
 }:
 
-runCommand "run-cabal2nix${if name == "" then "" else "-${name}"}"
+runCmd "run-cabal2nix${if name == "" then "" else "-${name}"}"
   (withNix {
     inherit packageDb;
     buildInputs = [ cabal2nix ];
