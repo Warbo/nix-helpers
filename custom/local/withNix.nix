@@ -5,7 +5,7 @@
 
 with builtins;
 attrs: attrs // {
-  buildInputs = (attrs.buildInputs or []) ++ [ nix ];
+  buildInputs = (attrs.buildInputs or []) ++ [ nix.out ];
   NIX_PATH    = if getEnv "NIX_PATH" == ""
                    then "nixpkgs=${<nixpkgs>}"
                    else getEnv "NIX_PATH";
