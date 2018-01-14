@@ -1,3 +1,3 @@
-{ runCommand }:
+{ runCmd }:
 
-name: runCommand "dummy-build-${name}" {} ''mkdir "$out"''
+name: runCmd "dummy-build-${name}" {} ''mkdir "$out"''
