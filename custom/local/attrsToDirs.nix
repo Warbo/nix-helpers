@@ -1,7 +1,7 @@
 # Builds a directory whose entries/content correspond to the names/values of
 # the given attrset. When a value is an attrset, the corresponding entry is
 # a directory, whose contents is generated with attrsToDirs on that value.
-{ isPath, lib, nixListToBashArray, nothing, runCommand }:
+{ isPath, lib, nixListToBashArray, nothing, runCmd }:
 
 with builtins;
 with lib;
@@ -34,7 +34,7 @@ attrs:
   };
   if attrs == {}
      then nothing
-     else runCommand "merged" (pathData.env // contentData.env) ''
+     else runCmd "merged" (pathData.env // contentData.env) ''
             ${pathData.code}
             ${contentData.code}
 
