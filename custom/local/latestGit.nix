@@ -11,7 +11,7 @@
 #
 # TODO: This duplicates some functionality of fetchgitrevision; wait for that
 # API to settle down, then use it here.
-{ cacert, fetchGitHashless, git, lib, nixpkgs1709, runCommand, sanitiseName,
+{ cacert, fetchGitHashless, git, lib, nixpkgs1709, runCmd, sanitiseName,
   stable }:
 with builtins // lib // { configIsStable = stable; };
 
@@ -52,7 +52,7 @@ with rec {
   keyRev = getEnv "nix_git_rev_${key}";
 
   # Get the commit ID for the given ref in the given repo. Takes a few seconds.
-  newRev = import (runCommand "repo-${sanitiseName ref}-${sanitiseName url}"
+  newRev = import (runCmd "repo-${sanitiseName ref}-${sanitiseName url}"
     {
       inherit ref url;
       cacheBuster    = toString currentTime;
