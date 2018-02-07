@@ -11,7 +11,7 @@
 #
 # TODO: This duplicates some functionality of fetchgitrevision; wait for that
 # API to settle down, then use it here.
-{ cacert, fetchGitHashless, git, lib, nixpkgs1709, runCmd, sanitiseName,
+{ cacert, fetchGitHashless, git, lib, repo1709, runCmd, sanitiseName, self,
   stable }:
 with builtins // lib // { configIsStable = stable; };
 
@@ -20,10 +20,12 @@ with builtins // lib // { configIsStable = stable; };
 { url, ref ? "HEAD", stable ? {} }@args:
 
 with rec {
-  # In stable mode, we use the rev and sha256 hard-coded in 'stable'. We always
-  # use fetchgit from nixpkgs1709 since there was a change in 2016 which changed
-  # the hashes, and it's painful trying to handle both versions.
-  stableRepo = nixpkgs1709.fetchgit {
+  # We always use fetchgit from nixpkgs 17.09 since there was a change in 2016
+  # which changed the hashes, and it's painful trying to handle both versions.
+  fetchgit = self.callPackage "${repo1709}/pkgs/build-support/fetchgit" {};
+
+  # In stable mode, we use the rev and sha256 hard-coded in 'stable'.
+  stableRepo = fetchgit {
     inherit url;
     inherit (stable) rev sha256;
   };
