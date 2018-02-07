@@ -1,10 +1,12 @@
-{ jq, lib, nixpkgs1609, nixListToBashArray, python, runCommand, withArgsOf,
-  withDeps, writeScript }:
+{ jq, lib, makeSetupHook, nixListToBashArray, python, repo1609, runCommand,
+  withArgsOf, withDeps, writeScript }:
 
 with builtins;
 with lib;
 with rec {
-  inherit (nixpkgs1609) makeWrapper;
+  # Load makeWrapper from 16.09 so that it has known behaviour w.r.t. quoting,
+  # etc.
+  makeWrapper = makeSetupHook {} "${repo1609}/pkgs/build-support/setup-hooks/make-wrapper.sh";
 
   checks = varChk // depChk // wrapChk;
 
