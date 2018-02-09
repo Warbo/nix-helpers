@@ -51,6 +51,33 @@ with rec {
                            })
                            deps);
 
+  # Check which arguments are system libraries (e.g. pkgs.zlib rather than
+  # haskellPackages.zlib)
+  findSysLibs = f:
+    with rec {
+      args = attrNames (functionArgs f);
+      vals = genAttrs args (x: x) // {
+        mkDerivation = x: x.librarySystemDepends or [];
+      };
+    };
+    if args == {} then [] else f vals;
+
+  callAppropriately = self: arg:
+    with rec {
+      f     =      if isFunction arg
+                      then f
+              else if isDerivation arg
+                      then import arg
+              else if isPath arg
+                      then import arg
+                      else arg;
+
+      zpkgs = pkgs // (if useOldZlib then { zlib = oldZlib; } else {});
+
+      sys   = genAttrs (findSysLibs f) (n: getAttr n zpkgs);
+    };
+    self.callPackage f sys;
+
   # https://github.com/haskell/zlib/issues/11
   oldZlib = self.callPackage "${repo1609}/pkgs/development/libraries/zlib" {};
 };
@@ -59,13 +86,5 @@ if deps.delayedFailure or false
    then deps
    else hsPkgs.override {
      overrides = self: super:
-       mapAttrs (_: p: haskell.lib.dontCheck (self.callPackage p {})) funcs //
-       (if funcs ? zlib
-           then
-             {
-               zlib = self.callPackage funcs.zlib {
-                 zlib = if useOldZlib then oldZlib else pkgs.zlib;
-               };
-           }
-           else {});
+       mapAttrs (_: p: haskell.lib.dontCheck (callAppropriately self p)) funcs;
    }
