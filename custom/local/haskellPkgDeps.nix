@@ -1,5 +1,5 @@
 { cabal-install, cabalField, dropWhile, fail, haskell, jq, lib,
-  nixListToBashArray, nixpkgs1609, reverse, runCommand, stableHackageDb,
+  nixListToBashArray, nixpkgs1703, reverse, runCommand, stableHackageDb,
   stringAsList, utillinux, writeScript }:
 
 with lib;
@@ -20,7 +20,7 @@ with rec {
   deps = import (runCommand "haskell-${name}-deps"
     (env // {
       inherit dir hackageContents;
-      buildInputs  = [ nixpkgs1609.cabal-install fail ghc jq utillinux ];
+      buildInputs  = [ nixpkgs1703.cabal-install fail ghc jq utillinux ];
       delayFailure = if delay-failure then "true" else "false";
       failFile     = writeScript "delayed-failure.nix" ''
         with builtins;
