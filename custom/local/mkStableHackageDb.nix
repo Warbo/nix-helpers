@@ -1,8 +1,8 @@
 { buildEnv, fail, fetchFromGitHub, jq, mkBin, nixpkgs1609, python, runCmd,
   stdenv, withDeps, writeScript }:
 
-{ rev    ? "c5d1a03",
-  sha256 ? "18m1l1nlshbn0r0x5a5n89brvsc4jb2g4z9xpiyvn9cgaqh95pf6" }:
+{ rev    ? "c008e28",
+  sha256 ? "0kfcc7dw6sahgkv130r144pfjsxwzq8h479fw866nf875frvpblz" }:
 
 with builtins;
 with rec {
