@@ -1,4 +1,4 @@
-{ cabalField, callPackage, haskell, haskellPkgDeps, lib, pkgs, reverse,
+{ cabalField, callPackage, haskell, haskellPkgDepSet, lib, pkgs, reverse,
   runCabal2nix, runCommand, stableHackageDb, withDeps }:
 
 {
