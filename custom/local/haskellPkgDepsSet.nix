@@ -1,5 +1,5 @@
-{ cabalField, callPackage, haskell, haskellPkgDeps, lib, pkgs, reverse,
-  runCabal2nix, runCommand, stableHackageDb, withDeps }:
+{ cabalField, callPackage, haskell, haskellPkgDeps, lib, pkgs, repo1609,
+  reverse, runCabal2nix, runCommand, self, stableHackageDb, withDeps }:
 
 {
   delay-failure   ? false,  # Replace eval-time failures with failing derivation
@@ -7,7 +7,8 @@
   extra-sources   ? [],
   name            ? null,
   hackageContents ? stableHackageDb,
-  hsPkgs
+  hsPkgs,
+  useOldZlib      ? false  # C zlib >= 1.2.9 may break Haskell zlib
 }:
 
 with builtins;
@@ -49,6 +50,9 @@ with rec {
                              value = runCabal2nix { inherit name url; };
                            })
                            deps);
+
+  # https://github.com/haskell/zlib/issues/11
+  oldZlib = self.callPackage "${repo1609}/pkgs/development/libraries/zlib" {};
 };
 
 if deps.delayedFailure or false
@@ -57,6 +61,11 @@ if deps.delayedFailure or false
      overrides = self: super:
        mapAttrs (_: p: haskell.lib.dontCheck (self.callPackage p {})) funcs //
        (if funcs ? zlib
-           then { zlib = self.callPackage funcs.zlib { inherit (pkgs) zlib; }; }
+           then
+             {
+               zlib = self.callPackage funcs.zlib {
+                 zlib = if useOldZlib then oldZlib else pkgs.zlib;
+               };
+           }
            else {});
    }
