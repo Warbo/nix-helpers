@@ -10,12 +10,19 @@ toFail: stdenv.lib.overrideDerivation toFail (old: {
       exit 1
     fi
 
-    echo "shouldFail: ${old.name} failed to build, as we expected" 1>&2
-    if [[ -e "$out" ]]
-    then
-      echo "Cleaning up after build" 1>&2
-      "${coreutils}/bin/rm" -r "$out"
-    fi
-    echo "Failed as expected" > "$out"
+    echo "isBroken: ${old.name} failed to build, as we expected" 1>&2
+
+    echo "Generating outputs [$outputs] to appease Nix" 1>&2
+    for O_STRING in $outputs
+    do
+      O_PATH="${"$" + "{!O_STRING}"}"
+      if [[ -e "$O_PATH" ]]
+      then
+        echo "Cleaning up '$O_PATH' after build" 1>&2
+        "${coreutils}/bin/rm" -rf "$O_PATH"
+      fi
+
+      echo "Failed as expected" > "$O_PATH"
+    done
   '';
 })
