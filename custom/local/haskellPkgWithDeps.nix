@@ -1,4 +1,4 @@
-{ cabalField, callPackage, haskell, haskellPkgDepSet, lib, pkgs, reverse,
+{ cabalField, callPackage, haskell, haskellPkgDepsSet, lib, pkgs, reverse,
   runCabal2nix, runCommand, stableHackageDb, withDeps }:
 
 {
@@ -7,14 +7,15 @@
   extra-sources   ? [],
   name            ? null,
   hackageContents ? stableHackageDb,
-  hsPkgs
+  hsPkgs,
+  useOldZlib ? false
 }:
 
 with builtins;
 with lib;
 with rec {
-  deps = haskellPkgDepSet {
-    inherit delay-failure dir extra-sources hackageContents hsPkgs;
+  deps = haskellPkgDepsSet {
+    inherit delay-failure dir extra-sources hackageContents hsPkgs useOldZlib;
     name = pName;
   };
 
