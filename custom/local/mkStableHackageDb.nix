@@ -1,4 +1,4 @@
-{ buildEnv, curl, fail, fetchFromGitHub, gzip, jq, mkBin, nixpkgs1709, python,
+{ buildEnv, curl, fail, fetchFromGitHub, gzip, jq, mkBin, nixpkgs1603, python,
   runCmd, stdenv, withDeps, writeScript }:
 
 {
@@ -7,9 +7,6 @@
 
   # Hash for all-cabal-files revision
   sha256 ? "1b0kgfncc5gh50k3pj1mk7cqpj9mdw67iqwxpkvy6r9dl0xwin61",
-
-  # How many bytes to fetch of 01-index.tar.gz (find using 'wget --spider')
-  size   ? 68265585
 }:
 
 with builtins;
@@ -48,35 +45,11 @@ with rec {
     '';
   };
 
-  index01 = runCmd "01-index.tar.gz"
-    {
-      SSL_CERT_FILE = /etc/ssl/certs/ca-bundle.crt;
-      buildInputs   = [ curl gzip ];
-      size          = toString (size - 1);  # Since it's 0 indexed
-      url           = https://hackage.haskell.org/01-index.tar.gz;
-    }
-    ''
-      # Downloading this index from hackage is really finicky, so we do a whole
-      # bunch of retries to try and make it work
-      FINISHED=0
-      for retry in $(seq 1 20)
-      do
-        # We can't use -C - to resume, since the Hackage server doesn't support
-        # resuming downloads (yet they serve incremental tarballs??!)
-        # -OJ writes to a file named from the URL, or header if given
-        # -r 0-N will stop after N bytes
-        curl -OJ -r 0-"$size" "$url" > "$out"|| continue
-        FINISHED=1
-        break
-      done
-      [[ "$FINISHED" -eq 1 ]] || exit 1
-    '';
-
   # Command to install repo cache into ~/.cabal
   cmd = mkBin {
     name   = "makeCabalConfig";
     paths  = [ fail ];
-    vars   = { inherit archive index01; };
+    vars   = { inherit archive; };
     script = ''
       #!/usr/bin/env bash
       [[ -e "$HOME" ]] || fail "makeCabalConfig needs a HOME to put config into"
@@ -86,15 +59,12 @@ with rec {
 
       TARGET=$(readlink -f "$archive")
       cp "$TARGET" "$DIR/00-index.tar"
-
-      INDEX=$(readlink -f "$index01")
-      gunzip < "$INDEX" > "$DIR/01-index.tar"
     '';
   };
 
   test = runCmd "test-stablehackage"
     {
-      buildInputs = [ cmd nixpkgs1709.cabal-install nixpkgs1709.ghc ];
+      buildInputs = [ cmd nixpkgs1603.cabal-install nixpkgs1603.ghc ];
     }
     ''
       set -e
@@ -108,14 +78,6 @@ with rec {
       echo "Testing install into a sandbox" 1>&2
       cabal sandbox init
       cabal install list-extras
-
-      echo "Testing new-*" 1>&2
-      mkdir pkg
-      pushd pkg
-        cabal get text
-        cabal new-configure
-        cabal new-build
-      popd
 
       echo pass > "$out"
     '';
