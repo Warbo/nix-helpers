@@ -1,8 +1,8 @@
-{ cabal-install, runCommand }:
+{ cabal-install, hackageTimestamp, runCommand }:
 
 runCommand "get-hackagedb"
   {
-    cacheBuster = builtins.currentTime / (60 * 60 * 24);
+    cacheBuster = builtins.toString hackageTimestamp;
     buildInputs = [ cabal-install ];
   }
   ''
