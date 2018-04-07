@@ -1,5 +1,5 @@
 { cabalField, callPackage, haskell, haskellPkgDepsSet, lib, pkgs, reverse,
-  runCabal2nix, runCommand, stableHackageDb, withDeps }:
+  runCommand, stableHackageDb, withDeps }:
 
 {
   delay-failure   ? false,  # Replace eval-time failures with failing derivation
