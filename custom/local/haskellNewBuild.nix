@@ -1,5 +1,5 @@
-{ cabal-install, cabalField, die, fail, ghc, hackageDb, hackageTimestamp,
-  hasBinary, installHackage, replace, runCommand, withDeps }:
+{ attrsToDirs, cabal-install, cabalField, die, fail, ghc, hackageDb,
+  hackageTimestamp, hasBinary, installHackage, replace, runCommand, withDeps }:
 
 with builtins;
 with rec {
@@ -41,11 +41,12 @@ with rec {
                                      else dir;
 
   build = {
-    dir       ? null,
-    pkg       ? null,
-    name      ? null,
-    ghc       ? defaultGhc,
-    timestamp ? hackageTimestamp
+    dir          ? null,
+    extra-inputs ? [],
+    pkg          ? null,
+    name         ? null,
+    ghc          ? defaultGhc,
+    timestamp    ? hackageTimestamp
   }@args:
 
     assert isInt timestamp || die {
@@ -59,7 +60,7 @@ with rec {
     runCommand "new-build-${pName args}"
       {
         src         = src args;
-        buildInputs = [ cabal-install ghc (putHkg args) ];
+        buildInputs = [ cabal-install ghc (putHkg args) ] ++ extra-inputs;
         timestamp   = toString timestamp;
       }
       ''
