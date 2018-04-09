@@ -3,10 +3,10 @@
 
 {
   # Git revision for all-cabal-files repo
-  rev    ? "856d840",
+  rev    ? "c008e28",
 
   # Hash for all-cabal-files revision
-  sha256 ? "1b0kgfncc5gh50k3pj1mk7cqpj9mdw67iqwxpkvy6r9dl0xwin61",
+  sha256 ? "0kfcc7dw6sahgkv130r144pfjsxwzq8h479fw866nf875frvpblz"
 }:
 
 with builtins;
@@ -56,7 +56,6 @@ with rec {
 
       DIR="$HOME/.cabal/packages/hackage.haskell.org"
       mkdir -p "$DIR"
-
       TARGET=$(readlink -f "$archive")
       cp "$TARGET" "$DIR/00-index.tar"
     '';
