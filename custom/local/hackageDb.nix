@@ -1,9 +1,9 @@
-{ cabal-install, hackageTimestamp, runCommand }:
+{ cabal-install2, hackageTimestamp, runCommand }:
 
 runCommand "get-hackagedb"
   {
     cacheBuster = builtins.toString hackageTimestamp;
-    buildInputs = [ cabal-install ];
+    buildInputs = [ cabal-install2 ];
   }
   ''
     mkdir "$out"
