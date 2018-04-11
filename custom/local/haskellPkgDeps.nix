@@ -95,11 +95,14 @@ with rec {
                                extra-sources);
 
   # Takes 'foo-bar-1.2.3' and returns 'foo-bar'
-  removeVersion = stringAsList
-                    (chars: reverse                             # Restore order
-                              (tail                             # Drop '-'
-                                (dropWhile (c: c != "-")        # Drop up to '-'
-                                           (reverse chars))));  # Start at end
+  removeVersion =
+    stringAsList
+      (chars: if elem "-" chars
+                 then reverse                           # Restore order
+                        (tail                           # Drop '-'
+                          (dropWhile (c: c != "-")      # Drop up to '-'
+                                     (reverse chars)))  # Start at end
+                 else chars);
 
   # If a dependency comes from extra-sources, use its path; otherwise prefix
   # with "cabal://" so cabal2nix will fetch from Hackage.
