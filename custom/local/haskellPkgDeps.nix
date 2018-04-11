@@ -17,7 +17,12 @@ with rec {
   inherit (nixListToBashArray { name = "extraSources"; args = extra-sources; })
           env code;
 
-  deps = import (runCommand "haskell-${name}-deps"
+  deps = import depsDrv;
+
+  # Keep this as a standalone derivation, rather than importing it directly, so
+  # that we can add it as a dependency of our outputs. That way it won't get
+  # garbage collected until our outputs are.
+  depsDrv = runCommand "haskell-${name}-deps"
     (env // {
       inherit dir hackageContents;
       buildInputs  = [ nixpkgs1703.cabal-install fail ghc jq utillinux ];
@@ -78,7 +83,7 @@ with rec {
       echo '['                            >  "$out/default.nix"
         echo "$L" | head -n-1 | jq -R '.' >> "$out/default.nix"
       echo ']'                            >> "$out/default.nix"
-    '');
+    '';
 
   extrasMap = listToAttrs (map (dir: {
                                  name = cabalField {
@@ -103,6 +108,9 @@ with rec {
                               else "cabal://${dep}")
                      deps;
 };
-if deps.delayedFailure or false
-   then deps
-   else replacedDeps ++ [ dir ]
+{
+  gcRoots = [ depsDrv ];
+  deps    = if deps.delayedFailure or false
+               then deps
+               else replacedDeps ++ [ dir ];
+}
