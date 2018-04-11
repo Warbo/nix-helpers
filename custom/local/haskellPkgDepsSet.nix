@@ -14,11 +14,11 @@
 with builtins;
 with lib;
 with rec {
-  deps = haskellPkgDeps {
+  inherit (haskellPkgDeps {
     inherit delay-failure dir extra-sources hackageContents;
     inherit (hsPkgs) ghc;
     name = pName;
-  };
+  }) deps gcRoots;
 
   dropUntil = pred: xs: if xs == []
                            then xs
@@ -80,11 +80,18 @@ with rec {
 
   # https://github.com/haskell/zlib/issues/11
   oldZlib = self.callPackage "${repo1609}/pkgs/development/libraries/zlib" {};
+
+  allGCRoots = gcRoots ++ (attrValues funcs);
+
+  overriddenHsPkgs = hsPkgs.override {
+    overrides = self: super:
+      mapAttrs (_: p: haskell.lib.dontCheck (callAppropriately self p)) funcs;
+  };
 };
 
-if deps.delayedFailure or false
-   then deps
-   else hsPkgs.override {
-     overrides = self: super:
-       mapAttrs (_: p: haskell.lib.dontCheck (callAppropriately self p)) funcs;
-   }
+{
+  gcRoots = allGCRoots;
+  hsPkgs  = if deps.delayedFailure or false
+               then deps
+               else overriddenHsPkgs;
+}
