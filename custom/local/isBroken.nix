@@ -13,6 +13,7 @@ toFail: stdenv.lib.overrideDerivation toFail (old: {
     echo "isBroken: ${old.name} failed to build, as we expected" 1>&2
 
     echo "Generating outputs [$outputs] to appease Nix" 1>&2
+    MADE=0
     for O_STRING in $outputs
     do
       O_PATH="${"$" + "{!O_STRING}"}"
@@ -23,6 +24,11 @@ toFail: stdenv.lib.overrideDerivation toFail (old: {
       fi
 
       echo "Failed as expected" > "$O_PATH"
+      MADE=$(( MADE + 1 ))
     done
+    [[ "$MADE" -gt 0 ]] || {
+      echo "Didn't spot any outputs, attempting to make 'out' ($out)" 1>&2
+      echo "Failed as expected" > "$out"
+    }
   '';
 })
