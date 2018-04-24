@@ -1,5 +1,5 @@
-{ buildEnv, curl, fail, fetchFromGitHub, gzip, jq, mkBin, nixpkgs1603, python,
-  runCmd, stdenv, withDeps, writeScript }:
+{ buildEnv, curl, fail, fetchFromGitHub, gzip, isBroken, jq, latest, mkBin,
+  nixpkgs1603, python, runCmd, self, stdenv, withDeps, writeScript }:
 
 {
   # Git revision for all-cabal-files repo
@@ -61,31 +61,59 @@ with rec {
     '';
   };
 
-  test = runCmd "test-stablehackage"
-    {
-      buildInputs = [ cmd nixpkgs1603.cabal-install nixpkgs1603.ghc ];
-    }
-    ''
-      set -e
-      echo "Making config" 1>&2
-      export HOME="$PWD"
-      makeCabalConfig
+  testScript = ''
+    set -e
+    echo "Making config" 1>&2
+    export HOME="$PWD"
+    makeCabalConfig
 
-      echo "Testing non-sandboxed install" 1>&2
-      cabal install list-extras
+    echo "Testing non-sandboxed install" 1>&2
+    cabal install list-extras
 
-      echo "Testing install into a sandbox" 1>&2
-      cabal sandbox init
-      cabal install list-extras
+    echo "Testing install into a sandbox" 1>&2
+    cabal sandbox init
+    cabal install list-extras
 
-      echo pass > "$out"
-    '';
+    echo pass > "$out"
+  '';
+
+  cmdWithCabal =
+    with rec {
+      both = buildEnv {
+        name = "cabal-with-stable-hackage";
+        paths = [ cmd nixpkgs1603.cabal-install ];
+      };
+
+      latestStable   = getAttr latest self;
+
+      tryLatestCabal = runCmd "try-latest-cabal"
+        {
+          buildInputs = [ latestStable.cabal-install cmd latestStable.ghc ];
+          message     = ''
+            Checking whether stableHackage works with cabal-install from latest
+            nixpkgs (${latest}), i.e. whether we still need to use nixpkgs1603.
+          '';
+        }
+        ''
+          echo "$message" 1>&2
+          ${testScript}
+        '';
+    };
+    withDeps [ (isBroken tryLatestCabal) ] both;
+
+  test = given:
+    with {
+      check = runCmd "test-stablehackage"
+                     { buildInputs = [ given nixpkgs1603.ghc ]; }
+                     testScript;
+    };
+    withDeps [ check ] given;
 };
 
 rec {
   inherit archive;
 
-  installer = withDeps [ test ] cmd;
+  installer = test cmdWithCabal;
 
   installed = runCmd "stable-hackage-db" { buildInputs = [ installer ]; } ''
     mkdir -p "$out"
