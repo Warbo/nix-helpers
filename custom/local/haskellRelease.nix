@@ -69,9 +69,9 @@ with rec {
     # FIXME: This should use <nix-config> and <nixpkgs> if available, rather
     # than hard-coding ../..
     # Defines builds for (kept) Haskell versions for (kept) nixpkgs versions
-    writeScript "${name}-release.nix" ''
+    writeScript "${pName}-release.nix" ''
       with import ${../..} {};
-      with { go = import ${pkgExpr { inherit dir name; }}; };
+      with { go = import ${pkgExpr { inherit dir; name = pName; }}; };
       {
         ${concatStringsSep "\n"
             (map (buildForNixpkgs nixKeep (buildForHaskell haskellKeep))
