@@ -68,7 +68,7 @@ with rec {
                       then f
               else if isDerivation arg
                       then import arg
-              else if isPath arg
+              else if typeOf arg == "path"
                       then import arg
                       else arg;
 
