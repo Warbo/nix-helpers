@@ -28,6 +28,11 @@ toFail: stdenv.lib.overrideDerivation toFail (old: {
     done
     [[ "$MADE" -gt 0 ]] || {
       echo "Didn't spot any outputs, attempting to make 'out' ($out)" 1>&2
+      if [[ -e "$out" ]]
+      then
+        echo "Cleaning up 'out' after build" 1>&2
+        "${coreutils}/bin/rm" -rf "$out"
+      fi
       echo "Failed as expected" > "$out"
     }
   '';
