@@ -54,6 +54,11 @@ with rec {
           fail "Didn't spot a build plan"
           exit 1
         }
+        if echo "$L" | grep '^Warning:' > /dev/null
+        then
+          L=$(echo "$L" | grep -B 9999999 '^Warning:' | head -n-1)
+        fi
+        L=$(echo "$L" | cut -d ' ' -f1)
 
         function getNames {
           rev | cut -d '-' -f 2- | rev
@@ -112,12 +117,14 @@ with rec {
         done
       '';
 
-  test = go {
-    cabal-args = [];
-    dir        = unpack haskellPackages.text.src;
-    name       = "text";
+  tests = {
+    # A widely used Haskell package; see if it works
+    text = go {
+      cabal-args = [];
+      dir        = unpack haskellPackages.text.src;
+      name       = "text";
+    } // { name = "haskellPkgDepsDrv-test"; };
   };
 };
 
-args: withDeps [ (test // { name = "haskellPkgDepsDrv-test"; }) ]
-               (go args)
+args: withDeps (attrValues tests) (go args)
