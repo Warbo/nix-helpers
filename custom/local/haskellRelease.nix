@@ -1,16 +1,18 @@
 # Useful for release.nix files in Haskell projects
-{ customised, fail, haskellPkgDepsDrv, latest, lib, nix, runCabal2nix,
-  runCommand, self, unpack, withDeps, withNix, writeScript }:
+{ cabalField, customised, fail, haskellPkgDepsDrv, lib, nix, runCabal2nix,
+  runCommand, self, stableVersion, unpack, withDeps, withNix, writeScript }:
 
 with builtins;
 with lib;
 with rec {
+  getNix = v: getAttr v (self // { inherit (customised) unstable; });
+
   # Make the nixVersion attr (if kept) a set of all its Haskell versions
   buildForNixpkgs = keep: hs: nixVersion: if !(keep nixVersion) then "" else ''
     #
       "${nixVersion}" = with ${nixVersion}.haskell; {
         ${concatStringsSep "\n"
-            (map hs (attrNames (getAttr nixVersion self).haskell.packages))}
+            (map hs (attrNames (getNix nixVersion).haskell.packages))}
       };
     '';
 
@@ -21,13 +23,17 @@ with rec {
   '';
 
   # Defines nixpkgs and hackageb uilds, using a given haskellPackages set
-  pkgExpr = { dir, name }: runCommand "${name}-expr"
+  pkgExpr = { cabal-args ? null, dir, name }: runCommand "${name}-expr"
     {
       # Bare function, which we'll give arguments from the nixpkgs Haskell set
       nixpkgsDeps = runCabal2nix { url = dir; };
 
       # Uses a Cabal sandbox to pick dependencies from (a snapshot of) Hackage
-      hackageDeps = haskellPkgDepsDrv { inherit dir; };
+      hackageDeps = haskellPkgDepsDrv ((if cabal-args == null
+                                           then {}
+                                           else { inherit cabal-args; }) // {
+                                        inherit dir;
+                                      });
 
       default = writeScript "${name}-default.nix" ''
         { haskellPackages }:
@@ -56,6 +62,7 @@ with rec {
     '';
 
   go = {
+    cabal-args  ? null,       # Extra args for 'cabal install'
     dir,                      # Directory of a Haskell project
     name        ? null,       # Taken from .cabal file if not given
     haskellKeep ? (x: true),  # Predicate for which Haskell/GHC versions to use
@@ -66,12 +73,17 @@ with rec {
                  then cabalField { inherit dir; field = "name"; }
                  else name;
     };
-    # FIXME: This should use <nix-config> and <nixpkgs> if available, rather
-    # than hard-coding ../..
+    # FIXME: This should use <nix-config> and <nixpkgs> if available. We could
+    # still use ../.. to access a helper function to make that easier.
     # Defines builds for (kept) Haskell versions for (kept) nixpkgs versions
     writeScript "${pName}-release.nix" ''
       with import ${../..} {};
-      with { go = import ${pkgExpr { inherit dir; name = pName; }}; };
+      with {
+        go = import ${pkgExpr {
+                      inherit cabal-args dir;
+                      name = pName;
+                    }};
+      };
       {
         ${concatStringsSep "\n"
             (map (buildForNixpkgs nixKeep (buildForHaskell haskellKeep))
@@ -83,23 +95,27 @@ with rec {
     with rec {
       name      = "text";
       hsVersion = "ghc802";
-      pkg       = self."${latest}".haskell.packages."${hsVersion}"."${name}";
+      pkg       = attrByPath
+                    [ stableVersion "haskell" "packages" hsVersion name ]
+                    (abort "Missing package")
+                    self;
       result    = go {
         inherit name;
+        cabal-args  = [];  # Avoid tests, to prevent cycles
         dir         = unpack pkg.src;
         haskellKeep = v: v == hsVersion;
-        nixKeep     = v: v == latest;
+        nixKeep     = v: v == stableVersion;
       };
     };
     runCommand "check-haskellRelease"
       (withNix {
-        inherit hsVersion latest result;
+        inherit hsVersion stableVersion result;
         buildInputs = [ fail nix ];
       })
       ''
         function check {
           nix-instantiate --eval --read-write-mode \
-            -E "with builtins // { lhs = $1; rhs = $2; };"'
+            -E "with builtins; with { lhs = $1; rhs = $2; };"'
                 assert lhs == rhs || trace (toJSON { inherit lhs rhs; }) false;
                 true'
         }
@@ -107,14 +123,14 @@ with rec {
         check "typeOf (import $result)" '"set"' ||
           fail "Generated release.nix doen't define a set"
 
-        check "attrNames (import $result)" "[ \"$latest\" ]" ||
-          fail "Set should have one attribute, with the latest name '$latest'"
+        check "attrNames (import $result)" "[ \"$stableVersion\" ]" ||
+          fail "Should have one attribute, with stable name '$stableVersion'"
 
-        check "attrNames (import $result).$latest" "[ \"$hsVersion\" ]" ||
+        check "attrNames (import $result).$stableVersion" "[\"$hsVersion\"]" ||
           fail "Set should have one GHC version, namely '$hsVersion'"
 
-        # FIXME: Check that the hackage and nixpkgs attrs are set
-        # FIXME: Run nix-build on the actual packages
+        # TODO: Check that the hackage and nixpkgs attrs are set
+        # TODO: Run nix-build on the actual packages
 
         mkdir "$out"
       '';
