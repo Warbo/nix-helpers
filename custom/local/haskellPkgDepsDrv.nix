@@ -1,7 +1,8 @@
-{ cabal2nix, cabal2nixCache, cabalField, fail, ghc, haskellPackages, jq, nix,
-  nixpkgs1603, runCommand, stableHackage, unpack, utillinux, withDeps,
-  withNix }:
+{ cabal2nix, cabal2nixCache, cabalField, fail, ghc, glibcLocales,
+  haskellPackages, jq, nix, nixpkgs1603, runCommand, stableHackage, unpack,
+  utillinux, withDeps, withNix }:
 
+with builtins;
 with rec {
   go = {
     cabal-args ? [ "--enable-tests" "--enable-benchmarks" ],
@@ -18,6 +19,10 @@ with rec {
       (withNix {
         inherit cabal2nixCache dir pName;
         buildInputs = [ cabal2nix fail ghc jq nix stableHackage utillinux ];
+
+        # Otherwise cabal2nix dies for accented characters
+        LANG           = "en_US.UTF-8";
+        LOCALE_ARCHIVE = "${glibcLocales}/lib/locale/locale-archive";
       })
       ''
         export HOME="$PWD/home"
