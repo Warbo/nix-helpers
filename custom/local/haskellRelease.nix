@@ -202,7 +202,7 @@ with rec {
       digest = check "digest";
 
       # This depends on the Haskell zlib package, rather than the system one
-      zip-archive = check "zip-archive";
+      zlib-bindings = check "zlib-bindings";
     };
 };
 args: withDeps (attrValues tests) (go args)
