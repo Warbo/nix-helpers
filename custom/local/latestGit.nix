@@ -30,15 +30,13 @@ with rec {
                 }; };
   };
 
+  gitArgs = removeAttrs args [ "ref" "stable" ];
+
   # In stable mode, we use the rev and sha256 hard-coded in 'stable'.
-  stableRepo = fetchgit {
-    inherit url;
-    inherit (stable) rev sha256;
-  };
+  stableRepo = fetchgit (gitArgs // { inherit (stable) rev sha256; });
 
   # In unstable mode, we look up the latest 'rev' dynamically
-  unstableRepo = fetchGitHashless (removeAttrs (args // { inherit rev; })
-                                               [ "ref" "stable" ]);
+  unstableRepo = fetchGitHashless (gitArgs // { inherit rev; });
 
   # 'rev' can be given by the env vars 'REPO_REFS' or 'nix_git_rev_...'. If not
   # found in either, we run 'newRev' to query the URL for the latest version.
