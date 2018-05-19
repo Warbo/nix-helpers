@@ -1,4 +1,4 @@
-{ lib, reverse }:
+{ dummyWithEnv, lib, reverse }:
 
 with lib;
 with rec {
@@ -6,4 +6,12 @@ with rec {
 };
 assert go "hello" == "olleh";
 assert go ""      == "";
-go
+{
+  pkg = go;
+  tests = [
+    (dummyWithEnv {
+      name  = "stringReverse-test";
+      value = stringReverse "foo";
+    })
+  ];
+}
