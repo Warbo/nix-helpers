@@ -53,4 +53,17 @@ with rec {
 
   test = testData.result || abort (toJSON testData);
 };
-assert test; go
+assert test;
+{
+  pkg   = go;
+  tests = [
+    (dummyWithEnv {
+      name  = "setIn-test";
+      value = toJSON (setIn {
+        path  = [ "x" ];
+        value = 1;
+        set   = {};
+      });
+    })
+  ];
+}
