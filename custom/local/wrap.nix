@@ -253,6 +253,19 @@ with rec {
 
         makeWrapper "$f" "$out" "''${ARGS[@]}"
       '';
-};
 
-args: withDeps (attrValues checks) (wrap args)
+  go = args: withDeps (attrValues checks) (wrap args);
+};
+{
+  pkg   = go;
+  tests = [
+    (go {
+      name   = "wrap-test";
+      paths  = [ bash ];
+      vars   = {
+        MY_VAR = "MY VAL";
+      };
+      script = ./wrap.nix;
+    })
+  ];
+}
