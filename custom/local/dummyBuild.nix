@@ -1,3 +1,3 @@
-{ runCmd }:
+{ dummyWithEnv }:
 
-name: runCmd "dummy-build-${name}" {} ''mkdir "$out"''
+name: dummyWithEnv { inherit name; value = ""; }
