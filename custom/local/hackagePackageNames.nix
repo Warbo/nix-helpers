@@ -1,3 +1,8 @@
-{ mkStableHackageDb }:
+{ mkStableHackageDb, nothing }:
 
-(mkStableHackageDb {}).available
+with builtins;
+rec {
+  pkg   = (mkStableHackageDb {}).available;
+  tests = [ (assert typeOf pkg == "list";
+             nothing) ];
+}
