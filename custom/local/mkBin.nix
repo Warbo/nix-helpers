@@ -1,5 +1,5 @@
 # Shorthand for making a script via 'wrap' and installing it to a bin/ directory
-{ attrsToDirs, wrap }:
+{ attrsToDirs, runCommand, wrap }:
 
 with rec {
   go = args: attrsToDirs {
@@ -15,7 +15,6 @@ with rec {
     (runCommand "mkBin-test"
       {
         buildInputs = [
-          fail
           (go {
             name   = "ping";
             script = ''
@@ -27,7 +26,10 @@ with rec {
       }
       ''
         X=$(ping)
-        [[ "x$X" = "xpong" ]] || fail "Output was '$X'"
+        [[ "x$X" = "xpong" ]] || {
+          echo "Output was '$X'" 1>&2
+          exit 1
+        }
         echo pass > "$out"
       '')
   ];
