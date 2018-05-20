@@ -1,14 +1,11 @@
-{ lib }:
+{ lib, runCommand }:
 
 with lib;
-with rec {
-  go = f: s: concatStringsSep "" (f (stringToCharacters s));
-};
-{
-  pkg   = go;
+rec {
+  pkg   = f: s: concatStringsSep "" (f (stringToCharacters s));
   tests = [
-    (runCommand "stringAsList-test"
-      { x = stringAsList (x: x) "hi"; }
-      ''echo pass > "$out"'')
+    (runCommand "stringAsList-test" { x = pkg (x: x) "hi"; } ''
+      echo pass > "$out"
+    '')
   ];
 }
