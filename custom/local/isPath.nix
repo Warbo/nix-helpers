@@ -2,31 +2,28 @@
 
 with builtins;
 with lib;
-with {
-  go = x: typeOf x == "path" || (typeOf x == "string" && hasPrefix "/" x);
-};
-{
-  pkg   = go;
+rec {
+  pkg   = x: typeOf x == "path" || (typeOf x == "string" && hasPrefix "/" x);
   tests = [
     (dummyWithEnv {
       name  = "relativePathIsPath";
-      value = isPath ./isPath.nix;
+      value = pkg ./isPath.nix;
     })
     (dummyWithEnv {
       name  = "absolutePathIsPath";
-      value = isPath /tmp;
+      value = pkg /tmp;
     })
     (dummyWithEnv {
       name  = "pathStringIsPath";
-      value = isPath "/tmp";
+      value = pkg "/tmp";
     })
     (dummyWithEnv {
       name  = "stringIsNotPath";
-      value = !(isPath "foo");
+      value = !(pkg "foo");
     })
     (dummyWithEnv {
       name  = "otherIsNotPath";
-      value = !(isPath 42);
+      value = !(pkg 42);
     })
   ];
 }
