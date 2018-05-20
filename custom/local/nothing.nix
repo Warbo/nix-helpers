@@ -1,2 +1,5 @@
 { dummyBuild }:
-dummyBuild "nothing"
+rec {
+  pkg = dummyBuild "nothing";
+  tests = [ pkg ];
+}
