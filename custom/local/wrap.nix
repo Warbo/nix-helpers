@@ -1,5 +1,5 @@
-{ jq, lib, makeSetupHook, nixListToBashArray, python, repo1609, runCommand,
-  withArgsOf, withDeps, writeScript }:
+{ bash, jq, lib, makeSetupHook, nixListToBashArray, python, repo1609,
+  runCommand, withArgsOf, withDeps, writeScript }:
 
 with builtins;
 with lib;
