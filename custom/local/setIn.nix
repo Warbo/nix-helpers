@@ -1,5 +1,5 @@
 # Add a value somewhere inside a nested set of attributes, based on a path
-{ lib }:
+{ dummyWithEnv, lib }:
 with builtins;
 with lib;
 with rec {
@@ -59,7 +59,7 @@ assert test;
   tests = [
     (dummyWithEnv {
       name  = "setIn-test";
-      value = toJSON (setIn {
+      value = toJSON (go {
         path  = [ "x" ];
         value = 1;
         set   = {};
