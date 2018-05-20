@@ -26,4 +26,8 @@ with rec {
   # We should ignore everything except the derivations ('nothing')
   test = testData.gotLength == testData.shouldLength || abort (toJSON testData);
 };
-assert test; go
+assert test;
+{
+  pkg   = go;
+  tests = go { x = nothing; };
+}
