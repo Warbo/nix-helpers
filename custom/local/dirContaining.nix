@@ -7,16 +7,21 @@
 { mergeDirs, runCommand }:
 
 with builtins;
-base: files:
-  mergeDirs (map (f: runCommand "dir"
-                       {
-                         base = toString base;
-                         file = toString base + "/${f}";
-                       }
-                       ''
-                         REL=$(echo "$file" | sed -e "s@$base/@@g")
-                         DIR=$(dirname "$REL")
-                         mkdir -p "$out/$DIR"
-                         ln -s "$file" "$out/$REL"
-                       '')
-                 files)
+rec {
+  pkg = base: files:
+    mergeDirs (map (f: runCommand "dir"
+                         {
+                           base = toString base;
+                           file = toString base + "/${f}";
+                         }
+                         ''
+                           REL=$(echo "$file" | sed -e "s@$base/@@g")
+                           DIR=$(dirname "$REL")
+                           mkdir -p "$out/$DIR"
+                           ln -s "$file" "$out/$REL"
+                         '')
+                   files);
+  tests = [
+    (pkg ../local [ ../local/dirContaining.nix ])
+  ];
+}
