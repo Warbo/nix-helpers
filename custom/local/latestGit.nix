@@ -38,53 +38,54 @@ with rec {
     with rec {
       gitArgs = removeAttrs args [ "ref" "stable" ];
 
-    # In stable mode, we use the rev and sha256 hard-coded in 'stable'.
-    stableRepo = fetchgit (gitArgs // { inherit (stable) rev sha256; });
+      # In stable mode, we use the rev and sha256 hard-coded in 'stable'.
+      stableRepo = fetchgit (gitArgs // { inherit (stable) rev sha256; });
 
-    # In unstable mode, we look up the latest 'rev' dynamically
-    unstableRepo = fetchGitHashless (gitArgs // { inherit rev; });
+      # In unstable mode, we look up the latest 'rev' dynamically
+      unstableRepo = fetchGitHashless (gitArgs // { inherit rev; });
 
-    # 'rev' can be given by the env vars 'REPO_REFS' or 'nix_git_rev_...'. If not
-    # found in either, we run 'newRev' to query the URL for the latest version.
-    rev = if hasAttr url repoRefs
-             then getAttr url repoRefs
-                  else if keyRev == ""
-                          then newRev
-                          else keyRev;
+      # 'rev' can be given by the env vars 'REPO_REFS' or 'nix_git_rev_...'. If
+      # not found in either, we run 'newRev' to query the URL for the latest
+      # version.
+      rev = if hasAttr url repoRefs
+               then getAttr url repoRefs
+                    else if keyRev == ""
+                            then newRev
+                            else keyRev;
 
-    # The 'REPO_REFS' env var makes it easy to specify a bunch of revs at once
-    repoRefStr = getEnv "REPO_REFS";
-    repoRefs   = if repoRefStr == ""
-                    then {}
-                    else fromJSON repoRefStr;
+      # The 'REPO_REFS' env var makes it easy to specify a bunch of revs at once
+      repoRefStr = getEnv "REPO_REFS";
+      repoRefs   = if repoRefStr == ""
+                      then {}
+                      else fromJSON repoRefStr;
 
-    # The 'nix_git_rev_...' env vars make it easy to specify one individual rev
-    key    = "${hashString "sha256" url}_${hashString "sha256" ref}";
-    keyRev = getEnv "nix_git_rev_${key}";
+      # The 'nix_git_rev_...' env vars make it easy to specify an individual rev
+      key    = "${hashString "sha256" url}_${hashString "sha256" ref}";
+      keyRev = getEnv "nix_git_rev_${key}";
 
-    # Get commit ID for the given ref in the given repo. Takes a few seconds.
-    newRev = import (runCmd "repo-${sanitiseName ref}-${sanitiseName url}"
-      {
-        inherit ref url;
-        cacheBuster    = toString currentTime;
-        GIT_SSL_CAINFO = "${cacert}/etc/ssl/certs/ca-bundle.crt";
-        buildInputs    = [ git ];
-      }
-      ''
-        set -o pipefail
-        # Commit ID is first awk 'field' in the first 'record'. Wrap in quotes.
-        git ls-remote "$url" $ref | awk 'NR==1 {print "\""$1"\""}' > "$out"
-      '');
+      # Get commit ID for the given ref in the given repo. Takes a few seconds.
+      newRev = import (runCmd "repo-${sanitiseName ref}-${sanitiseName url}"
+        {
+          inherit ref url;
+          cacheBuster    = toString currentTime;
+          GIT_SSL_CAINFO = "${cacert}/etc/ssl/certs/ca-bundle.crt";
+          buildInputs    = [ git ];
+        }
+        ''
+          set -o pipefail
+          # Commit ID is first awk 'field' in the first 'record'. Wrap in quotes.
+          git ls-remote "$url" $ref | awk 'NR==1 {print "\""$1"\""}' > "$out"
+        '');
 
-    # Logic for choosing between stable and unstable
-    useStable  = configIsStable && !unsafeSkip;
-    unsafeSkip = stable.unsafeSkip or false;
+      # Logic for choosing between stable and unstable
+      useStable  = configIsStable && !unsafeSkip;
+      unsafeSkip = stable.unsafeSkip or false;
 
-    error = msg: abort (toJSON { inherit msg url ref stable; });
-  };
-  assert useStable -> stable ? rev    || error "No stable rev";
-  assert useStable -> stable ? sha256 || error "No stable sha256";
-  if useStable then stableRepo else unstableRepo;
+      error = msg: abort (toJSON { inherit msg url ref stable; });
+    };
+    assert useStable -> stable ? rev    || error "No stable rev";
+    assert useStable -> stable ? sha256 || error "No stable sha256";
+    if useStable then stableRepo else unstableRepo;
 
   checks =
     with rec {
