@@ -1,5 +1,5 @@
-{ bash, jq, lib, makeSetupHook, nixListToBashArray, python, repo1609,
-  runCommand, withArgsOf, withDeps, writeScript }:
+{ bash, hello, jq, lib, makeSetupHook, nixListToBashArray, python, repo1609,
+  runCommand, stdenv, withArgsOf, withDeps, writeScript }:
 
 with builtins;
 with lib;
@@ -8,7 +8,7 @@ with rec {
   # etc.
   makeWrapper = makeSetupHook {} "${repo1609}/pkgs/build-support/setup-hooks/make-wrapper.sh";
 
-  checks = varChk // depChk // wrapChk;
+  checks = varChk // depChk // wrapChk // propCheck;
 
   # Make sure that derivations given as paths and vars aren't forced during
   # evaluation (only at build time)
@@ -158,6 +158,85 @@ with rec {
       '';
   };
 
+  # Check that propagated dependencies get included
+  propCheck = {
+    oneLevel = runCommand "checkDirectPropagationOfWrappedDeps"
+      {
+        wrapped = wrap {
+          name   = "accessPropagated1";
+          paths  = [
+            (stdenv.mkDerivation {
+              name                  = "dummy";
+              src                   = ./wrap.nix;
+              propagatedBuildInputs = [ hello ];
+              installPhase          = ''mkdir "$out"'';
+              unpackPhase           = "true";
+            })
+          ];
+          script = ''
+            #!/usr/bin/env bash
+            set -e
+            command -v hello || {
+              echo "Program 'hello' not found in PATH ($PATH)" 1>&2
+              exit 1
+            }
+            echo "Found 'hello' command" 1>&2
+            exit 0
+          '';
+        };
+      }
+      ''
+        "$wrapped" || exit 1
+        mkdir "$out"
+      '';
+
+    nested = runCommand "checkNestedPropagationOfWrappedDeps"
+      {
+        wrapped = wrap {
+          name   = "accessPropagated2";
+          paths  = [
+            (stdenv.mkDerivation {
+              name                  = "dummy1";
+              src                   = ./wrap.nix;
+              propagatedBuildInputs = [
+                (stdenv.mkDerivation {
+                  name                  = "dummy2";
+                  src                   = ./wrap.nix;
+                  propagatedBuildInputs = [
+                    (stdenv.mkDerivation {
+                      name                  = "dummy3";
+                      src                   = ./wrap.nix;
+                      propagatedBuildInputs = [ hello ];
+                      installPhase          = ''mkdir "$out"'';
+                      unpackPhase           = "true";
+                    })
+                  ];
+                  installPhase          = ''mkdir "$out"'';
+                  unpackPhase           = "true";
+                })
+              ];
+              installPhase          = ''mkdir "$out"'';
+              unpackPhase           = "true";
+            })
+          ];
+          script = ''
+            #!/usr/bin/env bash
+            set -e
+            command -v hello || {
+              echo "Program 'hello' not found in PATH ($PATH)" 1>&2
+              exit 1
+            }
+            echo "Found 'hello' command" 1>&2
+            exit 0
+          '';
+        };
+      }
+      ''
+        "$wrapped" || exit 1
+        mkdir "$out"
+      '';
+  };
+
   wrap = { paths ? [], vars ? {}, file ? null, script ? null, name ? "wrap" }:
     assert file != null || script != null ||
            abort "wrap needs 'file' or 'script' argument";
@@ -201,7 +280,29 @@ with rec {
         ${pathData.code}
         for P in "''${pathVars[@]}"
         do
+          # Add $P/bin to $PATH
           ARGS=("''${ARGS[@]}" "--prefix" "PATH" ":" "$P/bin")
+
+          # We want 'paths' to act like 'buildInputs', so we also add any paths
+          # from 'propagated build inputs'
+          TODOS=("$P/nix-support/propagated-native-build-inputs" )
+          while [[ "''${#TODOS[@]}" -gt 0 ]]
+          do
+            PROPS="''${TODOS[0]}"
+            TODOS=("''${TODOS[@]:1:''${#TODOS[@]}}" )
+            if [[ -e "$PROPS" ]]
+            then
+              while read -r PROP
+              do
+                ARGS=("''${ARGS[@]}" "--prefix" "PATH" ":" "$PROP/bin")
+                MORE="$PROP/nix-support/propagated-native-build-inputs"
+                if [[ -e "$MORE" ]]
+                then
+                  TODOS=("''${TODOS[@]}" "$MORE")
+                fi
+              done < <(tr ' ' '\n' < "$PROPS")
+            fi
+          done
         done
 
         ${varNameData.code}
@@ -258,14 +359,14 @@ with rec {
 };
 {
   pkg   = go;
-  tests = [
-    (go {
+  tests = checks // {
+    wrap = go {
       name   = "wrap-test";
       paths  = [ bash ];
       vars   = {
         MY_VAR = "MY VAL";
       };
       script = ./wrap.nix;
-    })
-  ];
+    };
+  };
 }
