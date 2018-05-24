@@ -2,6 +2,7 @@
   hackageTimestamp, hasBinary, installHackage, replace, runCommand, withDeps }:
 
 with builtins;
+assert cabal-install2 != null;  # Force cabal-install2 in case it's an exception
 with rec {
   defaultGhc = ghc;
 
