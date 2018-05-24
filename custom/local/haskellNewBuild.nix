@@ -31,8 +31,10 @@ with rec {
       # Fetch source into a standalone directory
       mkdir get
       pushd get
+        echo "Fetching '$pkg' using cabal get" 1>&2
         cabal get "$pkg"
         # Keep result
+        shopt -s nullglob
         mv * "$out"
       popd
     '';
