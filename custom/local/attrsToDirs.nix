@@ -56,7 +56,5 @@ rec {
                 ln -s "''${VALUES[$N]}" "$P"
               done
             '';
-  tests = [
-    (pkg { foo = { bar = ./attrsToDirs.nix; }; })
-  ];
+  tests = pkg { foo = { bar = ./attrsToDirs.nix; }; };
 }
