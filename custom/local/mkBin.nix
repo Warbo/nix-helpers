@@ -11,26 +11,24 @@ with rec {
 };
 {
   pkg   = go;
-  tests = [
-    (runCommand "mkBin-test"
-      {
-        buildInputs = [
-          (go {
-            name   = "ping";
-            script = ''
-              #!/usr/bin/env bash
-              echo "pong"
-            '';
-          })
-        ];
+  tests = runCommand "mkBin-test"
+    {
+      buildInputs = [
+        (go {
+          name   = "ping";
+          script = ''
+            #!/usr/bin/env bash
+            echo "pong"
+          '';
+        })
+      ];
+    }
+    ''
+      X=$(ping)
+      [[ "x$X" = "xpong" ]] || {
+        echo "Output was '$X'" 1>&2
+        exit 1
       }
-      ''
-        X=$(ping)
-        [[ "x$X" = "xpong" ]] || {
-          echo "Output was '$X'" 1>&2
-          exit 1
-        }
-        echo pass > "$out"
-      '')
-  ];
+      echo pass > "$out"
+    '';
 }
