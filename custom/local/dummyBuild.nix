@@ -2,5 +2,5 @@
 
 rec {
   pkg   = name: dummyWithEnv { inherit name; value = ""; };
-  tests = [ (pkg "dummyBuildTest") ];
+  tests = pkg "dummyBuildTest";
 }
