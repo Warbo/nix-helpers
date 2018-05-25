@@ -21,7 +21,5 @@ rec {
                            ln -s "$file" "$out/$REL"
                          '')
                    files);
-  tests = [
-    (pkg ../local [ ../local/dirContaining.nix ])
-  ];
+  tests = pkg ../local [ ../local/dirContaining.nix ];
 }
