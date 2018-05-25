@@ -8,7 +8,5 @@ with lib;
 # "functionArgs" to work (as used by "callPackage").
 rec {
   pkg   = f: g: withArgsOf g (args: f (g args));
-  tests = [
-    (callPackage (pkg (x: x) ({ hello }: hello)) {})
-  ];
+  tests = callPackage (pkg (x: x) ({ hello }: hello)) {};
 }
