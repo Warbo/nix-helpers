@@ -42,16 +42,13 @@ with rec {
 assert test;
 {
   pkg   = go;
-  tests = [
-    (runCommand "dirsToAttrs-test"
-      (go (attrsToDirs {
-            x = ./dirsToAttrs.nix; }))
-      ''
-        [[ -n "$x" ]]                      || exit 1
-        [[ -f "$x" ]]                      || exit 2
-        grep 'builtins' < "$x" > /dev/null || exit 3
+  tests = runCommand "dirsToAttrs-test"
+    (go (attrsToDirs { x = ./dirsToAttrs.nix; }))
+    ''
+      [[ -n "$x" ]]                      || exit 1
+      [[ -f "$x" ]]                      || exit 2
+      grep 'builtins' < "$x" > /dev/null || exit 3
 
-        echo "pass" > "$out"
-      '')
-  ];
+      echo "pass" > "$out"
+    '';
 }
