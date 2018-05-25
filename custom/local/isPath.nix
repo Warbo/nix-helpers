@@ -4,26 +4,26 @@ with builtins;
 with lib;
 rec {
   pkg   = x: typeOf x == "path" || (typeOf x == "string" && hasPrefix "/" x);
-  tests = [
-    (dummyWithEnv {
+  tests = {
+    relative = dummyWithEnv {
       name  = "relativePathIsPath";
       value = pkg ./isPath.nix;
-    })
-    (dummyWithEnv {
+    };
+    absolute = dummyWithEnv {
       name  = "absolutePathIsPath";
       value = pkg /tmp;
-    })
-    (dummyWithEnv {
+    };
+    pathString = dummyWithEnv {
       name  = "pathStringIsPath";
       value = pkg "/tmp";
-    })
-    (dummyWithEnv {
+    };
+    nonPathString = dummyWithEnv {
       name  = "stringIsNotPath";
       value = !(pkg "foo");
-    })
-    (dummyWithEnv {
+    };
+    other = dummyWithEnv {
       name  = "otherIsNotPath";
       value = !(pkg 42);
-    })
-  ];
+    };
+  };
 }
