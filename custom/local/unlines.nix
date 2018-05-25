@@ -5,11 +5,7 @@ with rec {
 };
 {
   pkg   = f;
-  tests = [
-    (runCommand "test-unlines"
-      { x = f [ "foo" "bar" ]; }
-      ''
-        echo pass > "$out"
-      '')
-  ];
+  tests = runCommand "test-unlines" { x = f [ "foo" "bar" ]; } ''
+    echo pass > "$out"
+  '';
 }
