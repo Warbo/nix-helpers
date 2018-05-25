@@ -1,5 +1,5 @@
 # Traverse nested attribute sets, gathering a list of all derivations we find
-{ lib, nothing }:
+{ lib, nothing, withDeps }:
 
 with builtins;
 with lib;
@@ -29,5 +29,5 @@ with rec {
 assert test;
 {
   pkg   = go;
-  tests = go { x = nothing; };
+  tests = withDeps (go { x = nothing; }) nothing;
 }
