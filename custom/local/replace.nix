@@ -16,6 +16,6 @@ with rec {
   };
 };
 {
-  inherit   pkg;
-  tests = [ pkg ];
+  inherit pkg;
+  tests = pkg;
 }
