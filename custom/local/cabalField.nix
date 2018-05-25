@@ -31,20 +31,18 @@ rec {
                }
                echo "\"$VAL\"" > "$out"
              '');
-  tests = [
-    (runCommand "cabalField-test"
-      {
-        found = pkg {
-          dir   = unpack haskellPackages.text.src;
-          field = "name";
-        };
+  tests = runCommand "cabalField-test"
+    {
+      found = pkg {
+        dir   = unpack haskellPackages.text.src;
+        field = "name";
+      };
+    }
+    ''
+      [[ "x$found" = "xtext" ]] || {
+        echo "Got '$found' instead of 'text'" 1>&2
+        exit 1
       }
-      ''
-        [[ "x$found" = "xtext" ]] || {
-          echo "Got '$found' instead of 'text'" 1>&2
-          exit 1
-        }
-        mkdir "$out"
-      '')
-  ];
+      mkdir "$out"
+    '';
 }
