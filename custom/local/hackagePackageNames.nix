@@ -3,6 +3,5 @@
 with builtins;
 rec {
   pkg   = (mkStableHackageDb {}).available;
-  tests = [ (assert typeOf pkg == "list";
-             nothing) ];
+  tests = assert typeOf pkg == "list"; nothing;
 }
