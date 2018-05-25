@@ -56,14 +56,12 @@ with rec {
 assert test;
 {
   pkg   = go;
-  tests = [
-    (dummyWithEnv {
-      name  = "setIn-test";
-      value = toJSON (go {
-        path  = [ "x" ];
-        value = 1;
-        set   = {};
-      });
-    })
-  ];
+  tests = dummyWithEnv {
+    name  = "setIn-test";
+    value = toJSON (go {
+      path  = [ "x" ];
+      value = 1;
+      set   = {};
+    });
+  };
 }
