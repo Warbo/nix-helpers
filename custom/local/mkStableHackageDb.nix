@@ -165,5 +165,5 @@ rec {
     available = attrNames versions;
   };
 
-  tests = [ (assert elem "0.2.0.0" (pkg {}).versions.panhandle; nothing) ];
+  tests = assert elem "0.2.0.0" (pkg {}).versions.panhandle; nothing;
 }
