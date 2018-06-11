@@ -65,6 +65,15 @@ with rec {
 
   existing = cabal2nixCache + "/exprs/${nameVersion}.nix";
 };
+assert trace (toJSON {
+  inherit url;
+  warning  = "deprecated";
+  function = "runCabal2nix";
+  message  = ''
+    runCabal2nix is deprecated, since nixpkgs 18.03 includes equivalent
+    functionality such as callHackage, hackage2nix and haskellSrc2nix.
+  '';
+}) true;
 if hasPrefix "cabal://" url && pathExists existing
    then trace "Using cache: ${existing}" (asPath existing)
    else go
