@@ -19,6 +19,21 @@ with builtins; with lib;
 
 src_: f:
 
+assert trace (toJSON {
+  inherit src_;
+  warning  = "deprecated";
+  function = "nixFromCabal";
+  message  = ''
+    nixFromCabal is overly complex, does too much and can be replaced with other
+    functions. In particular:
+      - nixpkgs functions like hackage2nix and haskellSrc2nix can make a Nix
+        function from a Cabal project.
+      - We also define runCabal2nix to do this, but that may also get deprecated
+        now that nixpkgs has this functionality.
+      - Running a function whilst preserving names can be achieved using the
+        withArgs, withArgsOf or composeWithArgs functions.
+  '';
+}) true;
 assert typeOf src_ == "path" || isString src_ || isAttrs src_;
 assert isAttrs src_ || pathExists (if hasPrefix storeDir (unsafeDiscardStringContext src_)
                                       then src_
