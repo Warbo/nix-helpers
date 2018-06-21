@@ -285,7 +285,7 @@ with rec {
 
           # We want 'paths' to act like 'buildInputs', so we also add any paths
           # from 'propagated build inputs'
-          TODOS=("$P/nix-support/propagated-native-build-inputs" )
+          TODOS=("$P/nix-support/propagated-native-build-inputs" "$P/nix-support/propagated-build-inputs" )
           while [[ "''${#TODOS[@]}" -gt 0 ]]
           do
             PROPS="''${TODOS[0]}"
@@ -296,6 +296,11 @@ with rec {
               do
                 ARGS=("''${ARGS[@]}" "--prefix" "PATH" ":" "$PROP/bin")
                 MORE="$PROP/nix-support/propagated-native-build-inputs"
+                if [[ -e "$MORE" ]]
+                then
+                  TODOS=("''${TODOS[@]}" "$MORE")
+                fi
+                MORE="$PROP/nix-support/propagated-build-inputs"
                 if [[ -e "$MORE" ]]
                 then
                   TODOS=("''${TODOS[@]}" "$MORE")
