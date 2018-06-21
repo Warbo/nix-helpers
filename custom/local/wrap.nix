@@ -158,6 +158,19 @@ with rec {
       '';
   };
 
+  # Nixpkgs 18.03 changed the attribute used for propagating dependencies
+  propagatingAttr =
+    with {
+      old = if lib ? nixpkgsVersion
+               then compareVersions lib.nixpkgsVersion "18.03" == -1
+               else if version == "unstable"
+                       then trace (toJSON {
+                              warning = "Assuming unstable nixpkgs is >= 18.03";
+                            }) false
+                       else compareVersions version "nixpkgs1803" == -1;
+    };
+    if old then "propagatedBuildInputs" else "depsBuildBuildPropagated";
+
   # Check that propagated dependencies get included
   propCheck = {
     oneLevel = runCommand "checkDirectPropagationOfWrappedDeps"
@@ -168,7 +181,7 @@ with rec {
             (stdenv.mkDerivation {
               name                  = "dummy";
               src                   = ./wrap.nix;
-              propagatedBuildInputs = [ hello ];
+              "${propagatingAttr}"  = [ hello ];
               installPhase          = ''mkdir "$out"'';
               unpackPhase           = "true";
             })
@@ -198,15 +211,15 @@ with rec {
             (stdenv.mkDerivation {
               name                  = "dummy1";
               src                   = ./wrap.nix;
-              propagatedBuildInputs = [
+              "${propagatingAttr}"  = [
                 (stdenv.mkDerivation {
                   name                  = "dummy2";
                   src                   = ./wrap.nix;
-                  propagatedBuildInputs = [
+                  "${propagatingAttr}"  = [
                     (stdenv.mkDerivation {
                       name                  = "dummy3";
                       src                   = ./wrap.nix;
-                      propagatedBuildInputs = [ hello ];
+                      "${propagatingAttr}"  = [ hello ];
                       installPhase          = ''mkdir "$out"'';
                       unpackPhase           = "true";
                     })
