@@ -9,6 +9,7 @@
     export HOME="$PWD/home"
     mkdir -p "$HOME"
     installHackage
+    rm -f "$HOME/.cabal/packages/hackage.haskell.org/hackage-security-lock"
 
     mkdir got
     pushd got
