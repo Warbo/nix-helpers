@@ -17,9 +17,9 @@ with rec {
     };
   };
 
-  fetch = args: runCommand "fetch-haskell-package"
+  fetch = { package, ... }@args: runCommand "fetch-haskell-package"
     {
-      inherit (args) pkg;
+      inherit (args) package;
       buildInputs = [ cabal-install2 ghc (putHkg args) replace ];
     }
     ''
@@ -31,8 +31,9 @@ with rec {
       # Fetch source into a standalone directory
       mkdir get
       pushd get
-        echo "Fetching '$pkg' using cabal get" 1>&2
-        cabal get "$pkg"
+        env 1>&2
+        echo "Fetching '$package' using cabal get" 1>&2
+        cabal get "$package"
         # Keep result
         shopt -s nullglob
         mv * "$out"
@@ -46,7 +47,7 @@ with rec {
   build = {
     dir          ? null,
     extra-inputs ? [],
-    pkg          ? null,
+    package      ? null,
     name         ? null,
     ghc          ? defaultGhc,
     timestamp    ? hackageTimestamp
@@ -56,9 +57,9 @@ with rec {
       inherit timestamp;
       error = "timestamp must be int";
     };
-    assert length (filter (x: x != null) [ dir pkg ]) == 1 || die {
-      inherit dir pkg;
-      error = "Need dir xor pkg";
+    assert length (filter (x: x != null) [ dir package ]) == 1 || die {
+      inherit dir package;
+      error = "Need dir xor package";
     };
     runCommand "new-build-${pName args}"
       {
@@ -98,7 +99,7 @@ with rec {
   checkNoCache = runCommand "check-new-build-no-cache"
     {
       buildInputs = [ fail ];
-      got         = build { pkg = "hpp"; };
+      got         = build { package = "hpp"; };
     }
     ''
       find "$got" -type f -name '01-index.tar*' | while read -r F
@@ -108,7 +109,7 @@ with rec {
       mkdir "$out"
     '';
 
-  checkBin = hasBinary (go { pkg = "hpp"; }) "hpp";
+  checkBin = hasBinary (go { package = "hpp"; }) "hpp";
 };
 
 args: withDeps [ checkNoCache checkBin ] (go args)
