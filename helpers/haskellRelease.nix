@@ -1,11 +1,11 @@
 # Useful for release.nix files in Haskell projects
-{ cabalField, customised, fail, haskellPkgDepsDrv, lib, nix, runCabal2nix,
-  runCommand, self, stableVersion, unpack, withDeps, withNix, writeScript }:
+{ cabalField, composeWithArgs, fail, haskellPkgDepsDrv, lib, nix, pinnedNixpkgs,
+  runCabal2nix, runCommand, self, unpack, withDeps, withNix, writeScript }:
 
 with builtins;
 with lib;
 with rec {
-  getNix = v: getAttr v (self // { inherit (customised) unstable; });
+  getNix = v: getAttr v (self // { inherit (pinnedNixpkgs) unstable; });
 
   # Make the nixVersion attr (if kept) a set of all its Haskell versions
   buildForNixpkgs = keep: hs: nixVersion: if !(keep nixVersion) then "" else ''
@@ -119,7 +119,8 @@ with rec {
       {
         ${concatStringsSep "\n"
             (map (buildForNixpkgs nixKeep (buildForHaskell haskellKeep))
-                 (attrNames customised))}
+                 (filter (hasPrefix "nixpkgs")
+                         (attrNames pinnedNixpkgs)))}
       }
     '';
 
@@ -130,16 +131,20 @@ with rec {
       hsVersion = "ghc802";
 
       getPkg    = name: attrByPath
-                          [ stableVersion "haskell" "packages" hsVersion name ]
+                          [ "haskell" "packages" hsVersion name ]
                           (abort "Missing package ${name}")
                           self;
+
+      currentVersion = "nixpkgs${
+        concatStrings (take 2 (splitString "." nixpkgsVersion))
+      }";
 
       getResult = name: go {
         inherit name;
         cabal-args  = [];  # Avoid tests, to prevent cycles
         dir         = unpack (getPkg name).src;
         haskellKeep = v: v == hsVersion;
-        nixKeep     = v: v == stableVersion;
+        nixKeep     = v: v == currentVersion;
       };
 
       check = name: runCommand "check-haskellRelease"
@@ -147,7 +152,7 @@ with rec {
           inherit hsVersion;
           buildInputs = [ fail nix ];
           result      = getResult name;
-          stable      = stableVersion;
+          stable      = currentVersion;
         })
         ''
           function check {
@@ -205,4 +210,4 @@ with rec {
       zlib-bindings = check "zlib-bindings";
     };
 };
-args: withDeps (attrValues tests) (go args)
+composeWithArgs (withDeps (attrValues tests)) go
