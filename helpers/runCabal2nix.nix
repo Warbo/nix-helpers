@@ -1,5 +1,5 @@
 { asPath, cabal2nix, cabal2nixCache, glibcLocales, latestGit, lib, runCmd,
-  stable, stableHackageDb, withNix }:
+  stableHackageDb, withNix }:
 
 with builtins;
 with lib;
@@ -37,8 +37,10 @@ with rec {
       # cabal2nix version 20160308 breaks for git repos by trying to import
       # nixexprs as JSON; we work around this by fetching separately.
       url = if hasPrefix "http" url && hasSuffix ".git" url
-               then (if stable then trace "Warning: latestGit '${url}'" else id)
-                    latestGit { inherit url; stable = { unsafeSkip = true; }; }
+               then trace "Warning: latestGit '${url}'" latestGit {
+                      inherit url;
+                      stable = { unsafeSkip = true; };
+                    }
                else url;
     })
     ''
