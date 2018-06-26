@@ -12,7 +12,7 @@
 # TODO: This duplicates some functionality of fetchgitrevision; wait for that
 # API to settle down, then use it here.
 { cacert, callPackage, die, fetchGitHashless, git, lib, repo1709, runCmd,
-  sanitiseName, stable, stdenv }:
+  sanitiseName, stable ? false, stdenv }:
 with builtins // lib // { configIsStable = stable; };
 with rec {
   # We always use fetchgit from nixpkgs 17.09 since there was a change in 2016
