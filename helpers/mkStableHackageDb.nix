@@ -1,5 +1,5 @@
-{ buildEnv, curl, fail, fetchFromGitHub, gzip, isBroken, jq, latest, mkBin,
-  nixpkgs1603, nothing, python, runCmd, self, stdenv, withDeps, writeScript }:
+{ buildEnv, curl, fail, fetchFromGitHub, gzip, isBroken, jq, mkBin, nixpkgs1603,
+  nothing, python, runCmd, self, stdenv, withDeps, writeScript }:
 
 with builtins;
 rec {
@@ -78,29 +78,10 @@ rec {
       echo pass > "$out"
     '';
 
-    cmdWithCabal =
-      with rec {
-        both = buildEnv {
-          name = "cabal-with-stable-hackage";
-          paths = [ cmd nixpkgs1603.cabal-install ];
-        };
-
-        latestStable   = getAttr latest self;
-
-        tryLatestCabal = runCmd "try-latest-cabal"
-          {
-            buildInputs = [ latestStable.cabal-install cmd latestStable.ghc ];
-            message     = ''
-              Checking whether stableHackage works with cabal-install from latest
-              nixpkgs (${latest}), i.e. whether we still need to use nixpkgs1603.
-            '';
-          }
-          ''
-            echo "$message" 1>&2
-            ${testScript}
-          '';
-      };
-      withDeps [ (isBroken tryLatestCabal) ] both;
+    cmdWithCabal = buildEnv {
+      name = "cabal-with-stable-hackage";
+      paths = [ cmd nixpkgs1603.cabal-install ];
+    };
 
     test = given:
       with {
@@ -165,5 +146,5 @@ rec {
     available = attrNames versions;
   };
 
-  tests = assert elem "0.2.0.0" (pkg {}).versions.panhandle; nothing;
+  tests = assert elem "0.2.0.0" (def {}).versions.panhandle; nothing;
 }
