@@ -1,8 +1,7 @@
-{ attrsToDirs, cabal-install2, cabalField, die, fail, ghc, hackageDb,
+{ attrsToDirs, cabal-install, cabalField, die, fail, ghc, hackageDb,
   hackageTimestamp, hasBinary, installHackage, replace, runCommand, withDeps }:
 
 with builtins;
-assert cabal-install2 != null;  # Force cabal-install2 in case it's an exception
 with rec {
   defaultGhc = ghc;
 
@@ -20,7 +19,7 @@ with rec {
   fetch = { package, ... }@args: runCommand "fetch-haskell-package"
     {
       inherit (args) package;
-      buildInputs = [ cabal-install2 ghc (putHkg args) replace ];
+      buildInputs = [ cabal-install ghc (putHkg args) replace ];
     }
     ''
       # Put Hackage DB in ~/.cabal
@@ -64,7 +63,7 @@ with rec {
     runCommand "new-build-${pName args}"
       {
         src         = src args;
-        buildInputs = [ cabal-install2 ghc (putHkg args) ] ++ extra-inputs;
+        buildInputs = [ cabal-install ghc (putHkg args) ] ++ extra-inputs;
         timestamp   = toString timestamp;
       }
       ''
