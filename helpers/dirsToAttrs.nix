@@ -16,30 +16,40 @@
 #       };
 #     };
 #
-{ attrsToDirs, isPath, lib, runCommand }:
+{ attrsToDirs, die, isPath, lib, runCommand }:
 
 with builtins;
 with lib;
-
 with rec {
   go = dir: mapAttrs (n: v: if v == "regular" || v == "symlink"
                                then dir + "/${n}"
                                else go (dir + "/${n}"))
                      (readDir dir);
-
-  # Check that we can access some known files/directories
-  test =
-    with {
-      x = go ./..;
-    };
-    isAttrs x       &&
-    x ? local       &&
-    isAttrs x.local &&
-    x.local ? "dirsToAttrs.nix" &&
-    isPath x.local."dirsToAttrs.nix";
 };
 
-assert test;
+# Check that we can access some known files/directories
+with { test = go ./..; };
+assert isAttrs test || die {
+  error = "test isn't attrset";
+  type  = typeOf test;
+};
+assert test ? helpers || die {
+  error = "No 'helpers' in test";
+  names = attrNames test;
+};
+assert isAttrs test.helpers || {
+  error = "test.helpers isn't attrset";
+  type  = typeOf test.helpers;
+};
+assert test.helpers ? "dirsToAttrs.nix" || {
+  error = "No 'dirsToAttrs.nix' in test.helpers";
+  names = attrNames test.helpers;
+};
+assert isPath test.helpers."dirsToAttrs.nix" || {
+  error = "test.helpers.dirsToAttrs.nix isn't path";
+  type  = typeOf test.helpers."dirsToAttrs.nix";
+};
+
 {
   def   = go;
   tests = runCommand "dirsToAttrs-test"
