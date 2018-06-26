@@ -17,7 +17,7 @@ with rec {
                else abort "Unsupported type ${typeOf val} in attrsToDirs";
 };
 rec {
-  pkg = attrs:
+  def = attrs:
     with rec {
       # We can't have empty attr names, so always stick a dummy '_' at the start,
       # and strip it off in the build script
@@ -56,5 +56,5 @@ rec {
                 ln -s "''${VALUES[$N]}" "$P"
               done
             '';
-  tests = pkg { foo = { bar = ./attrsToDirs.nix; }; };
+  tests = def { foo = { bar = ./attrsToDirs.nix; }; };
 }

@@ -1,6 +1,6 @@
 { dummyWithEnv }:
 
 rec {
-  pkg   = name: dummyWithEnv { inherit name; value = ""; };
-  tests = pkg "dummyBuildTest";
+  def   = name: dummyWithEnv { inherit name; value = ""; };
+  tests = def "dummyBuildTest";
 }

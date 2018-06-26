@@ -1,7 +1,7 @@
 { fetchFromGitHub, hasBinary, makeWrapper, racket, runCommand }:
 
 rec {
-  pkg = deps: runCommand "racket-with-deps"
+  def = deps: runCommand "racket-with-deps"
     {
       inherit deps racket;
       buildInputs  = [ makeWrapper racket ];
@@ -47,7 +47,7 @@ rec {
 
   tests =
     with {
-      result = pkg [
+      result = def [
         # Dependency of grommet
         (fetchFromGitHub {
           owner  = "RayRacine";

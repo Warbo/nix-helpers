@@ -1,6 +1,6 @@
 { mkStableHackageDb }:
 
 rec {
-  pkg   = (mkStableHackageDb {}).installed;
-  tests = pkg;
+  def   = (mkStableHackageDb {}).installed;
+  tests = def;
 }

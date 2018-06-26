@@ -1,5 +1,5 @@
 { dummyBuild }:
 rec {
-  pkg   = dummyBuild "nothing";
-  tests = pkg;
+  def   = dummyBuild "nothing";
+  tests = def;
 }

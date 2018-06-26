@@ -2,7 +2,7 @@
 
 with builtins;
 rec {
-  pkg   = x: isFunction x || (isAttrs x && x ? __functor);
-  tests = assert pkg (callPackage ({}: (x: abort "shouldn't force")) {});
+  def   = x: isFunction x || (isAttrs x && x ? __functor);
+  tests = assert def (callPackage ({}: (x: abort "shouldn't force")) {});
           nothing;
 }

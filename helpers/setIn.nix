@@ -55,7 +55,7 @@ with rec {
 };
 assert test;
 {
-  pkg   = go;
+  def   = go;
   tests = dummyWithEnv {
     name  = "setIn-test";
     value = toJSON (go {

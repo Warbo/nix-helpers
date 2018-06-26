@@ -28,6 +28,6 @@ with rec {
 };
 assert test;
 {
-  pkg   = go;
+  def   = go;
   tests = withDeps (go { x = nothing; }) nothing;
 }

@@ -6,6 +6,6 @@ with rec {
   tested = withDeps [ (hasBinary pkg "makeCabalConfig") ] pkg;
 };
 {
-  pkg   = tested;
+  def   = tested;
   tests = tested;
 }

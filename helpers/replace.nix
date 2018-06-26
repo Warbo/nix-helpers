@@ -10,12 +10,12 @@ with rec {
     boost = boost159;
   };
 
-  pkg = mkBin {
+  def = mkBin {
     name = "replace";
     file = "${mariadb.client.bin}/bin/replace";
   };
 };
 {
-  inherit pkg;
-  tests = pkg;
+  inherit def;
+  tests = def;
 }

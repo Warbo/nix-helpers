@@ -2,7 +2,7 @@
 { mkBin, runCommand }:
 
 rec {
-  pkg = mkBin {
+  def = mkBin {
     name   = "backtrace";
     script = ''
       #!/usr/bin/env bash
@@ -27,7 +27,7 @@ rec {
       echo "End Backtrace"
     '';
   };
-  tests = runCommand "backtrace-test" { buildInputs = [ pkg ]; } ''
+  tests = runCommand "backtrace-test" { buildInputs = [ def ]; } ''
     X=$(NOTRACE=1 backtrace)
     [[ -z "$X" ]] || {
       echo "NOTRACE should suppress trace" 1>&2

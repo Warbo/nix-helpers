@@ -32,6 +32,6 @@ with rec {
   tested = withDeps [ (hasBinary pkg "pipeToNix") ] pkg;
 };
 {
-  pkg   = tested;
+  def   = tested;
   tests = tested;
 }

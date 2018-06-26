@@ -1,0 +1,8 @@
+From: Chris Warburton
+Date: Tue, 26 Jun 2018 20:02:50 +0100
+State: new
+Subject: Make sure wrap quotes properly for various nixpkgs versions
+Message-Id: <cf3250b7cdd3e921-0-artemis@nixos>
+
+We were forcing a particular version, but now we want to be a bit more
+generic.

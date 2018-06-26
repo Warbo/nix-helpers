@@ -124,7 +124,7 @@ with rec {
 assert checkArgsAreNotForced;
 assert checkWeGetTheRightValues;
 {
-  pkg   = go;
+  def   = go;
   tests = with go { name = "check"; args = [ "foo" ]; };
           runCmd "check-NLTBA" env ''
             ${code}

@@ -363,7 +363,7 @@ with rec {
   go = args: withDeps (attrValues checks) (wrap args);
 };
 {
-  pkg   = go;
+  def   = go;
   tests = checks // {
     wrap = go {
       name   = "wrap-test";

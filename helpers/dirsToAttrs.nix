@@ -41,7 +41,7 @@ with rec {
 
 assert test;
 {
-  pkg   = go;
+  def   = go;
   tests = runCommand "dirsToAttrs-test"
     (go (attrsToDirs { x = ./dirsToAttrs.nix; }))
     ''

@@ -10,7 +10,7 @@ with rec {
   };
 };
 {
-  pkg   = go;
+  def   = go;
   tests = runCommand "mkBin-test"
     {
       buildInputs = [

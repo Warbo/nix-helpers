@@ -7,6 +7,6 @@ with lib;
 # "args: f (g args)" but has explicit named arguments, to allow
 # "functionArgs" to work (as used by "callPackage").
 rec {
-  pkg   = f: g: withArgsOf g (args: f (g args));
-  tests = callPackage (pkg (x: x) ({ hello }: hello)) {};
+  def   = f: g: withArgsOf g (args: f (g args));
+  tests = callPackage (def (x: x) ({ hello }: hello)) {};
 }

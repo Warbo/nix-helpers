@@ -3,7 +3,7 @@
 
 with builtins;
 rec {
-  pkg = {
+  def = {
     # Git revision for all-cabal-files repo
     rev    ? "c008e28",
 

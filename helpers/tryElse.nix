@@ -1,10 +1,10 @@
 { runCommand }:
 
 rec {
-  pkg   = prefer: fallback: if (builtins.tryEval prefer).success
+  def   = prefer: fallback: if (builtins.tryEval prefer).success
                                then prefer
                                else fallback;
-  tests = runCommand "test-tryElse" { x = pkg <nope> "fallback"; } ''
+  tests = runCommand "test-tryElse" { x = def <nope> "fallback"; } ''
     echo pass > "$out"
   '';
 }

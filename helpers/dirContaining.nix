@@ -8,7 +8,7 @@
 
 with builtins;
 rec {
-  pkg = base: files:
+  def = base: files:
     mergeDirs (map (f: runCommand "dir"
                          {
                            base = toString base;
@@ -21,5 +21,5 @@ rec {
                            ln -s "$file" "$out/$REL"
                          '')
                    files);
-  tests = pkg ../local [ ../local/dirContaining.nix ];
+  tests = def ../local [ ../local/dirContaining.nix ];
 }

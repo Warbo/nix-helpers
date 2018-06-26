@@ -2,7 +2,7 @@
 
 with builtins;
 rec {
-  pkg = { dir, field }:
+  def = { dir, field }:
     import (runCommand "cabal-field-${field}.nix"
              {
                inherit dir field;
@@ -33,7 +33,7 @@ rec {
              '');
   tests = runCommand "cabalField-test"
     {
-      found = pkg {
+      found = def {
         dir   = unpack haskellPackages.text.src;
         field = "name";
       };

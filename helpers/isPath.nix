@@ -3,27 +3,27 @@
 with builtins;
 with lib;
 rec {
-  pkg   = x: typeOf x == "path" || (typeOf x == "string" && hasPrefix "/" x);
+  def   = x: typeOf x == "path" || (typeOf x == "string" && hasPrefix "/" x);
   tests = {
     relative = dummyWithEnv {
       name  = "relativePathIsPath";
-      value = pkg ./isPath.nix;
+      value = def ./isPath.nix;
     };
     absolute = dummyWithEnv {
       name  = "absolutePathIsPath";
-      value = pkg /tmp;
+      value = def /tmp;
     };
     pathString = dummyWithEnv {
       name  = "pathStringIsPath";
-      value = pkg "/tmp";
+      value = def "/tmp";
     };
     nonPathString = dummyWithEnv {
       name  = "stringIsNotPath";
-      value = !(pkg "foo");
+      value = !(def "foo");
     };
     other = dummyWithEnv {
       name  = "otherIsNotPath";
-      value = !(pkg 42);
+      value = !(def 42);
     };
   };
 }
