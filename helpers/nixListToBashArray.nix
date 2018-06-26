@@ -17,10 +17,10 @@
 # single array (in this case, called "x")
 
 # Take lib from nixpkgs1609, since other versions (e.g. 1603) mess up escaping
-{ nixpkgs1609, nothing, runCmd }:
+{ nothing, pinnedNixpkgs, runCmd }:
 
 with builtins;
-with nixpkgs1609.lib;
+with pinnedNixpkgs.nixpkgs1609.lib;
 with rec {
   # This is the actual implementation
   go = { args, name }: rec {
