@@ -1,0 +1,21 @@
+# Nix Helpers #
+
+This repository collects up useful functions and other bits and pieces for the
+[Nix](http://nixos.org/nix) language.
+
+Some of these may be suitable for including in the official nixpkgs repository,
+but others may be too hacky and/or experimental. Note that this repository isn't
+necessarily stable, so it's recommended to pin a particular git revision if you
+depend on it.
+
+The goals of this project are:
+
+ - Complement nixpkgs by providing an "overlay" of useful helper utilities
+ - Avoid packaging end-user software, since that's best done elsewhere
+ - Have few external dependencies
+ - Work across Nix and nixpkgs versions
+
+Bug reports and patches are welcome! These can be emailed to
+chriswarbo@gmail.com either as normal emails or via `git send-email`. Issues are
+tracked in git too, using [Artemis](http://mrzv.org/software/artemis), so they
+can be included in a patch if you like.
