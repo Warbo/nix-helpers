@@ -1,12 +1,13 @@
-{ bash, hello, jq, lib, makeSetupHook, nixListToBashArray, python, repo1609,
-  runCommand, stdenv, withArgsOf, withDeps, writeScript }:
+{ bash, hello, jq, lib, makeSetupHook, nixListToBashArray, pinnedNixpkgs,
+  python, runCommand, stdenv, withArgsOf, withDeps, writeScript }:
 
 with builtins;
 with lib;
 with rec {
   # Load makeWrapper from 16.09 so that it has known behaviour w.r.t. quoting,
   # etc.
-  makeWrapper = makeSetupHook {} "${repo1609}/pkgs/build-support/setup-hooks/make-wrapper.sh";
+  makeWrapper = makeSetupHook {}
+    "${pinnedNixpkgs.repo1609}/pkgs/build-support/setup-hooks/make-wrapper.sh";
 
   checks = varChk // depChk // wrapChk // propCheck;
 
