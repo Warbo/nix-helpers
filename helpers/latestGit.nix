@@ -11,10 +11,11 @@
 #
 # TODO: This duplicates some functionality of fetchgitrevision; wait for that
 # API to settle down, then use it here.
-{ cacert, callPackage, die, fetchGitHashless, git, lib, repo1709, runCmd,
-  sanitiseName, stdenv }:
+{ cacert, callPackage, die, fetchGitHashless, git, lib, nothing, repo1709,
+  runCmd, sanitiseName, stdenv }:
 
 with builtins;
+with lib;
 with rec {
   # We always use fetchgit from nixpkgs 17.09 since there was a change in 2016
   # which changed the hashes, and it's painful trying to handle both versions.
@@ -119,5 +120,7 @@ with rec {
     all isDrv (attrNames repos);
 };
 
-assert checks;
-go
+{
+  def   = go;
+  tests = assert checks; nothing;
+}
