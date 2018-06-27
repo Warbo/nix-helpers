@@ -109,7 +109,7 @@ with rec {
     # still use ../.. to access a helper function to make that easier.
     # Defines builds for (kept) Haskell versions for (kept) nixpkgs versions
     writeScript "${pName}-release.nix" ''
-      with import ${../..} {};
+      with import <nixpkgs> {};
       with {
         go = import ${pkgExpr {
                       inherit cabal-args dir;

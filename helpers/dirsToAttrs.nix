@@ -28,26 +28,31 @@ with rec {
 };
 
 # Check that we can access some known files/directories
-with { test = go ./..; };
+with {
+  test = go (runCommand "dirsToAttrs-test-data" {} ''
+    mkdir -p "$out/foo"
+    echo "baz" > "$out/foo/bar"
+  '');
+};
 assert isAttrs test || die {
   error = "test isn't attrset";
   type  = typeOf test;
 };
-assert test ? helpers || die {
-  error = "No 'helpers' in test";
+assert test ? foo || die {
+  error = "No 'foo' in test";
   names = attrNames test;
 };
-assert isAttrs test.helpers || {
-  error = "test.helpers isn't attrset";
-  type  = typeOf test.helpers;
+assert isAttrs test.foo || {
+  error = "test.foo isn't attrset";
+  type  = typeOf test.foo;
 };
-assert test.helpers ? "dirsToAttrs.nix" || {
-  error = "No 'dirsToAttrs.nix' in test.helpers";
-  names = attrNames test.helpers;
+assert test.foo ? bar || {
+  error = "No 'bar' in test.foo";
+  names = attrNames test.foo;
 };
-assert isPath test.helpers."dirsToAttrs.nix" || {
-  error = "test.helpers.dirsToAttrs.nix isn't path";
-  type  = typeOf test.helpers."dirsToAttrs.nix";
+assert isPath test.foo.bar || {
+  error = "test.foo.bar isn't path";
+  type  = typeOf test.foo.bar;
 };
 
 {

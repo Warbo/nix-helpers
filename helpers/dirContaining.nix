@@ -21,5 +21,12 @@ rec {
                            ln -s "$file" "$out/$REL"
                          '')
                    files);
-  tests = def ../helpers [ ../helpers/dirContaining.nix ];
+  tests =
+    with {
+      data = runCommand "dirContaining-test-data" {} ''
+        mkdir -p "$out/foo"
+        echo "baz" > "$out/foo/bar"
+      '';
+    };
+    def data [ "${data}/foo/bar" ];
 }
