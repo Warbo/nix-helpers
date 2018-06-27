@@ -1,15 +1,11 @@
-{ die, lib }:
+{ die, lib, nothing }:
 
 with builtins;
 with lib;
 with rec {
-  herePath   = ./.;
-  hereString = toString herePath;
-  hereDepth  = length (filter (x: x == "/") (stringToCharacters hereString));
-  upDots     = concatStringsSep "/" (map (_: "..") (range 1 hereDepth));
-  rootPath   = ./. + "/${upDots}";
+  rootPath   = /.;
 
-  stillNeeded  = typeOf (toPath herePath) == "string";
+  stillNeeded  = typeOf (toPath ./.) == "string";
   obsoleteWarn = x:
     if stillNeeded
        then x
@@ -20,21 +16,25 @@ with rec {
                 else rootPath + "${path}";
 };
 
-assert typeOf rootPath == "path" || die {
-  error      = "rootPath should be a path";
-  actualType = typeOf rootPath;
-};
-assert toString rootPath == "/" || die {
-  error    = "rootPath should be /";
-  rootPath = toString rootPath;
-};
-assert typeOf (go ./.) == "path" || die {
-  error      = "asPath of a path should produce a path";
-  actualType = typeOf (go ./.);
-};
-assert toString (go ./.) == toString ./. || die {
-  error  = "asPath result didn't match input";
-  input  = toString ./.;
-  output = toString (go ./.);
-};
-obsoleteWarn go
+{
+  def   = obsoleteWarn go;
+  tests =
+    assert typeOf rootPath == "path" || die {
+      error      = "rootPath should be a path";
+      actualType = typeOf rootPath;
+    };
+    assert toString rootPath == "/" || die {
+      error    = "rootPath should be /";
+      rootPath = toString rootPath;
+    };
+    assert typeOf (go ./.) == "path" || die {
+      error      = "asPath of a path should produce a path";
+      actualType = typeOf (go ./.);
+    };
+    assert toString (go ./.) == toString ./. || die {
+      error  = "asPath result didn't match input";
+      input  = toString ./.;
+      output = toString (go ./.);
+    };
+    nothing;
+}
