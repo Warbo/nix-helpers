@@ -1,5 +1,5 @@
 { buildEnv, curl, fail, fetchFromGitHub, gzip, isBroken, jq, mkBin, nixpkgs1603,
-  nothing, python, runCmd, self, stdenv, withDeps, writeScript }:
+  nothing, python, runCmd, stdenv, withDeps, writeScript }:
 
 with builtins;
 rec {

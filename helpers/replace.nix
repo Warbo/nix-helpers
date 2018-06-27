@@ -1,9 +1,9 @@
 # Provide the 'replace' command from MariaDB, which is like sed without regexen.
 # This command was removed in later versions of MariaDB.
-{ boost159, darwin, mkBin, repo1609, self }:
+{ boost159, callPackage, darwin, mkBin, repo1609 }:
 
 with rec {
-  mariadb = self.callPackage "${repo1609}/pkgs/servers/sql/mariadb" {
+  mariadb = callPackage "${repo1609}/pkgs/servers/sql/mariadb" {
     # These overrides are copied from all-packages.nix in repo1609
     inherit (darwin) cctools;
     inherit (darwin.apple_sdk.frameworks) CoreServices;

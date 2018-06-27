@@ -1,9 +1,9 @@
 # Pinned nixpkgs repos
-{ fetchFromGitHub, lib }:
+self: super:
 with builtins;
-with lib;
+with super.lib;
 with rec {
-  getNixpkgs = { rev, sha256 }: fetchFromGitHub {
+  getNixpkgs = { rev, sha256 }: super.fetchFromGitHub {
     inherit rev sha256;
     owner = "NixOS";
     repo  = "nixpkgs";

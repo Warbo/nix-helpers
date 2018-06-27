@@ -1,0 +1,7 @@
+From: Chris Warburton
+Date: Wed, 27 Jun 2018 01:39:53 +0100
+State: new
+Subject: See if isFunction can be used instead of isCallable
+Message-Id: <e2c2560300387d05-0-artemis@nixos>
+
+They appear to do the same thing

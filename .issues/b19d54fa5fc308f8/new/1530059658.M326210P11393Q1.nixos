@@ -1,0 +1,7 @@
+From: Chris Warburton
+Date: Wed, 27 Jun 2018 01:33:17 +0100
+State: new
+Subject: Use lib.setFunctionArgs
+Message-Id: <b19d54fa5fc308f8-0-artemis@nixos>
+
+Rather than dynamically creating and importing a .nix file

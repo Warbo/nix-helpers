@@ -21,5 +21,5 @@ rec {
                            ln -s "$file" "$out/$REL"
                          '')
                    files);
-  tests = def ../local [ ../local/dirContaining.nix ];
+  tests = def ../helpers [ ../helpers/dirContaining.nix ];
 }

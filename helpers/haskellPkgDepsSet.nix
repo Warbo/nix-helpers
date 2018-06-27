@@ -1,5 +1,5 @@
 { cabalField, callPackage, haskell, haskellPkgDeps, lib, pkgs, repo1609,
-  reverse, runCabal2nix, runCommand, self, stableHackageDb, withDeps }:
+  reverse, runCabal2nix, runCommand, stableHackageDb, withDeps }:
 
 {
   delay-failure   ? false,  # Replace eval-time failures with failing derivation
@@ -79,7 +79,7 @@ with rec {
     self.callPackage f sys;
 
   # https://github.com/haskell/zlib/issues/11
-  oldZlib = self.callPackage "${repo1609}/pkgs/development/libraries/zlib" {};
+  oldZlib = callPackage "${repo1609}/pkgs/development/libraries/zlib" {};
 
   allGCRoots = gcRoots ++ (attrValues funcs);
 

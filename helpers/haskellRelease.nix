@@ -1,11 +1,11 @@
 # Useful for release.nix files in Haskell projects
-{ cabalField, composeWithArgs, fail, haskellPkgDepsDrv, lib, nix, pinnedNixpkgs,
-  runCabal2nix, runCommand, self, unpack, withDeps, withNix, writeScript }:
+{ cabalField, composeWithArgs, fail, haskell, haskellPkgDepsDrv, lib, nix,
+  pinnedNixpkgs, runCabal2nix, runCommand, unpack, withDeps, withNix, writeScript }:
 
 with builtins;
 with lib;
 with rec {
-  getNix = v: getAttr v (self // { inherit (pinnedNixpkgs) unstable; });
+  getNix = v: getAttr v pinnedNixpkgs;
 
   # Make the nixVersion attr (if kept) a set of all its Haskell versions
   buildForNixpkgs = keep: hs: nixVersion: if !(keep nixVersion) then "" else ''
@@ -131,9 +131,9 @@ with rec {
       hsVersion = "ghc802";
 
       getPkg    = name: attrByPath
-                          [ "haskell" "packages" hsVersion name ]
+                          [ hsVersion name ]
                           (abort "Missing package ${name}")
-                          self;
+                          haskell.packages;
 
       currentVersion = "nixpkgs${
         concatStrings (take 2 (splitString "." nixpkgsVersion))

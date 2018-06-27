@@ -3,10 +3,6 @@ self: super:
 with builtins;
 with super.lib;
 with rec {
-  # Various pinned nixpkgs versions
-  pinned     = import ./nixpkgs.nix { inherit (super) fetchFromGitHub lib; };
-  nixpkgs    = pinned // { pinnedNixpkgs = pinned; };
-
   # Bootstrap this function so we can use it to load everything in helpers/
   nixFilesIn = import ./helpers/nixFilesIn.nix { inherit (super) lib; };
 
@@ -17,9 +13,7 @@ with rec {
   mkPkg      = name: previous:
     with rec {
       # Like callPackage but also has access to nixpkgs, 'self' and 'super'
-      these  = self.newScope (nixpkgs // { inherit self super; })
-                             (getAttr name nixFiles)
-                             {};
+      these  = self.callPackage (getAttr name nixFiles) {};
       tests  = these.tests or {};
     };
     {
@@ -29,7 +23,15 @@ with rec {
                                     else { "${name}" = tests; });
     };
 
-  # Accumulate the contents of all helpers/ files
-  results = fold mkPkg { defs = {}; tests = {}; } (builtins.attrNames nixFiles);
+  pinnedNixpkgs = import ./nixpkgs.nix self super;
 };
-nixpkgs // results.defs // { nix-helpers-tests = results.tests; }
+
+# Accumulate the contents of all helpers/ files
+with fold mkPkg { defs = {}; tests = {}; } (attrNames nixFiles);
+with rec {
+  nix-helpers = defs // pinnedNixpkgs // {
+    inherit nix-helpers pinnedNixpkgs;
+    nix-helpers-tests = tests;
+  };
+};
+nix-helpers
