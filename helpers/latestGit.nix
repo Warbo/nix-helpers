@@ -12,8 +12,7 @@
 # TODO: This duplicates some functionality of fetchgitrevision; wait for that
 # API to settle down, then use it here.
 { cacert, callPackage, die, fetchGitHashless, git, lib, repo1709, runCmd,
-  sanitiseName, stable ? false, stdenv }:
-with builtins // lib // { configIsStable = stable; };
+  sanitiseName, stdenv }:
 with rec {
   # We always use fetchgit from nixpkgs 17.09 since there was a change in 2016
   # which changed the hashes, and it's painful trying to handle both versions.
@@ -77,15 +76,15 @@ with rec {
           git ls-remote "$url" $ref | awk 'NR==1 {print "\""$1"\""}' > "$out"
         '');
 
-      # Logic for choosing between stable and unstable
-      useStable  = configIsStable && !unsafeSkip;
-      unsafeSkip = stable.unsafeSkip or false;
+      # If unsafeSkip is given, do what it says. If not, always get latest
+      # (since that's what our name implies).
+      getLatest = stable.unsafeSkip or true;
 
       error = msg: abort (toJSON { inherit msg url ref stable; });
     };
-    assert useStable -> stable ? rev    || error "No stable rev";
-    assert useStable -> stable ? sha256 || error "No stable sha256";
-    if useStable then stableRepo else unstableRepo;
+    assert getLatest || stable ? rev    || error "No stable rev";
+    assert getLatest || stable ? sha256 || error "No stable sha256";
+    if getLatest then unstableRepo else stableRepo;
 
   checks =
     with rec {
@@ -94,7 +93,7 @@ with rec {
       repos = {
         stable = go {
           inherit url;
-          stable = { rev = "123"; sha256 = "abc"; };
+          stable = { rev = "123"; sha256 = "abc"; unsafeSkip = false; };
         };
 
         unstable = go {
@@ -104,7 +103,7 @@ with rec {
 
         deep = go {
           inherit url;
-          stable    = { rev = "123"; sha256 = "abc"; };
+          stable    = { rev = "123"; sha256 = "abc"; unsafeSkip = false; };
           deepClone = true;
         };
       };
