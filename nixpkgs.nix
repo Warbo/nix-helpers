@@ -1,7 +1,8 @@
 # Pinned nixpkgs repos
 self: super:
-with builtins;
-with super.lib;
+with builtins // super.lib // {
+  inherit (self) die;
+};
 with rec {
   getNixpkgs = { rev, sha256 }: super.fetchFromGitHub {
     inherit rev sha256;
@@ -38,10 +39,26 @@ with rec {
 
   loadRepo = n: v: {
     name  = replaceStrings [ "repo" ] [ "nixpkgs" ] n;
-    value = import v {};
+    value = import v ({ config = {}; } // (if compareVersions n "repo1703" == -1
+                                             then {}
+                                             else { overlays = []; }));
   };
 
   pkgSets = mapAttrs' loadRepo repos;
 };
 
-repos // pkgSets // { inherit getNixpkgs; }
+{
+  defs  = repos // pkgSets // { inherit getNixpkgs; };
+  tests = {
+    # One reason to use old nixpkgs versions is for useful but obsolete KDE apps
+    canAccessKde =
+      with pkgSets;
+      assert nixpkgs1603 ? kde4 || die {
+        error = "nixpkgs1603 doesn't have 'kde4' attribute";
+      };
+      assert nixpkgs1603.callPackage ({ kde4 ? null }: kde4 != null) {} || die {
+        error = "nixpkgs1603.callPackage should populate 'kde4' argument";
+      };
+      self.nothing;
+  };
+}

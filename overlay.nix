@@ -29,9 +29,10 @@ with rec {
 # Accumulate the contents of all helpers/ files
 with fold mkPkg { defs = {}; tests = {}; } (attrNames nixFiles);
 with rec {
-  nix-helpers = defs // pinnedNixpkgs // {
-    inherit nix-helpers pinnedNixpkgs;
-    nix-helpers-tests = tests;
+  nix-helpers = defs // pinnedNixpkgs.defs // {
+    inherit nix-helpers;
+    nix-helpers-tests = tests // { pinnedNixpkgs = pinnedNixpkgs.tests; };
+    pinnedNixpkgs     = pinnedNixpkgs.defs;
   };
 };
 nix-helpers
