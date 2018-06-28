@@ -1,1 +1,1 @@
-{ inherit (import ./.) nix-helper-tests; }
+{ inherit (import ./.) nix-helpers-tests; }
