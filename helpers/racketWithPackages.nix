@@ -1,10 +1,19 @@
-{ fetchFromGitHub, hasBinary, makeWrapper, racket, runCommand }:
+{ fetchFromGitHub, hasBinary, makeWrapper, nixpkgs1609, nixpkgsRelease, racket,
+  runCommand }:
 
+with builtins;
 rec {
+  racketPkg = if currentSystem == "i686-linux" &&
+                 compareVersions nixpkgsRelease "1703" == -1
+                 then racket
+                 else trace ''WARNING: Taking racket from nixpkgs 16.09, since
+                              it's broken on i686 for newer versions''
+                            nixpkgs1609.racket;
+
   def = deps: runCommand "racket-with-deps"
     {
-      inherit deps racket;
-      buildInputs  = [ makeWrapper racket ];
+      inherit deps racketPkg;
+      buildInputs  = [ makeWrapper racketPkg ];
     }
     ''
       # raco writes to HOME, so make sure that's included
@@ -38,7 +47,7 @@ rec {
 
       # Provide Racket binaries patched to use our modified HOME
       mkdir -p "$out/bin"
-      for PROG in "$racket"/bin/*
+      for PROG in "$racketPkg"/bin/*
       do
         NAME=$(basename "$PROG")
         makeWrapper "$PROG" "$out/bin/$NAME" --set HOME "$out/etc"
@@ -73,5 +82,8 @@ rec {
         })
       ];
     };
-    [ result (hasBinary result "racket") ];
+    {
+      example-usage = result;
+      example-has-racket = hasBinary result "racket";
+    };
 }
