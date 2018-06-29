@@ -1,5 +1,5 @@
-{ checkRacket, fetchFromGitHub, hasBinary, makeWrapper, nixpkgs1609,
-  racket, runCommand }:
+{ checkRacket, fetchFromGitHub, hasBinary, makeWrapper, nixpkgs1609, racket,
+  runCommand }:
 
 with builtins;
 with checkRacket;
