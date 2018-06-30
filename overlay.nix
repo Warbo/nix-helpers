@@ -13,7 +13,7 @@ with rec {
   mkPkg      = name: previous:
     with rec {
       # Like callPackage but also has access to nixpkgs, 'self' and 'super'
-      these  = self.callPackage (getAttr name nixFiles) {};
+      these  = self.newScope { inherit super; } (getAttr name nixFiles) {};
       tests  = these.tests or {};
     };
     {
