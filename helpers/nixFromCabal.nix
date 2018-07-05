@@ -1,5 +1,5 @@
 { cabal2nix, composeWithArgs, glibc, haskellPackages, isCallable, lib,
-  runCommand }:
+  pinnedCabal2nix ? cabal2nix, runCommand }:
 
 with builtins; with lib;
 
@@ -68,8 +68,8 @@ let dir      = if isAttrs src_ then src_ else unsafeDiscardStringContext src_;
         name             = "nixFromCabal-${hsVer}-${fields.name}-${fields.version}";
         preferLocalBuild = true; # We need dir to exist
         buildInputs      = [
-          cabal2nix
           glibc  # For iconv
+          pinnedCabal2nix
         ];
       }
       ''

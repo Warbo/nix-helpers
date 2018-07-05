@@ -1,6 +1,6 @@
 { cabal2nix, cabal2nixCache, cabalField, fail, ghc, glibcLocales,
-  haskellPackages, jq, nix, nixpkgs1603, runCommand, stableHackage, unpack,
-  utillinux, withDeps, withNix }:
+  haskellPackages, jq, nix, nixpkgs1603, pinnedCabal2nix ? cabal2nix,
+  runCommand, stableHackage, unpack, utillinux, withDeps, withNix }:
 
 with builtins;
 with rec {
@@ -18,7 +18,9 @@ with rec {
     runCommand "haskell-expr-${pName}"
       (withNix {
         inherit cabal2nixCache dir pName;
-        buildInputs = [ cabal2nix fail ghc jq nix stableHackage utillinux ];
+        buildInputs = [
+          fail ghc jq nix pinnedCabal2nix stableHackage utillinux
+        ];
 
         # Otherwise cabal2nix dies for accented characters
         LANG           = "en_US.UTF-8";

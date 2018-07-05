@@ -1,5 +1,5 @@
-{ asPath, cabal2nix, cabal2nixCache, glibcLocales, latestGit, lib, runCmd,
-  stableHackageDb, withNix }:
+{ asPath, cabal2nix, cabal2nixCache, glibcLocales, latestGit, lib,
+  pinnedCabal2nix ? cabal2nix, runCmd, stableHackageDb, withNix }:
 
 with builtins;
 with lib;
@@ -24,7 +24,7 @@ with rec {
   go = runCmd "run-cabal2nix${if name == "" then "" else "-${name}"}"
     (withNix {
       inherit packageDb;
-      buildInputs = [ cabal2nix ];
+      buildInputs = [ pinnedCabal2nix ];
 
       cacheDir = if hasPrefix "cabal://" url
                     then cabal2nixCache
