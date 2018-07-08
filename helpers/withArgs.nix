@@ -17,7 +17,7 @@ arglist = concatStringsSep "," args;
 arglistF = unsafeDiscardStringContext arglist;
 
 # Write an eta-expansion of "f", which accepts the arguments "args"
-content = "f: args@{${arglistF}}: f args";
+content = "f: args@{${arglistF}, ...}: f args";
 
 eta = import (toFile "withArgs.nix" content) f;
 
