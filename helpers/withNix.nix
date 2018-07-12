@@ -40,19 +40,24 @@ with rec {
                      else getEnv "NIX_REMOTE";
   };
 
+  needWorkaround = compareVersions nix.version "2" != -1;
+
   go = attrs: vars // attrs // {
-    buildInputs = (attrs.buildInputs or []) ++ [ wrappedNix ];
+    buildInputs = (attrs.buildInputs or []) ++ [
+      (if needWorkaround then (nix.out or nix) else wrappedNix)
+    ];
   };
 };
 {
   def   = go;
-  tests = {
+  tests = (if needWorkaround then {
     workaroundStillNeeded = isBroken (runCommand "withNix-workaround-needed"
       (vars // { buildInputs = [ nix.out ]; })
       ''
         nix-build -E '(import <nixpkgs> {}).hello'
         mkdir "$out"
       '');
+  } else {}) // {
     canEvalNumbers = runCommand "withNix-can-eval-number" (go {}) ''
       X=$(nix-instantiate --eval -E '1 + 2')
       [[ "$X" -eq 3 ]] || {
