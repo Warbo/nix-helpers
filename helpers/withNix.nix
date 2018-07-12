@@ -9,20 +9,41 @@ with lib;
 with rec {
   wrapper = cmd: wrap {
     name   = "cmd-wrapped";
-    paths  = [ bash openssh sshpass ];
-    vars   = {
-      SSHPASS = "nixbuildtrampoline";
-    };
+    paths  = [ bash nix openssh sshpass ];
+    vars   = { SSHPASS = "nixbuildtrampoline"; };
     script = ''
       #!/usr/bin/env bash
-      ARGS=""
-      for ARG in "$@"
+      set -e
+
+      # Nix 2.x forbids build users from connecting to nix-daemon. We avoid this
+      # by creating our own socket file and using SSH to tunnel connections to
+      # the real nix-daemon socket, whilst using a dummy user on that end.
+      SUFFIX="0"
+      SOCKET="$TMP"/nix-daemon"$SUFFIX".sock
+      while [[ -e "$SOCKET" ]]
       do
-        ESC=$(printf "%s" "$ARG" | sed -e "s/'/'\\\\${"''"}/g")
-        ARGS="$ARGS '$ESC'"
+        SUFFIX=$(( SUFFIX + 1 ))
+        SOCKET="$TMP"/nix-daemon"$SUFFIX".sock
       done
-      echo "ARGS: $ARGS" 1>&2
-      sshpass -e ssh -o "StrictHostKeyChecking no" nixbuildtrampoline@localhost PATH="$PATH" "${nix}/bin/${cmd}" "$ARGS"
+
+      # TODO: Get this programatically
+      DAEMON=/nix/var/nix/daemon-socket/socket
+
+      echo "Forwarding socket '$SOCKET' to nix-daemon at '$DAEMON'" 1>&2
+      sshpass -e ssh -o "StrictHostKeyChecking no"   \
+                     -o UserKnownHostsFile=/dev/null \
+                     -nNT -L "$SOCKET":"$DAEMON"     \
+                     nixbuildtrampoline@localhost    &
+      SSH_PID="$!"
+      sleep 1
+
+      function cleanUp {
+        kill "$SSH_PID" || true
+        rm -f "$SOCKET"
+      }
+      trap cleanUp EXIT
+
+      NIX_REMOTE="unix://$SOCKET" "${cmd}" "$@"
     '';
   };
 
@@ -99,6 +120,11 @@ with rec {
     '';
     canBuildHello = runCommand "withNix-can-build-hello" (go {}) ''
       nix-build --show-trace --no-out-link -E 'with import <nixpkgs> {}; hello'
+      mkdir "$out"
+    '';
+    canAccessFiles = runCommand "withNix-can-access-files" (go {}) ''
+      echo "<nixpkgs>" > ./test.nix
+      nix-build --show-trace -E '(import (import ./test.nix) {}).hello'
       mkdir "$out"
     '';
   };
