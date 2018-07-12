@@ -65,7 +65,7 @@ with rec {
 
   go = attrs: vars // attrs // {
     buildInputs = (attrs.buildInputs or []) ++ [
-      (if needWorkaround then (nix.out or nix) else wrappedNix)
+      (if needWorkaround then wrappedNix else (nix.out or nix))
     ];
   };
 };
