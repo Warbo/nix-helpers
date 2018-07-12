@@ -1,1 +1,2 @@
-{ inherit (import ./.) nix-helpers-tests; }
+with import ./.;
+collapseAttrs nix-helpers-tests
