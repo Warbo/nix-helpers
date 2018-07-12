@@ -73,7 +73,7 @@ with rec {
   def   = go;
   tests = (if needWorkaround then {
     workaroundStillNeeded = isBroken (runCommand "withNix-workaround-needed"
-      (vars // { buildInputs = [ nix.out ]; })
+      (vars // { buildInputs = [ (nix.out or nix) ]; })
       ''
         nix-build -E '(import <nixpkgs> {}).hello'
         mkdir "$out"
