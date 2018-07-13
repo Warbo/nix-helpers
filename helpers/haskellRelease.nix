@@ -1,6 +1,7 @@
 # Useful for release.nix files in Haskell projects
-{ cabalField, composeWithArgs, fail, haskell, haskellPkgDepsDrv, lib, nix,
-  pinnedNixpkgs, runCabal2nix, runCommand, unpack, withDeps, withNix, writeScript }:
+{ cabalField, composeWithArgs, die, fail, haskell, haskellPkgDeps, lib, nix,
+  pinnedNixpkgs, repo1609, runCabal2nix, runCommand, unpack, withDeps, withNix,
+  writeScript }:
 
 with builtins;
 with lib;
@@ -8,125 +9,94 @@ with rec {
   getNix = v: getAttr v pinnedNixpkgs;
 
   # Make the nixVersion attr (if kept) a set of all its Haskell versions
-  buildForNixpkgs = keep: hs: nixVersion: if !(keep nixVersion) then "" else ''
-    #
-      "${nixVersion}" =
-        with {
-          nixpkgs = ${nixVersion} // {
-            # Avoid https://github.com/haskell/zlib/issues/11
-            # FIXME: Add tests to ensure that this is still needed
-            zlib = ${nixVersion}.callPackage
-                     (repo1609 + "/pkgs/development/libraries/zlib") {};
-          };
-        };
-        with nixpkgs.haskell;
-        {
-          ${concatStringsSep "\n"
-              (map hs (attrNames (getNix nixVersion).haskell.packages))}
-        };
-    '';
+  buildForNixpkgs = haskellVersions: hs: nixVersion:
+    assert isString nixVersion || die {
+      error = "nixVersion should be string";
+      given = typeOf nixVersion;
+    };
+    with {
+      nixpkgs = getNix nixVersion // {
+        # Avoid https://github.com/haskell/zlib/issues/11
+        # FIXME: Add tests to ensure that this is still needed
+        zlib = (getNix nixVersion).callPackage
+                 (repo1609 + "/pkgs/development/libraries/zlib") {};
+      };
+    };
+    with nixpkgs.haskell;
+    genAttrs haskellVersions
+             (name: hs nixpkgs (getAttr name nixpkgs.haskell.packages));
 
-  # Make the hsVersion attr (if kept) a set with nixpkgs and hackage builds
-  buildForHaskell = keep: hsVersion: if !(keep hsVersion) then "" else ''
-    #
-          "${hsVersion}" = go {
-            inherit nixpkgs;
-            haskellPackages = packages."${hsVersion}";
-          };
-  '';
-
-  # Defines nixpkgs and hackageb uilds, using a given haskellPackages set
-  pkgExpr = { cabal-args ? null, dir, name }: runCommand "${name}-expr"
-    {
+  # Defines nixpkgs and hackagedb uilds, using a given haskellPackages set
+  pkgExpr = { dir, name }: nixpkgs: haskellPackages:
+    with rec {
       # Bare function, which we'll give arguments from the nixpkgs Haskell set
       nixpkgsDeps = runCabal2nix { url = dir; };
 
       # Uses a Cabal sandbox to pick dependencies from (a snapshot of) Hackage
-      hackageDeps = haskellPkgDepsDrv ((if cabal-args == null
-                                           then {}
-                                           else { inherit cabal-args; }) // {
-                                        inherit dir;
-                                      });
-
-      default = writeScript "${name}-default.nix" ''
-        { haskellPackages, nixpkgs }:
-
-        with builtins;
-        with (import <nixpkgs> { config = {}; }).lib;
-        with rec {
-          depNames = import ./deps;
-
-          # Calls the Haskell package defined by the given file with dummy
-          # arguments, to see which arguments should come from nixpkgs and which
-          # from haskellPackages (self). Uses this info to call the package
-          # "properly". This is especially useful for args like 'zlib', which
-          # could be from either.
-          callProperly = self: file:
-            with rec {
-              func    = import file;
-              args    = attrNames (functionArgs func);
-              dummies = listToAttrs (map (x: { name = x; value = x; }) args);
-              sysArgs = func (dummies // {
-                mkDerivation = args: args.librarySystemDepends or [];
-              });
-              sysPkgs = listToAttrs
-                (map (name: { inherit name; value = getAttr name nixpkgs; })
-                     sysArgs);
-            };
-            self.callPackage func sysPkgs;
-
-          overrides = self: super: genAttrs depNames
-            (name: callProperly self (./deps/pkgs + ("/" + name + ".nix")));
-
-          hsPkgs = haskellPackages.override { inherit overrides; };
-        };
-        {
-          hackageDeps = hsPkgs.${name};
-          nixpkgsDeps = callProperly haskellPackages ./fromCabal2nix.nix;
-        }
-      '';
-    }
-    ''
-      mkdir "$out"
-      cp -r "$hackageDeps" "$out/deps"
-      cp    "$nixpkgsDeps" "$out/fromCabal2nix.nix"
-      cp "$default" "$out/default.nix"
-    '';
-
-  go = {
-    cabal-args  ? null,       # Extra args for 'cabal install'
-    dir,                      # Directory of a Haskell project
-    name        ? null,       # Taken from .cabal file if not given
-    haskellKeep ? (x: true),  # Predicate for which Haskell/GHC versions to use
-    nixKeep     ? (x: true)   # Predicate for which nixpkgs versions to use
-  }:
-    with {
-      pName = if name == null
-                 then cabalField { inherit dir; field = "name"; }
-                 else name;
-    };
-    # FIXME: This should use <nix-config> and <nixpkgs> if available. We could
-    # still use ../.. to access a helper function to make that easier.
-    # Defines builds for (kept) Haskell versions for (kept) nixpkgs versions
-    writeScript "${pName}-release.nix" ''
-      with import <nixpkgs> {};
-      with {
-        go = import ${pkgExpr {
-                      inherit cabal-args dir;
-                      name = pName;
-                    }};
+      hackageDeps = haskellPkgDeps {
+        inherit dir;
+        inherit (haskellPackages) ghc;
       };
-      {
-        ${concatStringsSep "\n"
-            (map (buildForNixpkgs nixKeep (buildForHaskell haskellKeep))
-                 (filter (hasPrefix "nixpkgs")
-                         (attrNames pinnedNixpkgs)))}
-      }
-    '';
 
-  # Check that this system works for some common, and some problematic, Haskell
-  # packages
+      # Calls the Haskell package defined by the given file with dummy
+      # arguments, to see which arguments should come from nixpkgs and which
+      # from haskellPackages (self). Uses this info to call the package
+      # "properly". This is especially useful for args like 'zlib', which
+      # could be from either.
+      callProperly = self: file:
+        with rec {
+          func    = import file;
+          args    = attrNames (functionArgs func);
+          dummies = listToAttrs (map (x: { name = x; value = x; }) args);
+          sysArgs = func (dummies // {
+            mkDerivation = args: args.librarySystemDepends or [];
+          });
+          sysPkgs = listToAttrs
+            (map (name: { inherit name; value = getAttr name nixpkgs; })
+                 sysArgs);
+        };
+        self.callPackage func sysPkgs;
+
+      hsPkgs = haskellPackages.override {
+        overrides = self: super: mapAttrs (_: callProperly self)
+                                          hackageDeps;
+      };
+    };
+    {
+      hackageDeps = getAttr name hsPkgs;
+      nixpkgsDeps = callProperly haskellPackages nixpkgsDeps;
+    };
+};
+rec {
+  def = {
+    dir,                # Directory of a Haskell project
+    extraSets  ? {},    # Extra Haskell package sets to use (e.g. overridden)
+    haskellVersions,    # List of haskell.packages entries to use
+    name,               # Cabal package name
+    nixpkgsVersions     # List of nixpkgs versions to use
+  }:
+    assert (isList nixpkgsVersions && all isString nixpkgsVersions) || die {
+      error        = "nixpkgsVersions should be a list of strings";
+      actualType   = typeOf nixpkgsVersions;
+      elementTypes = if isList nixpkgsVersions
+                        then map typeOf nixpkgsVersions
+                        else "Not a list";
+    };
+    assert (isList haskellVersions && all isString haskellVersions) || die {
+      error        = "haskellVersions should be a list of strings";
+      actualType   = typeOf haskellVersions;
+      elementTypes = if isList haskellVersions
+                        then map typeOf haskellVersions
+                        else "Not a list";
+    };
+    # Defines builds for Haskell versions for nixpkgs versions, plus extras
+    with { buildForHaskell = pkgExpr { inherit dir name; }; };
+    genAttrs nixpkgsVersions
+             (buildForNixpkgs haskellVersions buildForHaskell);
+
   tests =
+    # Check that this system works for some common, and some problematic, Haskell
+    # packages
     with rec {
       hsVersion = "ghc802";
 
@@ -139,62 +109,35 @@ with rec {
         concatStrings (take 2 (splitString "." nixpkgsVersion))
       }";
 
-      getResult = name: go {
+      getResult = name: def {
         inherit name;
-        cabal-args  = [];  # Avoid tests, to prevent cycles
-        dir         = unpack (getPkg name).src;
-        haskellKeep = v: v == hsVersion;
-        nixKeep     = v: v == currentVersion;
+        dir             = unpack (getPkg name).src;
+        haskellVersions = [      hsVersion ];
+        nixpkgsVersions = [ currentVersion ];
       };
 
-      check = name: runCommand "check-haskellRelease"
-        (withNix {
+      check = name:
+        with {
           inherit hsVersion;
           buildInputs = [ fail nix ];
           result      = getResult name;
           stable      = currentVersion;
-        })
-        ''
-          function check {
-            nix-instantiate --eval --read-write-mode \
-              -E "with builtins; with { lhs = $1; rhs = $2; };"'
-                  assert lhs == rhs || trace (toJSON { inherit lhs rhs; })
-                                             false;
-                  true'
-          }
-
-          check "typeOf (import $result)" '"set"' ||
-            fail "Generated release.nix doen't define a set"
-
-          check "attrNames (import $result)" "[ \"$stable\" ]" ||
-            fail "Should have one attribute, with stable name '$stable'"
-
-          check "attrNames (import $result).$stable" "[\"$hsVersion\"]" ||
-            fail "Set should have one GHC version, namely '$hsVersion'"
-
-          check "(import $result).$stable.$hsVersion ? hackageDeps" "true" ||
-            fail "Should have a 'hackageDeps' attribute"
-
-          check "(import $result).$stable.$hsVersion ? nixpkgsDeps" "true" ||
-            fail "Should have a 'nixpkgsDeps' attribute"
-
-          function build {
-            echo "Attempting to build '$1' package" 1>&2
-            if nix-build --show-trace --no-out-link \
-                 -E "(import $result).$stable.$hsVersion.$1"
-            then
-              echo "Successfully built '$1' package" 1>&2
-            else
-              fail "Couldn't build '$1' package"
-            fi
-          }
-
-          # Build in $out so that results aren't garbage collected too early
-          mkdir "$out"
-          cd "$out"
-          build "hackageDeps"
-          build "nixpkgsDeps"
-        '';
+        };
+        assert isAttrs result || die {
+          error = "Generated release doesn't define a set";
+        };
+        assert attrNames result == [ stable ] || die {
+          error = "Should have one attribute, with stable name '${stable}'";
+          names = attrNames result;
+        };
+        assert attrNames result."${stable}" == [ hsVersion ] || die {
+          error       = "Set should have one GHC version, namely '${hsVersion}'";
+          haskellSets = attrNames result."${stable}";
+          resultSets  = attrNames result;
+        };
+        {
+          inherit (result."${stable}"."${hsVersion}") hackageDeps nixpkgsDeps;
+        };
     };
     {
       # A widely-used Haskell package, see if it works
@@ -209,5 +152,4 @@ with rec {
       # This depends on the Haskell zlib package, rather than the system one
       zlib-bindings = check "zlib-bindings";
     };
-};
-composeWithArgs (withDeps (attrValues tests)) go
+}
