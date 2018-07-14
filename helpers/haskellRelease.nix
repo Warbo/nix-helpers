@@ -1,7 +1,7 @@
 # Useful for release.nix files in Haskell projects
-{ cabalField, composeWithArgs, die, fail, haskell, haskellPkgDeps, lib, nix,
-  pinnedNixpkgs, repo1609, runCabal2nix, runCommand, unpack, withDeps, withNix,
-  writeScript }:
+{ cabalField, composeWithArgs, die, fail, getType, haskell, haskellPkgDeps,
+  isAttrSet, lib, nix, pinnedNixpkgs, repo1609, runCabal2nix, runCommand,
+  unpack, withDeps, withNix, writeScript }:
 
 with builtins;
 with lib;
@@ -39,6 +39,9 @@ with rec {
                haskellPackages = getAttr name nixpkgs.haskell.packages;
              });
 
+  dummyArgsFor = func: listToAttrs
+    (map (x: { name = x; value = x; }) (attrNames (functionArgs func)));
+
   # Calls the Haskell package defined by the given file with dummy
   # arguments, to see which arguments should come from nixpkgs and which
   # from haskellPackages (self). Uses this info to call the package
@@ -49,9 +52,7 @@ with rec {
     assert isAttrs self;
     with rec {
       func    = import file;
-      args    = attrNames (functionArgs func);
-      dummies = listToAttrs (map (x: { name = x; value = x; }) args);
-      sysArgs = func (dummies // {
+      sysArgs = func (dummyArgsFor func // {
         mkDerivation = args: args.librarySystemDepends or [];
       });
       sysPkgs = listToAttrs
@@ -64,21 +65,31 @@ with rec {
     assert isString name;
     assert isAttrs haskellPackages;
     assert isAttrs nixpkgs;
-    assert !isDerivation haskellPackages;
-    assert !isDerivation nixpkgs;
+    assert isAttrSet haskellPackages;
+    assert isAttrSet nixpkgs;
+    # Uses a Cabal sandbox to pick dependencies from (a snapshot of) Hackage
+    with haskellPkgDeps {
+      inherit dir;
+      inherit (haskellPackages) ghc;
+    };
     with rec {
-      # Uses a Cabal sandbox to pick dependencies from (a snapshot of) Hackage
-      hackageDeps = haskellPkgDeps {
-        inherit dir;
-        inherit (haskellPackages) ghc;
-      };
-
       hsPkgs = haskellPackages.override {
-        overrides = self: super: mapAttrs (_: callProperly nixpkgs self)
-          hackageDeps;
+        overrides = self: super: listToAttrs
+          (map (url:
+                 with rec {
+                   pkg  = runCabal2nix { inherit url; };
+                   func = import pkg;
+                 };
+                 {
+                   name  = (func (dummyArgsFor func // {
+                             mkDerivation = args: args;
+                           })).pname;
+                   value = callProperly nixpkgs self pkg;
+                 })
+               deps);
       };
     };
-    getAttr name hsPkgs;
+    withDeps gcRoots (getAttr name hsPkgs);
 
   buildForHaskell = { dir, name }: { haskellPackages, nixpkgs }:
     callProperly nixpkgs haskellPackages (runCabal2nix { url = dir; });
@@ -96,20 +107,19 @@ rec {
       forHaskell = buildForHaskell { inherit dir name; };
 
       isSetOf = valType: name: x:
-        (!isDerivation           x &&
-         isAttrs                 x &&
+        (isAttrSet x &&
          all (valType (name + " value")) (attrValues x)) || die {
           error = name + " should be a set";
-          given = if isDerivation x then "derivation" else typeOf x;
+          given = getType x;
         };
       isListOf = elemType: name: x:
         (isList x && all (elemType (name + " element")) x) || die {
           error = name + " should be a list";
           given = typeOf x;
         };
-      isASet = name: x: (!isDerivation x && isAttrs x) || die {
+      isASet = name: x: isAttrSet x || die {
         error = name + " should be a set";
-        given = if isDerivation x then "derivation" else typeOf x;
+        given = getType x;
       };
       isAString = name: x: isString x || die {
         error = name + " should be a string";
@@ -143,54 +153,68 @@ rec {
         concatStrings (take 2 (splitString "." nixpkgsVersion))
       }";
 
-      getResult = name: def {
-        inherit name;
-        dir         = unpack (getPkg name).src;
-        nixpkgsSets = { "${currentVersion}" = [ hsVersion ]; };
-        hackageSets = { "${currentVersion}" = [ hsVersion ]; };
+      getResult = {
+        hackageSets ? { "${currentVersion}" = [ hsVersion ]; },
+        name,
+        nixpkgsSets ? { "${currentVersion}" = [ hsVersion ]; },
+      }: def {
+        inherit hackageSets name nixpkgsSets;
+        dir = unpack (getPkg name).src;
       };
 
-      check = name:
-        with {
+      check = { name, ... }@args:
+        with rec {
           inherit hsVersion;
           buildInputs = [ fail nix ];
-          result      = getResult name;
+          result      = getResult args;
           stable      = currentVersion;
+          isHackage   = (args.hackageDeps or null) == {};
+          isNixpkgs   = (args.nixpkgsDeps or null) == {};
+          checkSet    = name: set:
+            assert attrNames set == [ stable ] || die {
+              error  = "Invalid contents";
+              value  = name;
+              given  = attrNames set;
+              wanted = [ stable ];
+            };
+            assert attrNames (getAttr stable set) == [ hsVersion ] || die {
+              error  = "Invalid contents";
+              value  = [ name stable ];
+              given  = attrNames (getAttr stable set);
+              wanted = [ hsVersion ];
+            };
+            true;
         };
-        assert isAttrs result || die {
+        assert isAttrSet result || die {
           error = "Generated release doesn't define a set";
+          given = getType result;
         };
-        assert elem "hackageDeps" (attrNames result) &&
-               elem "nixpkgsDeps" (attrNames result) &&
-               length (attrNames result) == 2        || die {
-          error = "Attributes should be hackageDeps and nixpkgsDeps";
-          names = attrNames result;
+        assert (isHackage -> result ? hackageDeps) &&
+               (isNixpkgs -> result ? nixpkgsDeps) || die {
+          inherit isHackage isNixpkgs;
+          error  = "Result attributes don't match up";
+          given  = attrNames result;
+          wanted = (if isHackage then [ "hackageDeps" ] else []) ++
+                   (if isNixpkgs then [ "nixpkgsDeps" ] else []);
         };
-        assert attrNames result.hackageDeps == [ stable ] || die {
-          error = "hackageDeps should only contain '${stable}'";
-          names = attrNames result.hackageDeps;
-        };
-        assert attrNames result.nixpkgsDeps == [ stable ] || die {
-          error = "nixpkgsDeps should only contain '${stable}'";
-          names = attrNames result.nixpkgsDeps;
-        };
-        assert attrNames result.hackageDeps."${stable}" == [hsVersion] || die {
-          error = "hackageDeps.${stable} should only contain '${hsVersion}'";
-          names = attrNames result.hackageDeps."${stable}";
-        };
+        assert isHackage -> checkSet "hackageDeps" result.hackageDeps;
+        assert isNixpkgs -> checkSet "nixpkgsDeps" result.nixpkgsDeps;
         result;
     };
     {
       # A widely-used Haskell package, see if it works
-      text = check "text";
+      text = check { name = "text"; };
 
       # zlib is awkward, since it's both a Haskell package and a system package
-      zlib = check "zlib";
+      zlib = check {
+        name        = "zlib";
+        hackageSets = {};
+      };
 
       # digest also depends on the system's zlib
-      digest = check "digest";
+      digest = check { name = "digest"; };
 
       # This depends on the Haskell zlib package, rather than the system one
-      zlib-bindings = check "zlib-bindings";
+      zlib-bindings = check { name = "zlib-bindings"; };
     };
 }
