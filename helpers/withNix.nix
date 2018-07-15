@@ -92,7 +92,7 @@ with rec {
                      else getEnv "NIX_REMOTE";
   };
 
-  needWorkaround = compareVersions nix.version "2" != -1;
+  needWorkaround = compareVersions nixVersion "2" != -1;
 
   go = attrs: vars // attrs // {
     buildInputs = (attrs.buildInputs or []) ++ [
