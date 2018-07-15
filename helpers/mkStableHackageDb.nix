@@ -29,14 +29,14 @@ rec {
       buildPhase  = ''
         BASE="$PWD"
 
-        tar cf 00-index.tar -T /dev/null
+        tar cf 00-index.tar -T /dev/null --posix
 
         echo "Adding package dirs to 00-index.tar" 1>&2
         pushd "$src"
           for F in *
           do
             echo "Adding $F" 1>&2
-            tar rf "$BASE/00-index.tar" "$F"
+            tar rf "$BASE/00-index.tar" --posix "$F"
           done
         popd
       '';
