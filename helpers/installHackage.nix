@@ -1,7 +1,7 @@
-{ bash, fail, hackageDb, mkBin, replace, rsync }:
+{ bash, fail, hackageDb, lib, mkBin, replace, rsync }:
 
-{
-  def = mkBin {
+with {
+  go = { hackageDb }: mkBin {
     name   = "installHackage";
     paths  = [ bash fail replace rsync ];
     vars   = { inherit hackageDb; };
@@ -37,6 +37,8 @@
       echo "Installed '$hackageDb' to '$HOME/.cabal'" 1>&2
     '';
   };
-
+};
+{
+  def   = lib.makeOverridable go { inherit hackageDb; };
   tests = {};
 }
