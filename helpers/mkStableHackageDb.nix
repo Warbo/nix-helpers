@@ -28,11 +28,19 @@ rec {
       buildPhase  = ''
         BASE="$PWD"
 
-        tar cf 00-index.tar -T /dev/null --format=ustar
+        cp -r "$src" ./src
+        chmod +w -R  ./src
+
+        echo "Removing problematic packages" 1>&2
+
+        # Long filename causes UnsupportedTarEntry problem with cabal2nix
+        rm -rfv ./src/haskelldb-connect-hdbc-catchio-transformers*
+
+        tar cf 00-index.tar -T /dev/null
 
         echo "Adding package dirs to 00-index.tar" 1>&2
-        pushd "$src"
-          # Add all Cabal files; use v+cut+uniq to show names of added packages
+        pushd ./src
+          # Add Cabal files; use v+cut+uniq to show names of added packages
           tar rvf "$BASE/00-index.tar" * | cut -d '/' -f1 | uniq
         popd
       '';
