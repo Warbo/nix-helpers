@@ -3,9 +3,9 @@
 with rec {
   pkg = (mkStableHackageDb {}).installer;
 
-  tested = withDeps [ (hasBinary pkg "makeCabalConfig") ] pkg;
+  haveBin = hasBinary pkg "makeCabalConfig";
 };
 {
-  def   = tested;
-  tests = tested;
+  def   = withDeps [ haveBin ] pkg;
+  tests = { inherit haveBin; };
 }

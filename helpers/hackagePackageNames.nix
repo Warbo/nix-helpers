@@ -1,7 +1,10 @@
-{ mkStableHackageDb, nothing }:
+{ dummyBuild, mkStableHackageDb }:
 
 with builtins;
 rec {
   def   = (mkStableHackageDb {}).available;
-  tests = assert typeOf def == "list"; nothing;
+  tests = {
+    haveAvailableList = assert typeOf def == "list";
+                        dummyBuild "haveAvailableList";
+  };
 }

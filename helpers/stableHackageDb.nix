@@ -2,5 +2,7 @@
 
 rec {
   def   = (mkStableHackageDb {}).installed;
-  tests = def;
+  tests = {
+    haveInstalled = def;
+  };
 }
