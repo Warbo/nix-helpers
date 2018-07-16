@@ -77,8 +77,10 @@ with rec {
           cabal new-build --index-state "@$timestamp"
         popd
       '';
+};
 
-  go = args: runCommand "new-built-${pName args}"
+rec {
+  def = args: runCommand "new-built-${pName args}"
     { build = build args; }
     ''
       cat "$build/src"/*.cabal | grep -i '^ *executable' |
@@ -95,23 +97,20 @@ with rec {
       done
     '';
 
-  checkNoCache = runCommand "check-new-build-no-cache"
-    {
-      buildInputs = [ fail ];
-      got         = build { package = "hpp"; };
-    }
-    ''
-      find "$got" -type f -name '01-index.tar*' | while read -r F
-      do
-        fail "Cabal cache should be symlinked; found '$F'"
-      done
-      mkdir "$out"
-    '';
+  tests = {
+    checkNoCache = runCommand "check-new-build-no-cache"
+      {
+        buildInputs = [ fail ];
+        got         = build { package = "hpp"; };
+      }
+      ''
+        find "$got" -type f -name '01-index.tar*' | while read -r F
+        do
+          fail "Cabal cache should be symlinked; found '$F'"
+        done
+        mkdir "$out"
+      '';
 
-  checkBin = hasBinary (go { package = "hpp"; }) "hpp";
-};
-
-{
-  def   = args: withDeps [ checkNoCache checkBin ] (go args);
-  tests = {};
+    checkBin = hasBinary (def { package = "hpp"; }) "hpp";
+  };
 }
