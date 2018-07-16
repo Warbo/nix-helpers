@@ -1,5 +1,5 @@
-{ buildEnv, curl, fail, fetchFromGitHub, gzip, isBroken, jq, mkBin, nixpkgs1603,
-  nothing, python, runCmd, stdenv, withDeps, writeScript }:
+{ buildEnv, fail, fetchFromGitHub, mkBin, nixpkgs1603, python, runCmd, stdenv,
+  withDeps, wrap, writeScript }:
 
 with builtins;
 rec {
@@ -22,9 +22,8 @@ rec {
     # a while to build, so we keep it in a standalone derivation to reduce the
     # chance that it'll need to be rebuilt (e.g. due to a dodgy test)
     archive = stdenv.mkDerivation {
-      name = "hackage-00-index.tar";
-      src  = all-cabal-files;
-
+      name        = "hackage-00-index.tar";
+      src         = all-cabal-files;
       unpackPhase = "true";  # Without this, src will be copied, which takes ages
       buildPhase  = ''
         BASE="$PWD"
@@ -33,14 +32,10 @@ rec {
 
         echo "Adding package dirs to 00-index.tar" 1>&2
         pushd "$src"
-          for F in *
-          do
-            echo "Adding $F" 1>&2
-            tar rf "$BASE/00-index.tar" "$F"
-          done
+          # Add all Cabal files; use v+cut+uniq to show names of added packages
+          tar rvf "$BASE/00-index.tar" * | cut -d '/' -f1 | uniq
         popd
       '';
-
       installPhase = ''
         cp -r 00-index.tar "$out"
       '';
@@ -146,5 +141,14 @@ rec {
     available = attrNames versions;
   };
 
-  tests = assert elem "0.2.0.0" (def {}).versions.panhandle; nothing;
+  tests = {
+    havePanhandle = runCmd "have-panhandle" { f = (def {}).versionsDrv; } ''
+      grep panhandle < "$f" | grep "0.2.0.0" || {
+        echo "Hackage archive doesn't contain panhandle-0.2.0.0. Found:" 1>&2
+        grep panhandle < "$f" 1>&2 || echo "No versions of panhandle" 1>&2
+        exit 1
+      }
+      mkdir "$out"
+    '';
+  };
 }
