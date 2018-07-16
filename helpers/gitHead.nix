@@ -2,7 +2,7 @@
 
 with builtins;
 with rec {
-  rev = { url, ref ? "HEAD" }:
+  rev = { url, ref ? "HEAD", ... }:
     with rec {
       # The 'REPO_REFS' env var makes it easy to specify a bunch of revs at once
       repoRefStr = getEnv "REPO_REFS";
@@ -40,6 +40,6 @@ with rec {
                else keyRev;
 };
 {
-  def   = go;
+  def   = rev;
   tests = {};
 }
