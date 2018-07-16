@@ -122,5 +122,5 @@ with rec {
 
 {
   def   = go;
-  tests = assert checks; nothing;
+  tests = assert checks; {};
 }
