@@ -1,5 +1,6 @@
-{ asPath, cabal2nix, cabal2nixCache, glibcLocales, latestGit, lib,
-  pinnedCabal2nix ? cabal2nix, runCmd, stableHackageDb, withArgsOf, withNix }:
+{ asPath, cabal2nix, cabal2nixCache, glibcLocales, haskellPackages, latestGit,
+  lib, nothing, pinnedCabal2nix ? cabal2nix, runCmd, stableHackageDb, unpack,
+  withArgsOf, withNix }:
 
 with builtins;
 with lib;
@@ -81,5 +82,14 @@ with rec {
 };
 {
   def   = withArgsOf go cached;
-  tests = {};
+  tests = {
+    canGetHackage = go {
+      name = "runCabal2nix-can-get-hackage";
+      url  = "cabal://list-extras-0.4.1.4";
+    };
+    canGetDir = go {
+      name = "runCabal2nix-can-get-dir";
+      url  = unpack haskellPackages.list-extras.src;
+    };
+  };
 }
