@@ -1,3 +1,6 @@
 {}:
 
-"/tmp/cabal2nix-cache"
+{
+  def   = "/tmp/cabal2nix-cache";
+  tests = {};
+}

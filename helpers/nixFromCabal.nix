@@ -16,93 +16,96 @@ with builtins; with lib;
 # we perform a tricky piece of indirection which essentially composes "f" with
 # the package definition, but also preserves all of the named arguments required
 # for "haskellPackages.callPackage" to work.
+{
+  def = src_: f:
 
-src_: f:
+  assert trace (toJSON {
+    inherit src_;
+    warning  = "deprecated";
+    function = "nixFromCabal";
+    message  = ''
+      nixFromCabal is overly complex, does too much and can be replaced with other
+      functions. In particular:
+        - nixpkgs functions like hackage2nix and haskellSrc2nix can make a Nix
+          function from a Cabal project.
+        - We also define runCabal2nix to do this, but that may also get deprecated
+          now that nixpkgs has this functionality.
+        - Running a function whilst preserving names can be achieved using the
+          withArgs, withArgsOf or composeWithArgs functions.
+    '';
+  }) true;
+  assert typeOf src_ == "path" || isString src_ || isAttrs src_;
+  assert isAttrs src_ || pathExists (if hasPrefix storeDir (unsafeDiscardStringContext src_)
+                                        then src_
+                                        else "${src_}");
+  assert f == null || isCallable f;
 
-assert trace (toJSON {
-  inherit src_;
-  warning  = "deprecated";
-  function = "nixFromCabal";
-  message  = ''
-    nixFromCabal is overly complex, does too much and can be replaced with other
-    functions. In particular:
-      - nixpkgs functions like hackage2nix and haskellSrc2nix can make a Nix
-        function from a Cabal project.
-      - We also define runCabal2nix to do this, but that may also get deprecated
-        now that nixpkgs has this functionality.
-      - Running a function whilst preserving names can be achieved using the
-        withArgs, withArgsOf or composeWithArgs functions.
-  '';
-}) true;
-assert typeOf src_ == "path" || isString src_ || isAttrs src_;
-assert isAttrs src_ || pathExists (if hasPrefix storeDir (unsafeDiscardStringContext src_)
-                                      then src_
-                                      else "${src_}");
-assert f == null || isCallable f;
+  let dir      = if isAttrs src_ then src_ else unsafeDiscardStringContext src_;
+      hsVer    = haskellPackages.ghc.version;
 
-let dir      = if isAttrs src_ then src_ else unsafeDiscardStringContext src_;
-    hsVer    = haskellPackages.ghc.version;
+      fields   = let
+        # Find the .cabal file and read properties from it
+        getField = f: replaceStrings [f (toLower f)] ["" ""]
+                                     (head (filter (l: hasPrefix          f  l ||
+                                                       hasPrefix (toLower f) l)
+                                                   cabalC));
+        cabalC   = map (replaceStrings [" " "\t"] ["" ""])
+                       (splitString "\n" (readFile (dir + "/${cabalF}")));
+        cabalF   = head (filter (x: hasSuffix ".cabal" x)
+                                (attrNames (readDir dir)));
 
-    fields   = let
-      # Find the .cabal file and read properties from it
-      getField = f: replaceStrings [f (toLower f)] ["" ""]
-                                   (head (filter (l: hasPrefix          f  l ||
-                                                     hasPrefix (toLower f) l)
-                                                 cabalC));
-      cabalC   = map (replaceStrings [" " "\t"] ["" ""])
-                     (splitString "\n" (readFile (dir + "/${cabalF}")));
-      cabalF   = head (filter (x: hasSuffix ".cabal" x)
-                              (attrNames (readDir dir)));
+        pkgName = unsafeDiscardStringContext (getField "Name:");
+        pkgV    = unsafeDiscardStringContext (getField "Version:");
 
-      pkgName = unsafeDiscardStringContext (getField "Name:");
-      pkgV    = unsafeDiscardStringContext (getField "Version:");
+        # Read properties from derivation
+        #drvName = dir
+        in { name = pkgName; version = pkgV; };
 
-      # Read properties from derivation
-      #drvName = dir
-      in { name = pkgName; version = pkgV; };
+      # Produces a copy of the dir contents, along with a default.nix file
+      nixed = runCommand "nix-haskell"
+        {
+          inherit dir;
+          name             = "nixFromCabal-${hsVer}-${fields.name}-${fields.version}";
+          preferLocalBuild = true; # We need dir to exist
+          buildInputs      = [
+            glibc  # For iconv
+            pinnedCabal2nix
+          ];
+        }
+        ''
+          source $stdenv/setup
 
-    # Produces a copy of the dir contents, along with a default.nix file
-    nixed = runCommand "nix-haskell"
-      {
-        inherit dir;
-        name             = "nixFromCabal-${hsVer}-${fields.name}-${fields.version}";
-        preferLocalBuild = true; # We need dir to exist
-        buildInputs      = [
-          glibc  # For iconv
-          pinnedCabal2nix
-        ];
-      }
-      ''
-        source $stdenv/setup
+          echo "Copying '$dir' to '$out'"
+          cp -r "$dir" "$out"
+          cd "$out"
 
-        echo "Copying '$dir' to '$out'"
-        cp -r "$dir" "$out"
-        cd "$out"
+          echo "Setting permissions"
+          chmod -R +w . # We need this if dir has come from the store
 
-        echo "Setting permissions"
-        chmod -R +w . # We need this if dir has come from the store
+          echo "Cleaning up unnecessary files"
+          rm -rf ".git" || true
 
-        echo "Cleaning up unnecessary files"
-        rm -rf ".git" || true
+          echo "Creating '$out/default.nix'"
+          touch default.nix
+          chmod +w default.nix
 
-        echo "Creating '$out/default.nix'"
-        touch default.nix
-        chmod +w default.nix
+          echo "Stripping unicode from .cabal"
+          for F in *.cabal
+          do
+            CONTENT=$(iconv -c -f utf-8 -t ascii "$F")
+            echo "$CONTENT" > "$F"
+          done
 
-        echo "Stripping unicode from .cabal"
-        for F in *.cabal
-        do
-          CONTENT=$(iconv -c -f utf-8 -t ascii "$F")
-          echo "$CONTENT" > "$F"
-        done
+          echo "Generating package definition"
+          cabal2nix ./. > default.nix
+        '';
+      result = import "${nixed}";
+  in
 
-        echo "Generating package definition"
-        cabal2nix ./. > default.nix
-      '';
-    result = import "${nixed}";
-in
+  # If we've been given a function "f", compose it with "result" using our
+  # special-purpose function
+  if f == null then result
+               else composeWithArgs f result;
 
-# If we've been given a function "f", compose it with "result" using our
-# special-purpose function
-if f == null then result
-             else composeWithArgs f result
+  tests = {};
+}

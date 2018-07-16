@@ -90,8 +90,12 @@ with rec {
 };
 
 {
-  gcRoots = allGCRoots;
-  hsPkgs  = if deps.delayedFailure or false
-               then deps
-               else overriddenHsPkgs;
+  def = {
+    gcRoots = allGCRoots;
+    hsPkgs  = if deps.delayedFailure or false
+                 then deps
+                 else overriddenHsPkgs;
+  };
+
+  tests = {};
 }

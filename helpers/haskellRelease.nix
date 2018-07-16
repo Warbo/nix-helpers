@@ -139,8 +139,8 @@ rec {
     ];
 
   tests =
-    # Check that this system works for some common, and some problematic, Haskell
-    # packages
+    # Check that this system works for some common, and some problematic,
+    # Haskell packages
     with rec {
       hsVersion = "ghc802";
 

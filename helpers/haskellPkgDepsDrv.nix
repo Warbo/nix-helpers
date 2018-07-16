@@ -129,4 +129,7 @@ with rec {
   };
 };
 
-args: withDeps (attrValues tests) (go args)
+{
+  def   = args: withDeps (attrValues tests) (go args);
+  tests = {};
+}

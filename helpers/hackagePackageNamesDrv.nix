@@ -1,3 +1,7 @@
 { mkStableHackageDb }:
 
-(mkStableHackageDb {}).availableDrv
+{
+  def   = (mkStableHackageDb {}).availableDrv;
+
+  tests = {};
+}

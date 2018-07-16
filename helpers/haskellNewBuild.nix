@@ -111,4 +111,7 @@ with rec {
   checkBin = hasBinary (go { package = "hpp"; }) "hpp";
 };
 
-args: withDeps [ checkNoCache checkBin ] (go args)
+{
+  def   = args: withDeps [ checkNoCache checkBin ] (go args);
+  tests = {};
+}
