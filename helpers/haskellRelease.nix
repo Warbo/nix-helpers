@@ -206,15 +206,12 @@ rec {
       text = check { name = "text"; };
 
       # zlib is awkward, since it's both a Haskell package and a system package
-      zlib = check {
-        name        = "zlib";
-        hackageSets = {};
-      };
+      zlib = check { name = "zlib"; hackageSets = {}; };
 
       # digest also depends on the system's zlib
       digest = check { name = "digest"; };
 
       # This depends on the Haskell zlib package, rather than the system one
-      zlib-bindings = check { name = "zlib-bindings"; };
+      zlib-bindings = check { name = "zlib-bindings"; hackageSets = {}; };
     };
 }
