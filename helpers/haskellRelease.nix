@@ -206,7 +206,7 @@ rec {
       text = check { name = "text"; };
 
       # zlib is awkward, since it's both a Haskell package and a system package
-      zlib = check { name = "zlib"; hackageSets = {}; };
+      zlib = check { name = "zlib"; hackageSets = {}; nixpkgsSets = {}; };
 
       # digest also depends on the system's zlib
       digest = check { name = "digest"; };
