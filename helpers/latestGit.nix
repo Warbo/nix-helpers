@@ -11,8 +11,8 @@
 #
 # TODO: This duplicates some functionality of fetchgitrevision; wait for that
 # API to settle down, then use it here.
-{ cacert, callPackage, die, fetchGitHashless, git, lib, nothing, repo1709,
-  runCmd, sanitiseName, stdenv }:
+{ callPackage, die, dummyBuild, fetchGitHashless, git, gitHead, lib, nothing,
+  repo1709, stdenv }:
 
 with builtins;
 with lib;
@@ -31,11 +31,9 @@ with rec {
                              });
     };
 
-  # We need the url, but ref is optional (e.g. if we want a particular branch).
-  # If nix-config is in stable mode 'stable' should have a 'rev' and a 'sha256'.
-  # To force the latest version, even when we're supposed to be stable, the set
-  # '{ unsafeSkip = true; }' can be used as the value of 'stable'. As its name
-  # implies, this should be thought about carefully before using.
+  # We need a url, but ref is optional (e.g. if we want a particular branch).
+  # If 'stable.unsafeSkip' (the name is legacy) is set to 'false' it forces a
+  # stable revision to be used (given by 'stable.rev' and 'stable.sha256').
   go = { url, ref ? "HEAD", stable ? {}, ... }@args:
     with rec {
       gitArgs = removeAttrs args [ "ref" "stable" ];
@@ -44,40 +42,7 @@ with rec {
       stableRepo = fetchgit (gitArgs // { inherit (stable) rev sha256; });
 
       # In unstable mode, we look up the latest 'rev' dynamically
-      unstableRepo = fetchGitHashless (gitArgs // { inherit rev; });
-
-      # 'rev' can be given by the env vars 'REPO_REFS' or 'nix_git_rev_...'. If
-      # not found in either, we run 'newRev' to query the URL for the latest
-      # version.
-      rev = if hasAttr url repoRefs
-               then getAttr url repoRefs
-                    else if keyRev == ""
-                            then newRev
-                            else keyRev;
-
-      # The 'REPO_REFS' env var makes it easy to specify a bunch of revs at once
-      repoRefStr = getEnv "REPO_REFS";
-      repoRefs   = if repoRefStr == ""
-                      then {}
-                      else fromJSON repoRefStr;
-
-      # The 'nix_git_rev_...' env vars make it easy to specify an individual rev
-      key    = "${hashString "sha256" url}_${hashString "sha256" ref}";
-      keyRev = getEnv "nix_git_rev_${key}";
-
-      # Get commit ID for the given ref in the given repo. Takes a few seconds.
-      newRev = import (runCmd "repo-${sanitiseName ref}-${sanitiseName url}"
-        {
-          inherit ref url;
-          cacheBuster    = toString currentTime;
-          GIT_SSL_CAINFO = "${cacert}/etc/ssl/certs/ca-bundle.crt";
-          buildInputs    = [ git ];
-        }
-        ''
-          set -o pipefail
-          # Commit ID is first awk 'field' in the first 'record'. Wrap in quotes.
-          git ls-remote "$url" $ref | awk 'NR==1 {print "\""$1"\""}' > "$out"
-        '');
+      unstableRepo = fetchGitHashless (gitArgs // { rev = gitHead args; });
 
       # If unsafeSkip is given, do what it says. If not, always get latest
       # (since that's what our name implies).
@@ -122,5 +87,5 @@ with rec {
 
 {
   def   = go;
-  tests = assert checks; {};
+  tests = { checks = assert checks; dummyBuild "latestGit-checks"; };
 }
