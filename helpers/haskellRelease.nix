@@ -1,7 +1,7 @@
 # Useful for release.nix files in Haskell projects
 { cabalField, composeWithArgs, die, fail, getType, haskell, haskellPkgDeps,
-  isAttrSet, lib, nix, pinnedNixpkgs, repo1609, runCabal2nix, runCommand,
-  unpack, withDeps, withNix, writeScript }:
+  haskellTestCycles, isAttrSet, lib, nix, pinnedNixpkgs, repo1609, runCabal2nix,
+  runCommand, unpack, withDeps, withNix, writeScript }:
 
 with builtins;
 with lib;
@@ -46,12 +46,17 @@ with rec {
   # arguments, to see which arguments should come from nixpkgs and which
   # from haskellPackages (self). Uses this info to call the package
   # "properly". This is especially useful for args like 'zlib', which
-  # could be from either.
+  # could be from either. We also check whether this package's test dependencies
+  # cause a cycle, by looking it up in a list of known offenders. If so, we
+  # disable its tests to prevent an infinite loop.
   callProperly = nixpkgs: self: file:
     assert isAttrs nixpkgs;
     assert isAttrs self;
     with rec {
       func    = import file;
+      pname   = func (dummyArgsFor func // {
+        mkDerivation = args: args.pname;
+      });
       sysArgs = func (dummyArgsFor func // {
         mkDerivation = args: args.librarySystemDepends or [];
       });
@@ -59,7 +64,11 @@ with rec {
         (map (name: { inherit name; value = getAttr name nixpkgs; })
         sysArgs);
     };
-    self.callPackage func sysPkgs;
+    (if elem pname haskellTestCycles
+        then trace "Warning: Disabled Haskell ${pname} tests due to cyclic deps"
+                   haskell.lib.dontCheck
+        else (x: x))
+      (self.callPackage func sysPkgs);
 
   buildForHackage = { dir, name }: { haskellPackages, nixpkgs }:
     assert isString name;
