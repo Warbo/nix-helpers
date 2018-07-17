@@ -1,7 +1,7 @@
 # Useful for release.nix files in Haskell projects
 { cabalField, composeWithArgs, die, fail, getType, haskell, haskellPkgDeps,
-  haskellTestCycles, isAttrSet, lib, nix, pinnedNixpkgs, repo1609, runCabal2nix,
-  runCommand, unpack, withDeps, withNix, writeScript }:
+  isAttrSet, lib, nix, pinnedNixpkgs, repo1609, runCabal2nix, runCommand,
+  unpack, withDeps, withNix, writeScript }:
 
 with builtins;
 with lib;
@@ -54,9 +54,6 @@ with rec {
     assert isAttrs self;
     with rec {
       func    = import file;
-      pname   = func (dummyArgsFor func // {
-        mkDerivation = args: args.pname;
-      });
       sysArgs = func (dummyArgsFor func // {
         mkDerivation = args: args.librarySystemDepends or [];
       });
@@ -64,11 +61,7 @@ with rec {
         (map (name: { inherit name; value = getAttr name nixpkgs; })
         sysArgs);
     };
-    (if elem pname haskellTestCycles
-        then trace "Warning: Disabled Haskell ${pname} tests due to cyclic deps"
-                   haskell.lib.dontCheck
-        else (x: x))
-      (self.callPackage func sysPkgs);
+    self.callPackage func sysPkgs;
 
   buildForHackage = { dir, name }: { haskellPackages, nixpkgs }:
     assert isString name;

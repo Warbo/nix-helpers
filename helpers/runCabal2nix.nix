@@ -1,6 +1,6 @@
-{ asPath, cabal2nix, cabal2nixCache, glibcLocales, haskellPackages, latestGit,
-  lib, nothing, pinnedCabal2nix ? cabal2nix, runCmd, stableHackageDb, unpack,
-  withArgsOf, withNix }:
+{ asPath, cabal2nix, cabal2nixCache, glibcLocales, haskellPackages,
+  haskellTestCycles, latestGit, lib, nothing, pinnedCabal2nix ? cabal2nix,
+  runCmd, stableHackageDb, unpack, withArgsOf, withNix }:
 
 with builtins;
 with lib;
@@ -47,7 +47,7 @@ with rec {
 
       # Extra arguments for cabal2nix command. NOTE: Quote things yourself if
       # needed. Also, the available options may vary between cabal2nix versions.
-      args ? [],
+      args ? null,
 
       # Hackage contents to use. Get the latest content (via 'cabal update') by
       # using hackageDb, but that doesn't cache well. Defaults to
@@ -59,7 +59,27 @@ with rec {
          cp -r "$packageDb" ./home
          chmod 777 ./home
 
-         cabal2nix ${concatStringsSep " " args} "$url" > "$out"
+         cabal2nix ${if args == null
+                        # Force some things by default; this can be disabled by
+                        # passing in '[]' for 'args'. Always avoid slow haddock.
+                        then "--no-haddock"
+                        else concatStringsSep " " args} "$url" > "$out"
+
+         ${if args == null
+              then ''
+                # Check to see if this package should have its tests disabled
+                N=$(grep 'pname' < "$out" | grep -o '"[^"]*"' | tr -d '"')
+                for M in ${concatStringsSep " " haskellTestCycles}
+                do
+                  if [[ "x$N" = "x$M" ]]
+                  then
+                    echo "Disabling tests for '$N' to avoid cycles" 1>&2
+                    cabal2nix --no-haddock --no-check "$url" > "$out"
+                    break
+                  fi
+                done
+              ''
+              else ""}
 
          if [[ -e "$cacheDir" ]]
          then
