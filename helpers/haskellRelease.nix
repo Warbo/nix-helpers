@@ -1,6 +1,6 @@
 # Useful for release.nix files in Haskell projects
 { cabalField, composeWithArgs, die, fail, getType, haskell, haskellPkgDeps,
-  isAttrSet, lib, nix, pinnedNixpkgs, repo1609, runCabal2nix, runCommand,
+  isAttrSet, lib, nix, pinnedNixpkgs, repo1609, runCabal2nix2, runCommand,
   unpack, withDeps, withNix, writeScript }:
 
 with builtins;
@@ -79,7 +79,7 @@ with rec {
         overrides = self: super: listToAttrs
           (map (url:
                  with rec {
-                   pkg  = runCabal2nix { inherit url; };
+                   pkg  = runCabal2nix2 { inherit url; };
                    func = import pkg;
                  };
                  {
@@ -94,7 +94,7 @@ with rec {
     withDeps gcRoots (getAttr name hsPkgs);
 
   buildForHaskell = { dir, name }: { haskellPackages, nixpkgs }:
-    callProperly nixpkgs haskellPackages (runCabal2nix { url = dir; });
+    callProperly nixpkgs haskellPackages (runCabal2nix2 { url = dir; });
 };
 rec {
   def = {
@@ -204,6 +204,12 @@ rec {
         result;
     };
     {
+      panhandle = def {
+        name        = "panhandle";
+        dir         = http://chriswarbo.net/git/panhandle.git;
+        hackageSets = { nixpkgs1803 = [ "ghc7103" ]; };
+      };
+
       # A widely-used Haskell package, see if it works
       text = check { name = "text"; };
 

@@ -1,4 +1,4 @@
-{ cabal-install, cabalField, dropWhile, fail, haskell, jq, lib,
+{ cabal-install, cabalField, dropWhile, fail, hackageDb, haskell, jq, lib,
   nixListToBashArray, nixpkgs1703, reverse, runCommand, stableHackageDb,
   stringAsList, utillinux, writeScript }:
 
@@ -29,7 +29,7 @@ with lib;
     depsDrv = runCommand "haskell-${name}-deps"
       (env // {
         inherit dir hackageContents;
-        buildInputs  = [ nixpkgs1703.cabal-install fail ghc jq utillinux ];
+        buildInputs  = [ cabal-install fail ghc jq utillinux ];
         delayFailure = if delay-failure then "true" else "false";
         failFile     = writeScript "delayed-failure.nix" ''
           with builtins;
@@ -46,13 +46,30 @@ with lib;
         cp -r "$dir" ./src
         chmod +w -R  ./src
 
-        export HOME="$PWD/cache"
-        mkdir -p "$HOME"/.cabal/packages/hackage.haskell.org
-        ln -s                                                                 \
-          "$hackageContents"/.cabal/packages/hackage.haskell.org/00-index.tar \
-                     "$HOME"/.cabal/packages/hackage.haskell.org/
+        export HOME="$PWD/home"
+        mkdir "$HOME"
+        cp -rv "${hackageDb}/.cabal" "$HOME/"
+        chmod +w -R "$HOME/.cabal"
 
         cd ./src
+        cabal new-freeze
+
+        [[ -e cabal.project.freeze ]] || fail "No cabal.project.freeze file"
+
+        echo '[' > "$out"
+        while read -r P
+        do
+          if echo "$P" | grep ':' > /dev/null
+          then
+            P=$(echo "$P" | cut -d ':' -f2)
+          fi
+          printf '"%s"\n' "$P" >> "$out"
+        done < <(grep '==' < cabal.project.freeze | sed -e 's/==/-/g' |
+                                                    tr -d ' '         |
+                                                    tr -d ','         )
+        echo ']' >> "$out"
+        exit 0
+
         cabal sandbox init
 
         ${code}
