@@ -1,7 +1,7 @@
 # Useful for release.nix files in Haskell projects
-{ cabalField, composeWithArgs, die, fail, getType, haskell, haskellPkgDeps,
-  isAttrSet, lib, nix, pinnedNixpkgs, repo1609, runCabal2nix2, runCommand,
-  unpack, withDeps, withNix, writeScript }:
+{ cabalField, composeWithArgs, die, fail, fetchgit, getType, haskell,
+  haskellPkgDeps, isAttrSet, lib, nix, pinnedNixpkgs, repo1609, runCabal2nix2,
+  runCommand, unpack, withDeps, withNix, writeScript }:
 
 with builtins;
 with lib;
@@ -206,7 +206,11 @@ rec {
     {
       panhandle = def {
         name        = "panhandle";
-        dir         = http://chriswarbo.net/git/panhandle.git;
+        dir         = fetchgit {
+          url    = http://chriswarbo.net/git/panhandle.git;
+          rev    = "68db12a";
+          sha256 = "1bx7xk5pcwiajih4w4rdcx568iqbpfnrzl0jqd0gcqwsnjf9kja1";
+        };
         hackageSets = { nixpkgs1803 = [ "ghc7103" ]; };
       };
 
