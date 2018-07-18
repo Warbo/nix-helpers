@@ -73,6 +73,7 @@ with rec {
     with haskellPkgDeps {
       inherit dir;
       inherit (haskellPackages) ghc;
+      extra-sources = attrValues extraSources;
     };
     with rec {
       hsPkgs = haskellPackages.override (old: {

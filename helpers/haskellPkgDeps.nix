@@ -1,6 +1,6 @@
 { cabal-install, cabalField, dropWhile, fail, hackageDb, haskell, jq, lib,
-  nixListToBashArray, nixpkgs1703, reverse, runCommand, stableHackageDb,
-  stringAsList, utillinux, writeScript }:
+  nixListToBashArray, nixpkgs1703, reverse, runCommand, stringAsList, utillinux,
+  writeScript }:
 
 with lib;
 
@@ -9,7 +9,7 @@ with lib;
     delay-failure   ? false,  # Replace eval failures with failing derivation
     dir,
     extra-sources   ? [],
-    hackageContents ? stableHackageDb,
+    hackageContents ? hackageDb,
     name            ? "pkg",
     ghc
   }:
@@ -48,7 +48,7 @@ with lib;
 
         export HOME="$PWD/home"
         mkdir "$HOME"
-        cp -rv "${hackageDb}/.cabal" "$HOME/"
+        cp -rv "$hackageContents/.cabal" "$HOME/"
         chmod +w -R "$HOME/.cabal"
 
         cd ./src
