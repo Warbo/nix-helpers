@@ -16,7 +16,11 @@ with rec {
 
   # Sets up the environment for running cabal2nix (lots of pettiness)
   env = { cabal2nix, cache, packageDb, url, ... }: warn url withNix {
+    # Hackage contents to use. Get the latest content (via 'cabal update') by
+    # using hackageDb, but that doesn't cache well. Defaults to
+    # stableHackageDb, which does since it's built from a fixed git rev.
     inherit packageDb;
+
     buildInputs = [ cabal2nix ];
 
     # Otherwise cabal2nix dies for accented characters
@@ -48,11 +52,6 @@ with rec {
       # Extra arguments for cabal2nix command. NOTE: Quote things yourself if
       # needed. Also, the available options may vary between cabal2nix versions.
       args ? null,
-
-      # Hackage contents to use. Get the latest content (via 'cabal update') by
-      # using hackageDb, but that doesn't cache well. Defaults to
-      # stableHackageDb, which does since it's built from a fixed git rev.
-      packageDb,
       ...
     }@given: runCmd "run-cabal2nix-${name}" (env given) ''
          set -e
