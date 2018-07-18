@@ -52,7 +52,35 @@ with lib;
         chmod +w -R "$HOME/.cabal"
 
         cd ./src
-        cabal new-freeze
+
+        ${code}
+        PACKAGES=""
+        for VAL in "''${extraSources[@]}"
+        do
+          if [[ -z "$PACKAGES" ]]
+          then
+            PACKAGES="packages: $VAL"
+          else
+            PACKAGES="$PACKAGES, $VAL"
+          fi
+        done
+        [[ -z "$PACKAGES" ]] || {
+          echo -e "Adding extra sources to cabal.project.local:\n$PACKAGES" 1>&2
+          echo "$PACKAGES" > cabal.project.local
+        }
+
+        cabal new-freeze 2> >(tee ERR 1>&2) || {
+          if "$delayFailure"
+          then
+            mkdir "$out"
+            cp ERR "$out/ERR"
+            cp "$failFile" "$out/default.nix"
+            exit 0
+          else
+            echo "Error freezing cabal dependencies" 1>&2
+            exit 1
+          fi
+        }
 
         [[ -e cabal.project.freeze ]] || fail "No cabal.project.freeze file"
 
@@ -78,43 +106,6 @@ with lib;
                                                     tr -d ' '         |
                                                     tr -d ','         )
         echo ']' >> "$out"
-        exit 0
-
-        cabal sandbox init
-
-        ${code}
-        for VAL in "''${extraSources[@]}"
-        do
-          cabal sandbox add-source --snapshot "$VAL"
-        done
-
-        # The --reorder-goals option enables heuristics which make cabal more
-        # likely to succeed. It's off by default since it's slower.
-        GOT=$(cabal install --dry-run           \
-                            --reorder-goals     \
-                            --enable-tests      \
-                            --enable-benchmarks 2> >(tee ERR)) || {
-          if "$delayFailure"
-          then
-            mkdir "$out"
-            cp ERR "$out/ERR"
-            cp "$failFile" "$out/default.nix"
-            exit 0
-          else
-            echo "$GOT" 1>&2
-            echo "Error listing cabal dependencies" 1>&2
-            exit 1
-          fi
-        }
-
-        MSG='the following would be installed'
-        L=$(echo "$GOT" | grep -A 9999999 "$MSG" | tail -n+2 | tr -d ' ' |
-            cut -d '(' -f1)
-
-        mkdir "$out"
-        echo '['                            >  "$out/default.nix"
-          echo "$L" | head -n-1 | jq -R '.' >> "$out/default.nix"
-        echo ']'                            >> "$out/default.nix"
       '';
 
     extrasMap = listToAttrs (map (dir: {
