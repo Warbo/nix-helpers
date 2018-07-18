@@ -94,7 +94,10 @@ with rec {
     withDeps gcRoots (getAttr name hsPkgs);
 
   buildForHaskell = { dir, name }: { haskellPackages, nixpkgs }:
-    callProperly nixpkgs haskellPackages (runCabal2nix2 { url = dir; });
+    callProperly nixpkgs haskellPackages (runCabal2nix2 {
+                                           inherit name;
+                                           url = dir;
+                                         });
 };
 rec {
   def = {
