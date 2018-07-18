@@ -42,9 +42,6 @@ with rec {
     {
       name ? "unknown",
 
-      # Where results should be cached to
-      cache,
-
       # Package containing a .cabal file, e.g. path, git repo, "cabal://"
       url,
 
