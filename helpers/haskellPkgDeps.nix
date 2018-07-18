@@ -71,7 +71,7 @@ with lib;
               echo "Skipping dummy dependency '$P'" 1>&2
               SKIP=1
             fi
-          fi
+          done
           [[ "$SKIP" -eq 1 ]] && continue
           printf '"%s"\n' "$P" >> "$out"
         done < <(grep '==' < cabal.project.freeze | sed -e 's/==/-/g' |
