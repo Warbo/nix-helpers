@@ -63,6 +63,16 @@ with lib;
           then
             P=$(echo "$P" | cut -d ':' -f2)
           fi
+          SKIP=0
+          for SKIPPABLE in rts base
+          do
+            if echo "$P" | grep "^$SKIPPABLE-[0-9.]*" > /dev/null
+            then
+              echo "Skipping dummy dependency '$P'" 1>&2
+              SKIP=1
+            fi
+          fi
+          [[ "$SKIP" -eq 1 ]] && continue
           printf '"%s"\n' "$P" >> "$out"
         done < <(grep '==' < cabal.project.freeze | sed -e 's/==/-/g' |
                                                     tr -d ' '         |
