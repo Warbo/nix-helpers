@@ -233,7 +233,14 @@ rec {
           rev    = "68db12a";
           sha256 = "1bx7xk5pcwiajih4w4rdcx568iqbpfnrzl0jqd0gcqwsnjf9kja1";
         };
-        hackageSets = { nixpkgs1803 = [ "ghc7103" ]; };
+        hackageSets  = { nixpkgs1803 = [ "ghc7103" ]; };
+        extraSources = {
+          lazysmallcheck2012 = fetchgit {
+            url    = http://chriswarbo.net/git/lazy-smallcheck-2012.git;
+            rev    = "dbd6fba";
+            sha256 = "1i3by7mp7wqy9anzphpxfw30rmbsk73sb2vg02nf1mfpjd303jj7";
+          };
+        };
       };
 
       # A widely-used Haskell package, see if it works
