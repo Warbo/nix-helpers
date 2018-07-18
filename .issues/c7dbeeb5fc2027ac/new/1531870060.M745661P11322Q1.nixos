@@ -1,0 +1,7 @@
+From: Chris Warburton
+Date: Wed, 18 Jul 2018 00:24:49 +0100
+State: new
+Subject: Make cabal2 version of runCabal2nix
+Message-Id: <c7dbeeb5fc2027ac-0-artemis@nixos>
+
+Use for haskellRelease
