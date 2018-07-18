@@ -15,7 +15,8 @@ with rec {
   });
 
   # Sets up the environment for running cabal2nix (lots of pettiness)
-  env = { cabal2nix, cache, url }: warn url withNix {
+  env = { cabal2nix, cache, packageDb, url, ... }: warn url withNix {
+    inherit packageDb;
     buildInputs = [ cabal2nix ];
 
     # Otherwise cabal2nix dies for accented characters
@@ -54,9 +55,9 @@ with rec {
       # Hackage contents to use. Get the latest content (via 'cabal update') by
       # using hackageDb, but that doesn't cache well. Defaults to
       # stableHackageDb, which does since it's built from a fixed git rev.
-      packageDb
-    }: runCmd "run-cabal2nix-${name}" (env { inherit cabal2nix cache url; } //
-                                      { inherit packageDb; }) ''
+      packageDb,
+      ...
+    }@given: runCmd "run-cabal2nix-${name}" (env given) ''
          set -e
          export HOME="$PWD/home"
          cp -r "$packageDb" ./home
@@ -104,6 +105,7 @@ with rec {
        else go args;
 };
 {
-  def   = withArgsOf go cached;
+  def   = { cabal2nix, cache, packageDb }@args1:
+            withArgsOf go (args2: cached (args1 // args2));
   tests = {};
 }
