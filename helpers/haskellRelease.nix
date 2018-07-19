@@ -62,59 +62,67 @@ with rec {
     };
     haskell.lib.dontBenchmark (self.callPackage func sysPkgs);
 
-  buildForHackage = { dir, name, extraSources, postProcess }: { haskellPackages, nixpkgs }:
-    assert isString name;
-    assert isAttrs haskellPackages;
-    assert isAttrs nixpkgs;
-    assert isAttrSet haskellPackages;
-    assert isAttrSet nixpkgs;
-    # Uses a Cabal sandbox to pick dependencies from (a snapshot of) Hackage
-    with haskellPkgDeps {
-      inherit dir;
-      inherit (haskellPackages) ghc;
-      extra-sources = attrValues extraSources;
-    };
-    with rec {
-      hsPkgs = haskellPackages.override (old: {
-        overrides = lib.composeExtensions
-          (old.overrides or (_: _: {}))
-          (self: super:
-            listToAttrs
-               (map (url:
-                      with rec {
-                        pkg  = runCabal2nix2 { inherit url; };
-                        func = import pkg;
-                      };
-                      {
-                        name  = (func (dummyArgsFor func // {
-                                  mkDerivation = args: args;
-                                })).pname;
-                        value = callProperly nixpkgs self pkg;
-                      })
-                    deps) //
-            mapAttrs (name: url: runCabal2nix2 { inherit name url; })
-                     extraSources);
-      });
-    };
-    withDeps gcRoots (postProcess (getAttr name hsPkgs));
+  buildForHackage = { dir, name, extraSources, postProcess }:
+    { haskellPackages, nixpkgs }:
+      assert isString name;
+      assert isAttrs haskellPackages;
+      assert isAttrs nixpkgs;
+      assert isAttrSet haskellPackages;
+      assert isAttrSet nixpkgs;
+      # Uses a Cabal sandbox to pick dependencies from (a snapshot of) Hackage
+      with haskellPkgDeps {
+        inherit dir;
+        inherit (haskellPackages) ghc;
+        extra-sources = attrValues extraSources;
+      };
+      with rec {
+        callPkg = hs: { name, url }:
+          (postProcess.name or (x: x))
+            (callProperly nixpkgs hs (runCabal2nix2 { inherit name url; }));
 
-  buildForHaskell = { dir, name, extraSources, postProcess }: { haskellPackages, nixpkgs }:
-    with {
-      hsPkgs = if extraSources == {}
-                  then haskellPackages
-                  else haskellPackages.override (old: {
-                    overrides = lib.composeExtensions
-                      (old.overrides or (_: _: {}))
-                      (self: super: mapAttrs (name: url: runCabal2nix2 {
-                                               inherit name url;
-                                             })
-                                             extraSources);
-                  });
-    };
-    postProcess (callProperly nixpkgs haskellPackages (runCabal2nix2 {
-                                           inherit name;
-                                           url = dir;
-                                         }));
+        hsPkgs = haskellPackages.override (old: {
+          overrides = lib.composeExtensions
+            (old.overrides or (_: _: {}))
+            (self: super:
+              listToAttrs
+                 (map (url:
+                        with {
+                          func = import (runCabal2nix2 { inherit url; });
+                        };
+                        {
+                          name  = (func (dummyArgsFor func // {
+                                    mkDerivation = args: args;
+                                  })).pname;
+                          value = callPkg self { inherit name url; };
+                        })
+                      deps) //
+              mapAttrs (name: url: callPkg self { inherit name url; })
+                       extraSources);
+        });
+      };
+      withDeps gcRoots ((postProcess.name or (x: x))
+                          (getAttr name hsPkgs));
+
+  buildForHaskell = { dir, name, extraSources, postProcess }:
+    { haskellPackages, nixpkgs }:
+      with {
+        callPkg = hs: { name, url }:
+          (postProcess.name or (x: x))
+            (callProperly nixpkgs hs
+              (runCabal2nix2 { inherit name url; }));
+
+        hsPkgs = if extraSources == {}
+                    then haskellPackages
+                    else haskellPackages.override (old: {
+                      overrides = lib.composeExtensions
+                        (old.overrides or (_: _: {}))
+                        (self: super:
+                          mapAttrs
+                            (name: url: callPkg self { inherit name url; })
+                            extraSources);
+                    });
+      };
+      callPkg hsPkgs { inherit name; url = dir; };
 };
 rec {
   def = {
@@ -123,12 +131,12 @@ rec {
     hackageSets  ? {},  # Sets to use with Hackage dependencies
     name,               # Cabal package name
     nixpkgsSets  ? {},  # Sets to use with nixpkgs dependencies
-    extraSources ? {},   # Maps names to source dirs, e.g. if not on Hackage
-    postProcess  ? (x: x)
+    extraSources ? {},  # Maps names to source dirs, e.g. if not on Hackage
+    postProcess  ? {}   # Map package names to functions, e.g dontCheck
   }:
     with {
-      forHackage = buildForHackage { inherit dir name extraSources postProcess; };
-      forHaskell = buildForHaskell { inherit dir name extraSources postProcess; };
+      bfHkg = buildForHackage { inherit dir name extraSources postProcess; };
+      bfHsk = buildForHaskell { inherit dir name extraSources postProcess; };
 
       isSetOf = valType: name: x:
         (isAttrSet x &&
@@ -155,11 +163,11 @@ rec {
     assert isSetOf (isListOf isAString) "nixpkgsSets" nixpkgsSets;
     fold mergeAttrs {} [
       (if  customSets == {} then {} else {
-        customDeps  = mapAttrs                  forHaskell   customSets; })
+        customDeps  = mapAttrs                  bfHsk   customSets; })
       (if hackageSets == {} then {} else {
-        hackageDeps = mapAttrs (buildForNixpkgs forHackage) hackageSets; })
+        hackageDeps = mapAttrs (buildForNixpkgs bfHkg) hackageSets; })
       (if nixpkgsSets == {} then {} else {
-        nixpkgsDeps = mapAttrs (buildForNixpkgs forHaskell) nixpkgsSets; })
+        nixpkgsDeps = mapAttrs (buildForNixpkgs bfHsk) nixpkgsSets; })
     ];
 
   tests =
