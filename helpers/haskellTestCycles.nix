@@ -12,7 +12,9 @@
     "containers"
     "deepseq"    # deepseq <-> HUnit
     "pretty"     # QuickCheck -> template-haskell -> pretty -> QuickCheck
+    "text"
     "time"       # time <-> test-framework
+    "zlib"
   ];
   tests = {};
 }
