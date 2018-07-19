@@ -11,7 +11,8 @@ with lib;
     extra-sources   ? [],
     hackageContents ? hackageDb,
     name            ? "pkg",
-    ghc
+    ghc,
+    skipPackages    ? [ "base" "bin-package-db" "rts" ]
   }:
 
   with rec {
@@ -87,16 +88,17 @@ with lib;
         echo '[' > "$out"
         while read -r P
         do
+          # Remove "packages:" field name
           if echo "$P" | grep ':' > /dev/null
           then
             P=$(echo "$P" | cut -d ':' -f2)
           fi
           SKIP=0
-          for SKIPPABLE in rts base
+          for SKIPPABLE in ${concatStringsSep " " skipPackages}
           do
             if echo "$P" | grep "^$SKIPPABLE-[0-9.]*" > /dev/null
             then
-              echo "Skipping dummy dependency '$P'" 1>&2
+              echo "Skipping dependency '$P'" 1>&2
               SKIP=1
             fi
           done
