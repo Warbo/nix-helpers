@@ -189,7 +189,7 @@ rec {
         hackageSets ? { "${currentVersion}" = [ hsVersion ]; },
         name,
         nixpkgsSets ? { "${currentVersion}" = [ hsVersion ]; },
-        postProcess ? (x: x)
+        postProcess ? {}
       }: def {
         inherit hackageSets name nixpkgsSets;
         dir = unpack (getPkg name).src;
@@ -259,7 +259,13 @@ rec {
       zlib = check { name = "zlib"; nixpkgsSets = {}; };
 
       # digest also depends on the system's zlib
-      digest = check { name = "digest"; };
+      digest = check {
+        name        = "digest";
+        postProcess = {
+          # Use integer-gmp from nixpkgs to avoid dealing with C libraries
+          integer-gmp = nixpkgs1803.haskellPackages.integer-gmp;
+        };
+      };
 
       # This depends on the Haskell zlib package, rather than the system one
       #zlib-bindings = check { name = "zlib-bindings"; nixpkgsSets = {}; };
