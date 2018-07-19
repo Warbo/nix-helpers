@@ -12,7 +12,7 @@ with lib;
     hackageContents ? hackageDb,
     name            ? "pkg",
     ghc,
-    skipPackages    ? [ "base" "bin-package-db" "rts" ]
+    skipPackages    ? [ "base" "bin-package-db" "ghc" "rts" ]
   }:
 
   with rec {
