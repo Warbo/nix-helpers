@@ -1,6 +1,6 @@
 {}:
 
 {
-  def   = [ "clock" ];
+  def   = [ "clock" "zlib" ];
   tests = {};
 }
