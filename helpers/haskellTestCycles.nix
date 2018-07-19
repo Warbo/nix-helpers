@@ -6,6 +6,7 @@
 
 {
   def   = [
+    "binary"     # binary <-> Cabal
     "bytestring" # bytestring <-> test-framework
     "clock"      # clock <-> tasty
     "containers"
