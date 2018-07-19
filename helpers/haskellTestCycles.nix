@@ -1,6 +1,6 @@
 {}:
 
 {
-  def   = [ "clock" "zlib" ];
+  def   = [ "clock" "deepseq" ];
   tests = {};
 }
