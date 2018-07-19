@@ -46,9 +46,8 @@ with rec {
   # arguments, to see which arguments should come from nixpkgs and which
   # from haskellPackages (self). Uses this info to call the package
   # "properly". This is especially useful for args like 'zlib', which
-  # could be from either. We also check whether this package's test dependencies
-  # cause a cycle, by looking it up in a list of known offenders. If so, we
-  # disable its tests to prevent an infinite loop.
+  # could be from either. We also disable any benchmarks, since they can cause
+  # cyclic dependencies that Nix can't handle.
   callProperly = nixpkgs: self: file:
     assert isAttrs nixpkgs;
     assert isAttrs self;
@@ -61,9 +60,9 @@ with rec {
         (map (name: { inherit name; value = getAttr name nixpkgs; })
         sysArgs);
     };
-    self.callPackage func sysPkgs;
+    haskell.lib.dontBenchmark (self.callPackage func sysPkgs);
 
-  buildForHackage = { dir, name, extraSources }: { haskellPackages, nixpkgs }:
+  buildForHackage = { dir, name, extraSources, postProcess }: { haskellPackages, nixpkgs }:
     assert isString name;
     assert isAttrs haskellPackages;
     assert isAttrs nixpkgs;
@@ -97,9 +96,9 @@ with rec {
                      extraSources);
       });
     };
-    withDeps gcRoots (getAttr name hsPkgs);
+    withDeps gcRoots (postProcess (getAttr name hsPkgs));
 
-  buildForHaskell = { dir, name, extraSources }: { haskellPackages, nixpkgs }:
+  buildForHaskell = { dir, name, extraSources, postProcess }: { haskellPackages, nixpkgs }:
     with {
       hsPkgs = if extraSources == {}
                   then haskellPackages
@@ -112,10 +111,10 @@ with rec {
                                              extraSources);
                   });
     };
-    callProperly nixpkgs haskellPackages (runCabal2nix2 {
+    postProcess (callProperly nixpkgs haskellPackages (runCabal2nix2 {
                                            inherit name;
                                            url = dir;
-                                         });
+                                         }));
 };
 rec {
   def = {
@@ -124,11 +123,12 @@ rec {
     hackageSets  ? {},  # Sets to use with Hackage dependencies
     name,               # Cabal package name
     nixpkgsSets  ? {},  # Sets to use with nixpkgs dependencies
-    extraSources ? {}   # Maps names to source dirs, e.g. if not on Hackage
+    extraSources ? {},   # Maps names to source dirs, e.g. if not on Hackage
+    postProcess  ? (x: x)
   }:
     with {
-      forHackage = buildForHackage { inherit dir name extraSources; };
-      forHaskell = buildForHaskell { inherit dir name extraSources; };
+      forHackage = buildForHackage { inherit dir name extraSources postProcess; };
+      forHaskell = buildForHaskell { inherit dir name extraSources postProcess; };
 
       isSetOf = valType: name: x:
         (isAttrSet x &&
@@ -181,6 +181,7 @@ rec {
         hackageSets ? { "${currentVersion}" = [ hsVersion ]; },
         name,
         nixpkgsSets ? { "${currentVersion}" = [ hsVersion ]; },
+        postProcess ? (x: x)
       }: def {
         inherit hackageSets name nixpkgsSets;
         dir = unpack (getPkg name).src;
@@ -244,7 +245,7 @@ rec {
       };
 
       # A widely-used Haskell package, see if it works
-      text = check { name = "text"; };
+      #text = check { name = "text"; };
 
       # zlib is awkward, since it's both a Haskell package and a system package
       zlib = check { name = "zlib"; nixpkgsSets = {}; };
@@ -253,6 +254,6 @@ rec {
       digest = check { name = "digest"; };
 
       # This depends on the Haskell zlib package, rather than the system one
-      zlib-bindings = check { name = "zlib-bindings"; nixpkgsSets = {}; };
+      #zlib-bindings = check { name = "zlib-bindings"; nixpkgsSets = {}; };
     };
 }
