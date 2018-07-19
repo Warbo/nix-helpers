@@ -1,6 +1,6 @@
 {}:
 
 {
-  def   = [ "clock" "containers" "deepseq" ];
+  def   = [ "clock" "containers" "deepseq" "time" ];
   tests = {};
 }
