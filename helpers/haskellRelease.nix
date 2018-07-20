@@ -8,6 +8,8 @@ with lib;
 with rec {
   getNix = v: getAttr v pinnedNixpkgs;
 
+  composeList = l: fold lib.composeExtensions (_: _: {}) (reverseList l);
+
   # Make the nixVersion attr (if kept) a set of all its Haskell versions
   buildForNixpkgs = hs: nixVersion: haskellVersions:
     assert isString nixVersion || die {
@@ -80,46 +82,54 @@ with rec {
           (postProcess.name or (x: x))
             (callProperly nixpkgs hs (runCabal2nix2 { inherit name url; }));
 
+        processed = self: super: mapAttrs (name: f: f (getAttr name super))
+                                          postProcess;
+
         hsPkgs = haskellPackages.override (old: {
-          overrides = lib.composeExtensions
+          overrides = composeList [
             (old.overrides or (_: _: {}))
-            (self: super:
-              listToAttrs
-                 (map (url:
-                        with {
-                          func = import (runCabal2nix2 { inherit url; });
-                        };
-                        {
-                          name  = (func (dummyArgsFor func // {
-                                    mkDerivation = args: args;
-                                  })).pname;
-                          value = callPkg self { inherit name url; };
-                        })
-                      deps) //
-              mapAttrs (name: url: callPkg self { inherit name url; })
-                       extraSources);
+            processed
+            (self: super: mapAttrs (name: url: callPkg self { inherit name url; })
+                                   extraSources)
+            (self: super: listToAttrs
+              (map (url:
+                     with { func = import (runCabal2nix2 { inherit url; }); };
+                     {
+                       name  = (func (dummyArgsFor func // {
+                                 mkDerivation = args: args;
+                               })).pname;
+                       value = callPkg self { inherit name url; };
+                     })
+                   deps))
+          ];
         });
       };
-      withDeps gcRoots ((postProcess.name or (x: x))
-                          (getAttr name hsPkgs));
+      withDeps gcRoots ((postProcess.name or (x: x)) (getAttr name hsPkgs));
 
   buildForHaskell = { dir, name, extraSources, postProcess }:
     { haskellPackages, nixpkgs }:
-      with {
+      with rec {
         callPkg = hs: { name, url }:
           (postProcess.name or (x: x))
             (callProperly nixpkgs hs
               (runCabal2nix2 { inherit name url; }));
 
-        hsPkgs = if extraSources == {}
+        processed = self: super: mapAttrs (name: f: f (getAttr name super))
+                                          postProcess;
+
+        extras    = self: super: mapAttrs (name: url: callPkg self {
+                                            inherit name url;
+                                          })
+                                          extraSources;
+
+        hsPkgs = if (extraSources // postProcess) == {}
                     then haskellPackages
                     else haskellPackages.override (old: {
-                      overrides = lib.composeExtensions
+                      overrides = composeList [
                         (old.overrides or (_: _: {}))
-                        (self: super:
-                          mapAttrs
-                            (name: url: callPkg self { inherit name url; })
-                            extraSources);
+                        processed
+                        extras
+                      ];
                     });
       };
       callPkg hsPkgs { inherit name; url = dir; };
@@ -191,7 +201,7 @@ rec {
         nixpkgsSets ? { "${currentVersion}" = [ hsVersion ]; },
         postProcess ? {}
       }: def {
-        inherit hackageSets name nixpkgsSets;
+        inherit hackageSets name nixpkgsSets postProcess;
         dir = unpack (getPkg name).src;
       };
 
@@ -263,7 +273,7 @@ rec {
         name        = "digest";
         postProcess = {
           # Use integer-gmp from nixpkgs to avoid dealing with C libraries
-          integer-gmp = nixpkgs1803.haskellPackages.integer-gmp;
+          integer-gmp = _: (getNix "nixpkgs1803").haskellPackages.integer-gmp;
         };
       };
 
