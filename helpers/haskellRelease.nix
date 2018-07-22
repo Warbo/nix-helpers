@@ -472,7 +472,8 @@ rec {
           };
         };
         postProcess = {
-          integer-gmp = _: (getNix "nixpkgs1803").haskell.ghc7103.integer-gmp;
+          integer-gmp = _:
+            (getNix "nixpkgs1803").haskell.packages.ghc7103.integer-gmp;
         };
       };
 
