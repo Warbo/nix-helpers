@@ -281,35 +281,30 @@ with rec {
   buildForHaskell = { dir, name, extraSources, postProcess }:
     { haskellPackages, nixpkgs }:
       with rec {
-        callPkg = self: super: { name, url }:
+        callPkg = self: { name, url }:
           with rec {
             pp     = postProcess."${name}" or (x: x);
             func   = runCabal2nix2 { inherit name url; };
             pkg    = callProperly nixpkgs self  func;
             result = pp pkg;
-            # Use super in tests to avoid infinite loop
-            test   = callProperly nixpkgs super func;
-            ppTest = pp test;
           };
           assert isCallable pp || die {};
-          assert isDerivation test || die {};
-          assert isDerivation ppTest || die {};
           result;
 
-        extras = self: super: mapAttrs (name: url: callPkg self super {
+        extras = self: super: mapAttrs (name: url: callPkg self {
                                          inherit name url;
                                        })
                                        extraSources;
 
         hsPkgs = haskellPackages.override (old: {
-                   overrides = composeList [
-                     (old.overrides or (_: _: {}))
-                     (processed postProcess)
-                     extras
-                   ];
-                 });
+          overrides = composeList [
+            (old.overrides or (_: _: {}))
+            (processed postProcess)
+            extras
+          ];
+        });
       };
-      callPkg hsPkgs haskellPackages { inherit name; url = dir; };
+      callPkg hsPkgs { inherit name; url = dir; };
 };
 rec {
   def = {
