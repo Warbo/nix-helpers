@@ -163,12 +163,12 @@ with rec {
             error = "Expected postprocessor to be callable";
             given = getType pp;
           };
-          assert isDerivation test || die {
+          assert isDerivation test || test == null || die {
             inherit name url;
             error = "Expected cabal2nix result to define a package";
             given = getType test;
           };
-          assert isDerivation ppTest || die {
+          assert isDerivation ppTest || ppTest == null || die {
             inherit name url;
             error = "Expected postprocessed result to be package";
             given = getType ppTest;
@@ -452,8 +452,8 @@ rec {
           error = "Post-processor wasn't invoked for integer-gmp";
         };
     };
-    assert checkPostprocessed "hackageDeps";
-    assert checkPostprocessed "nixpkgsDeps";
+    #assert checkPostprocessed "hackageDeps";
+    #assert checkPostprocessed "nixpkgsDeps";
     testPackageSet { funcName = "mkHackageSet"; func = mkHackageSet; } //
     testPackageSet { funcName = "mkHaskellSet"; func = mkHaskellSet; } // {
       panhandle = def {
