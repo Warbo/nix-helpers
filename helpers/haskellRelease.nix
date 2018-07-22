@@ -1,7 +1,8 @@
 # Useful for release.nix files in Haskell projects
-{ cabalField, composeWithArgs, die, fail, fetchgit, getType, haskell,
-  haskellPkgDeps, isAttrSet, lib, nix, pinnedNixpkgs, repo1609, runCabal2nix2,
-  runCommand, unpack, withDeps, withNix, writeScript }:
+{ cabalField, collapseAttrs, composeWithArgs, die, fail, fetchgit, getType,
+  haskell, haskellPkgDeps, hello, isAttrSet, isCallable, lib, nix,
+  pinnedNixpkgs, repo1609, runCabal2nix2, runCommand, unpack, withDeps, withNix,
+  writeScript }:
 
 with builtins;
 with lib;
@@ -114,14 +115,13 @@ with rec {
     };
     result;
 
-  buildForHackage = { dir, name, extraSources, postProcess }:
-    { haskellPackages, nixpkgs }:
-      assert isString name;
-      assert isAttrs haskellPackages;
-      assert isAttrs nixpkgs;
+  mkHackageSet =
+    { dir, name, extraSources, postProcess, haskellPackages, nixpkgs }:
+      assert isString  name;
       assert isAttrSet haskellPackages;
       assert isAttrSet nixpkgs;
-      # Uses a Cabal sandbox to pick dependencies from (a snapshot of) Hackage
+      assert isAttrSet extraSources;
+      assert isAttrSet postProcess;
       with haskellPkgDeps {
         inherit dir;
         inherit (haskellPackages) ghc;
@@ -258,6 +258,26 @@ with rec {
       };
       { inherit gcRoots hsPkgs; };
 
+  testMkHackageSet =
+    with rec {
+      nixpkgs         = getNix "nixpkgs1803";
+      haskellPackages = nixpkgs.haskell.packages.ghc802;
+      hs              = mkHackageSet {
+        inherit haskellPackages nixpkgs;
+        dir          = unpack haskellPackages.digest.src;
+        name         = "digest";
+        extraSources = {};
+        postProcess  = trace "Forced postProcess" { integer-gmp = trace "Forced integer-gmp function" (_: trace "Forced integer-gmp return value" hello // { name = "sentinel"; }); };
+      };
+    };
+    assert hs.hsPkgs.integer-gmp.name == "sentinel" || die {
+      error    = "Didn't get result from postprocessor";
+      expected = "sentinel";
+      found    = hs.hsPkgs.integer-gmp.name;
+      drv      = hs.hsPkgs.integer-gmp;
+    };
+    {};
+
   buildForHaskell = { dir, name, extraSources, postProcess }:
     { haskellPackages, nixpkgs }:
       with rec {
@@ -297,7 +317,12 @@ rec {
     postProcess  ? {}   # Map package names to functions, e.g dontCheck
   }:
     with {
-      bfHkg = buildForHackage { inherit dir name extraSources postProcess; };
+      bfHkg = { haskellPackages, nixpkgs }:
+        with mkHackageSet {
+          inherit dir extraSources haskellPackages name nixpkgs postProcess;
+        };
+        withDeps gcRoots (getAttr name hsPkgs);
+
       bfHsk = buildForHaskell { inherit dir name extraSources postProcess; };
 
       isSetOf = valType: name: x:
