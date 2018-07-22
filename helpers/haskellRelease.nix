@@ -471,6 +471,9 @@ rec {
             sha256 = "1i3by7mp7wqy9anzphpxfw30rmbsk73sb2vg02nf1mfpjd303jj7";
           };
         };
+        postProcess = {
+          integer-gmp = _: (getNix "nixpkgs1803").haskell.ghc7103.integer-gmp;
+        };
       };
 
       # A widely-used Haskell package, see if it works
