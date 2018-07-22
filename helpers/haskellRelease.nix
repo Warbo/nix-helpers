@@ -258,11 +258,11 @@ with rec {
       };
       { inherit gcRoots hsPkgs; };
 
-  testMkHackageSet =
+  testPackageSet = { funcName, func }:
     with rec {
       nixpkgs         = getNix "nixpkgs1803";
       haskellPackages = nixpkgs.haskell.packages.ghc802;
-      hs              = mkHackageSet {
+      hs              = func {
         inherit haskellPackages nixpkgs;
         dir          = unpack haskellPackages.digest.src;
         name         = "digest";
@@ -271,6 +271,7 @@ with rec {
       };
     };
     assert hs.hsPkgs.integer-gmp.name == "sentinel" || die {
+      inherit funcName;
       error    = "Didn't get result from postprocessor";
       expected = "sentinel";
       found    = hs.hsPkgs.integer-gmp.name;
@@ -453,7 +454,8 @@ rec {
     };
     assert checkPostprocessed "hackageDeps";
     assert checkPostprocessed "nixpkgsDeps";
-    testMkHackageSet // {
+    testPackageSet { funcName = "mkHackageSet"; func = mkHackageSet; } //
+    testPackageSet { funcName = "mkHaskellSet"; func = mkHaskellSet; } // {
       panhandle = def {
         name        = "panhandle";
         dir         = fetchgit {
