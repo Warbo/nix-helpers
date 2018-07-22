@@ -78,12 +78,44 @@ with rec {
         extra-sources = attrValues extraSources;
       };
       with rec {
-        callPkg = hs: { name, url }:
-          (postProcess.name or (x: x))
-            (callProperly nixpkgs hs (runCabal2nix2 { inherit name url; }));
-
-        processed = self: super: mapAttrs (name: f: f (getAttr name super))
-                                          postProcess;
+        callPkg = self: super: { name, url }:
+          assert isString name || die {
+            error = "Expected name to be a string";
+            given = getType name;
+          };
+          assert isAttrSet self || die {
+            error = "Expected Haskell package set (self)";
+            given = getType self;
+          };
+          assert isAttrSet super || die {
+            error = "Expected Haskell package set (super)";
+            given = getType super;
+          };
+          with rec {
+            pp     = postProcess."${name}" or (x: x);
+            func   = runCabal2nix2 { inherit name url; };
+            pkg    = callProperly nixpkgs self  func;
+            result = pp pkg;
+            # Test with super to avoid infinite loops
+            test   = callProperly nixpkgs super func;
+            ppTest = pp test;
+          };
+          assert isCallable pp || die {
+            inherit name url;
+            error = "Expected postprocessor to be callable";
+            given = getType pp;
+          };
+          assert isDerivation test || die {
+            inherit name url;
+            error = "Expected cabal2nix result to define a package";
+            given = getType test;
+          };
+          assert isDerivation ppTest || die {
+            inherit name url;
+            error = "Expected postprocessed result to be package";
+            given = getType ppTest;
+          };
+          result;
 
         hsPkgs = haskellPackages.override (old: {
           overrides = composeList [
@@ -104,7 +136,26 @@ with rec {
           ];
         });
       };
-      withDeps gcRoots ((postProcess.name or (x: x)) (getAttr name hsPkgs));
+      assert isAttrSet hsPkgs || die {
+        error = "Expected Haskell packages to be set";
+        given = getType hsPkgs;
+      };
+      assert hasAttr name hsPkgs || die {
+        inherit name;
+        error = "Desired package isn't in generated set";
+        names = attrNames hsPkgs;
+      };
+      assert isDerivation hsPkgs."${name}" || die {
+        inherit name;
+        error = "Resulting package should be a derivation";
+        given = getType hsPkgs."${name}";
+      };
+      assert hsPkgs."${name}".pname == name || die {
+        inherit name;
+        error = "Package's pname should match requested name";
+        pname = hsPkgs."${name}".pname;
+      };
+      { inherit gcRoots hsPkgs; };
 
   buildForHaskell = { dir, name, extraSources, postProcess }:
     { haskellPackages, nixpkgs }:
