@@ -296,6 +296,10 @@ with rec {
                                        })
                                        extraSources;
 
+        given = self: super: {
+          "${name}" = callPkg self { inherit name; url = dir; };
+        };
+
         hsPkgs = haskellPackages.override (old: {
           overrides = composeList [
             (old.overrides or (_: _: {}))
@@ -304,7 +308,7 @@ with rec {
           ];
         });
       };
-      callPkg hsPkgs { inherit name; url = dir; };
+      hsPkgs."${name}";
 };
 rec {
   def = {
