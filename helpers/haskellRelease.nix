@@ -281,30 +281,35 @@ with rec {
   buildForHaskell = { dir, name, extraSources, postProcess }:
     { haskellPackages, nixpkgs }:
       with rec {
-        callPkg = hs: { name, url }:
-          (postProcess.name or (x: x))
-            (callProperly nixpkgs hs
-              (runCabal2nix2 { inherit name url; }));
+        callPkg = self: super: { name, url }:
+          with rec {
+            pp     = postProcess."${name}" or (x: x);
+            func   = runCabal2nix2 { inherit name url; };
+            pkg    = callProperly nixpkgs self  func;
+            result = pp pkg;
+            # Use super in tests to avoid infinite loop
+            test   = callProperly nixpkgs super func;
+            ppTest = pp test;
+          };
+          assert isCallable pp || die {};
+          assert isDerivation test || die {};
+          assert isDerivation ppTest || die {};
+          result;
 
-        processed = self: super: mapAttrs (name: f: f (getAttr name super))
-                                          postProcess;
+        extras = self: super: mapAttrs (name: url: callPkg self super {
+                                         inherit name url;
+                                       })
+                                       extraSources;
 
-        extras    = self: super: mapAttrs (name: url: callPkg self {
-                                            inherit name url;
-                                          })
-                                          extraSources;
-
-        hsPkgs = if (extraSources // postProcess) == {}
-                    then haskellPackages
-                    else haskellPackages.override (old: {
-                      overrides = composeList [
-                        (old.overrides or (_: _: {}))
-                        processed
-                        extras
-                      ];
-                    });
+        hsPkgs = haskellPackages.override (old: {
+                   overrides = composeList [
+                     (old.overrides or (_: _: {}))
+                     (processed postProcess)
+                     extras
+                   ];
+                 });
       };
-      callPkg hsPkgs { inherit name; url = dir; };
+      callPkg hsPkgs haskellPackages { inherit name; url = dir; };
 };
 rec {
   def = {
@@ -361,52 +366,53 @@ rec {
     # Check that this system works for some common, and some problematic,
     # Haskell packages
     with rec {
-      hsVersion = "ghc802";
+      hsV = "ghc802";
 
-      getPkg    = name: attrByPath
-                          [ hsVersion name ]
-                          (abort "Missing package ${name}")
-                          haskell.packages;
-
-      currentVersion = "nixpkgs${
+      nixV = "nixpkgs${
         concatStrings (take 2 (splitString "." nixpkgsVersion))
       }";
 
-      getResult = {
-        hackageSets ? { "${currentVersion}" = [ hsVersion ]; },
+      check = {
+        hackageSets ? { "${nixV}" = [ hsV ]; },
         name,
-        nixpkgsSets ? { "${currentVersion}" = [ hsVersion ]; },
+        nixpkgsSets ? { "${nixV}" = [ hsV ]; },
         postProcess ? {}
-      }: def {
-        inherit hackageSets name nixpkgsSets;
-        dir         = unpack (getPkg name).src;
-        postProcess = postProcess // {
-          # Use integer-gmp from nixpkgs to avoid dealing with C libraries
-          integer-gmp = _: (getNix "nixpkgs1803").haskellPackages.integer-gmp;
-        };
-      };
-
-      check = { name, ... }@args:
+      }@args:
         with rec {
-          inherit hsVersion;
-          buildInputs = [ fail nix ];
-          result      = getResult args;
-          stable      = currentVersion;
-          isHackage   = (args.hackageDeps or null) == {};
-          isNixpkgs   = (args.nixpkgsDeps or null) == {};
-          checkSet    = name: set:
-            assert attrNames set == [ stable ] || die {
+          result = def {
+            inherit hackageSets name nixpkgsSets;
+            dir         = unpack (haskell.packages."${hsV}"."${name}").src;
+            postProcess = {
+              # Use integer-gmp from nixpkgs to avoid dealing with C libraries
+              integer-gmp = _:
+                trace ("Taking integer-gmp from ${nixV} " +
+                       "${hsV} to avoid missing C library dependencies.")
+                      (getNix nixV).haskell.packages."${hsV}".integer-gmp;
+            } // postProcess;
+          };
+          isHackage = hackageSets != {};
+          isNixpkgs = nixpkgsSets != {};
+          checkSet  = setName: set:
+            assert attrNames set == [ nixV ] || die {
               error  = "Invalid contents";
-              value  = name;
+              value  = setName;
               given  = attrNames set;
-              wanted = [ stable ];
+              wanted = [ nixV ];
             };
-            assert attrNames (getAttr stable set) == [ hsVersion ] || die {
+            assert attrNames (getAttr nixV set) == [ hsV ] || die {
               error  = "Invalid contents";
-              value  = [ name stable ];
-              given  = attrNames (getAttr stable set);
-              wanted = [ hsVersion ];
+              value  = [ setName nixV ];
+              given  = attrNames (getAttr nixV set);
+              wanted = [ hsV ];
             };
+            assert all (x: x)
+                       (attrValues
+                         (mapAttrs (path: pkg: pkg.pname == name || die {
+                                     inherit name path;
+                                     error = "Resulting package has wrong name";
+                                     given = pkg.pname;
+                                   })
+                                   (collapseAttrs set)));
             true;
         };
         assert isAttrSet result || die {
@@ -424,8 +430,30 @@ rec {
         assert isHackage -> checkSet "hackageDeps" result.hackageDeps;
         assert isNixpkgs -> checkSet "nixpkgsDeps" result.nixpkgsDeps;
         result;
+
+      postprocessed = depType: (check {
+        name        = "digest";
+        postProcess = {
+          integer-gmp = abort "Y"/*_: throw "Triggered integer-gmp override"*/;
+        };
+      })."${depType}"."${nixV}"."${hsV}";
+
+      checkPostprocessed = depType:
+        with rec { result = postprocessed depType; };
+        assert trace result.drvPath result.pname == "digest" || die {
+          error    = "Package with post-processed deps has wrong name";
+          expected = "digest";
+          found    = result.pname;
+        };
+        with tryEval result;
+        success -> die {
+          inherit depType result;
+          error = "Post-processor wasn't invoked for integer-gmp";
+        };
     };
-    {
+    assert checkPostprocessed "hackageDeps";
+    assert checkPostprocessed "nixpkgsDeps";
+    testMkHackageSet // {
       panhandle = def {
         name        = "panhandle";
         dir         = fetchgit {
