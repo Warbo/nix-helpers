@@ -75,8 +75,13 @@ with rec {
                haskellPackages = getAttr name nixpkgs.haskell.packages;
              });
 
-  dummyArgsFor = func: listToAttrs
-    (map (x: { name = x; value = x; }) (attrNames (functionArgs func)));
+  dummyArgsFor = func:
+    assert isCallable func || die {
+      error = "Can only get args for callables";
+      given = getType func;
+    };
+    listToAttrs (map (x: { name = x; value = x; })
+                     (attrNames (functionArgs func)));
 
   # Calls the Haskell package defined by the given file with dummy
   # arguments, to see which arguments should come from nixpkgs and which
@@ -85,18 +90,29 @@ with rec {
   # could be from either. We also disable any benchmarks, since they can cause
   # cyclic dependencies that Nix can't handle.
   callProperly = nixpkgs: self: file:
-    assert isAttrs nixpkgs;
-    assert isAttrs self;
+    assert isAttrSet nixpkgs;
+    assert isAttrSet self;
     with rec {
       func    = import file;
+
       sysArgs = func (dummyArgsFor func // {
         mkDerivation = args: args.librarySystemDepends or [];
       });
+
       sysPkgs = listToAttrs
         (map (name: { inherit name; value = getAttr name nixpkgs; })
         sysArgs);
+
+      pkg = self.callPackage func sysPkgs;
+
+      result = haskell.lib.dontBenchmark pkg;
     };
-    haskell.lib.dontBenchmark (self.callPackage func sysPkgs);
+    assert isCallable func || die {
+      inherit file;
+      error = "File should define a callable value";
+      given = getType func;
+    };
+    result;
 
   buildForHackage = { dir, name, extraSources, postProcess }:
     { haskellPackages, nixpkgs }:
@@ -110,6 +126,14 @@ with rec {
         inherit dir;
         inherit (haskellPackages) ghc;
         extra-sources = attrValues extraSources;
+      };
+      assert isList deps || die {
+        error = "Need list of deps";
+        given = getType deps;
+      };
+      assert isList gcRoots || die {
+        error = "Expected list of gcRoots";
+        given = getType gcRoots;
       };
       with rec {
         callPkg = self: super: { name, url }:
@@ -152,22 +176,65 @@ with rec {
           result;
 
         hsPkgs = haskellPackages.override (old: {
-          overrides = composeList [
-            (old.overrides or (_: _: {}))
-            processed
-            (self: super: mapAttrs (name: url: callPkg self { inherit name url; })
-                                   extraSources)
-            (self: super: listToAttrs
-              (map (url:
-                     with { func = import (runCabal2nix2 { inherit url; }); };
-                     {
-                       name  = (func (dummyArgsFor func // {
-                                 mkDerivation = args: args;
-                               })).pname;
-                       value = callPkg self { inherit name url; };
-                     })
-                   deps))
-          ];
+          overrides =
+            with rec {
+              existing     = old.overrides or (_: _: {});
+
+              areProcessed = processed postProcess;
+
+              extras       = self: super:
+                mapAttrs (name: url:
+                           with {
+                             # Use super for assertions to prevent infinite loop
+                             test   = callPkg super super { inherit name url; };
+                             result = callPkg self  super { inherit name url; };
+                           };
+                           assert isDerivation test || die {
+                             inherit name url;
+                             error = "extraSource should be derivation";
+                             given = getType test;
+                           };
+                           result)
+                         extraSources;
+
+              fromDeps = self: super: listToAttrs
+                (map (url:
+                       with rec {
+                         func = import (runCabal2nix2 { inherit url; });
+
+                         # Beware 'with { name = ...; }' not shadowing the outer
+                         # function's 'name' argument, due to quirky Nix scopes.
+                         pname = (func (dummyArgsFor func // {
+                           mkDerivation = args: args;
+                         })).pname;
+
+                         # Use super for assertions to prevent infinite loop
+                         test  = callPkg super super {
+                                   inherit url;
+                                   name = pname;
+                                 };
+                         value = callPkg self  super {
+                                   inherit url;
+                                   name = pname;
+                                 };
+                       };
+                       assert isString pname || die {
+                         inherit url;
+                         error = "Dep name should be string";
+                         given = getType pname;
+                       };
+                       /*assert isDerivation test || die {
+                         inherit name url;
+                         error = "Dep should be a derivation";
+                         given = getType test;
+                       };*/
+                       {
+                         inherit value;
+                         name = pname;
+                       })
+                     deps);
+            };
+            composeList [ existing areProcessed extras fromDeps ];
         });
       };
       assert isAttrSet hsPkgs || die {
