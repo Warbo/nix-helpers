@@ -267,7 +267,7 @@ with rec {
         dir          = unpack haskellPackages.digest.src;
         name         = "digest";
         extraSources = {};
-        postProcess  = trace "Forced postProcess" { integer-gmp = trace "Forced integer-gmp function" (_: trace "Forced integer-gmp return value" hello // { name = "sentinel"; }); };
+        postProcess  = { integer-gmp = _: hello // { name = "sentinel"; }; };
       };
     };
     assert hs.hsPkgs.integer-gmp.name == "sentinel" || die {
