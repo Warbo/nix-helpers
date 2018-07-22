@@ -8,7 +8,41 @@ with lib;
 with rec {
   getNix = v: getAttr v pinnedNixpkgs;
 
-  composeList = l: fold lib.composeExtensions (_: _: {}) (reverseList l);
+  composeList =
+    with { go = l: fold lib.composeExtensions (_: _: {}) l; };
+    assert ((go [
+              (_: _: { foo = false; })
+              (_: _: { foo = true;  })
+           ]) null null).foo || die {
+      error = "composeList did not compose in order";
+    };
+    go;
+
+  processed = postProcess: self: super:
+    mapAttrs (name: f: assert isCallable f || die {
+                         inherit name;
+                         error = "postProcessor should be callable";
+                       };
+                       assert hasAttr name super || die {
+                         inherit name;
+                         error = "Don't have package to postprocess";
+                       };
+                       with rec {
+                         old = getAttr name super;
+                         new = f old;
+                       };
+                       assert isDerivation old || old == null || die {
+                         inherit name;
+                         error = "Should only postprocess packages";
+                         given = getType old;
+                       };
+                       assert isDerivation new || new == null || die {
+                         inherit name;
+                         error = "Postprocessing should produce package";
+                         given = getType new;
+                       };
+                       new)
+             postProcess;
 
   # Make the nixVersion attr (if kept) a set of all its Haskell versions
   buildForNixpkgs = hs: nixVersion: haskellVersions:
@@ -26,7 +60,7 @@ with rec {
     assert isFunction hs || die ({
       error = "hs should be a function";
       given = typeOf hs;
-    } // (if isAttrs hs then { names = attrNames hs; } else {}));
+    } // (if isAttrSet hs then { names = attrNames hs; } else {}));
     with {
       nixpkgs = getNix nixVersion // {
         # Avoid https://github.com/haskell/zlib/issues/11
