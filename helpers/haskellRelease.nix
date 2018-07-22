@@ -434,20 +434,18 @@ rec {
       postprocessed = depType: (check {
         name        = "digest";
         postProcess = {
-          integer-gmp = abort "Y"/*_: throw "Triggered integer-gmp override"*/;
+          integer-gmp = _: throw "Triggered integer-gmp override";
         };
       })."${depType}"."${nixV}"."${hsV}";
 
       checkPostprocessed = depType:
-        with rec { result = postprocessed depType; };
-        assert trace result.drvPath result.pname == "digest" || die {
-          error    = "Package with post-processed deps has wrong name";
-          expected = "digest";
-          found    = result.pname;
+        with rec {
+          result = postprocessed depType;
+          forcer = "${result}";
         };
-        with tryEval result;
+        with tryEval forcer;
         success -> die {
-          inherit depType result;
+          inherit depType value;
           error = "Post-processor wasn't invoked for integer-gmp";
         };
     };
