@@ -278,37 +278,36 @@ with rec {
     };
     {};
 
-  buildForHaskell = { dir, name, extraSources, postProcess }:
-    { haskellPackages, nixpkgs }:
-      with rec {
-        callPkg = self: { name, url }:
-          with rec {
-            pp     = postProcess."${name}" or (x: x);
-            func   = runCabal2nix2 { inherit name url; };
-            pkg    = callProperly nixpkgs self  func;
-            result = pp pkg;
-          };
-          assert isCallable pp || die {};
-          result;
-
-        extras = self: super: mapAttrs (name: url: callPkg self {
-                                         inherit name url;
-                                       })
-                                       extraSources;
-
-        given = self: super: {
-          "${name}" = callPkg self { inherit name; url = dir; };
+  mkHaskellSet = { dir, extraSources, haskellPackages, name, nixpkgs, postProcess }:
+    with rec {
+      callPkg = self: { name, url }:
+        with rec {
+          pp     = postProcess."${name}" or (x: x);
+          func   = runCabal2nix2 { inherit name url; };
+          pkg    = callProperly nixpkgs self  func;
+          result = pp pkg;
         };
+        assert isCallable pp || die {};
+        result;
 
-        hsPkgs = haskellPackages.override (old: {
-          overrides = composeList [
-            (old.overrides or (_: _: {}))
-            (processed postProcess)
-            extras
-          ];
-        });
+      extras = self: super: mapAttrs (name: url: callPkg self {
+                                       inherit name url;
+                                     })
+                                     extraSources;
+
+      given = self: super: {
+        "${name}" = callPkg self { inherit name; url = dir; };
       };
-      hsPkgs."${name}";
+    };
+    {
+      hsPkgs = haskellPackages.override (old: {
+        overrides = composeList [
+          (old.overrides or (_: _: {}))
+          (processed postProcess)
+          extras
+        ];
+      });
+    };
 };
 rec {
   def = {
@@ -327,7 +326,11 @@ rec {
         };
         withDeps gcRoots (getAttr name hsPkgs);
 
-      bfHsk = buildForHaskell { inherit dir name extraSources postProcess; };
+      bfHsk = { haskellPackages, nixpkgs }:
+        with mkHaskellSet {
+          inherit dir extraSources haskellPackages name nixpkgs postProcess;
+        };
+        getAttr name hsPkgs;
 
       isSetOf = valType: name: x:
         (isAttrSet x &&
