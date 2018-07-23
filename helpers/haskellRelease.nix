@@ -471,18 +471,20 @@ rec {
             sha256 = "1i3by7mp7wqy9anzphpxfw30rmbsk73sb2vg02nf1mfpjd303jj7";
           };
         };
-        postProcess = {
-          # integer-gmp depends on C libraries, which are a pain
-          integer-gmp = _:
-            (getNix "nixpkgs1803").haskell.packages.ghc7103.integer-gmp;
+        postProcess =
+          with { pinned = (getNix "nixpkgs1803").haskell.packages.ghc7103; };
+          {
+            # integer-gmp depends on C libraries, which are a pain
+            integer-gmp = _: pinned.integer-gmp;
 
-          # Dependencies of semigroups vary per GHC release, so we force an
-          # override to avoid problems which seem to be related to this issue
-          # https://github.com/NixOS/nixpkgs/issues/16542
-          semigroups = _:
-            (getNix "nixpkgs1803").haskell.packages.ghc7103.callHackage
-              "semigroups" "0.18.2" {};
-        };
+            # deepseq seems intimately tangled with the particular Cabal library
+            deepseq = _: pinned.deepseq;
+
+            # Dependencies of semigroups vary per GHC release, so we force an
+            # override to avoid problems which seem to be related to this issue
+            # https://github.com/NixOS/nixpkgs/issues/16542
+            #semigroups = _: pinned.callHackage "semigroups" "0.18.2" {};
+          };
       };
 
       # A widely-used Haskell package, see if it works
