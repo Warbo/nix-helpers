@@ -472,8 +472,16 @@ rec {
           };
         };
         postProcess = {
+          # integer-gmp depends on C libraries, which are a pain
           integer-gmp = _:
             (getNix "nixpkgs1803").haskell.packages.ghc7103.integer-gmp;
+
+          # Dependencies of semigroups vary per GHC release, so we force an
+          # override to avoid problems which seem to be related to this issue
+          # https://github.com/NixOS/nixpkgs/issues/16542
+          semigroups = _:
+            (getNix "nixpkgs1803").haskell.packages.ghc7103.callHackage
+              "semigroups" "0.18.2" {};
         };
       };
 
