@@ -477,6 +477,10 @@ rec {
             # integer-gmp depends on C libraries, which are a pain
             integer-gmp = _: pinned.integer-gmp;
 
+            # containers seems to be part of the bootstrap packages, so we can't
+            # (or shouldn't) try to build it ourselves
+            containers = _: pinned.containers;
+
             # deepseq seems intimately tangled with the particular Cabal library
             deepseq = _: pinned.deepseq;
 
