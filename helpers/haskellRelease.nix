@@ -206,7 +206,8 @@ with rec {
             # We add warnings which, if triggered, indicate that some dependency
             # wasn't "frozen" by 'deps'
             (self: super: mapAttrs
-              (name: if elem name [ "callPackage" "mkDerivation" ] ||
+              (name: if elem name [ "callPackage" "ghc" "integer-gmp"
+                                    "mkDerivation" ] ||
                         super."${name}" == null
                         then (x: x)
                         else trace
