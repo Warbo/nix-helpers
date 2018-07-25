@@ -10,8 +10,7 @@ with lib;
     extra-sources   ? [],
     hackageContents ? hackageDb,
     name            ? "pkg",
-    ghc,
-    skipPackages    ? [ "base" "bin-package-db" "ghc" "rts" ]
+    ghc
   }:
 
   with rec {
@@ -21,15 +20,21 @@ with lib;
             })
             env code;
 
-    deps = import depsDrv;
+    # If a package is "pre-existing", we can't build it (e.g. rts, base, ...)
+    deps = filter ({ type, ... }: type != "pre-existing")
+                  (import depsDrv);
 
     # Keep this as a standalone derivation, rather than importing it directly,
     # so that we can add it as a dependency of our outputs. That way it won't
     # get garbage collected until our outputs are.
-    depsDrv = runCommand "haskell-${name}-deps"
+    depsDrv = runCommand "haskell-${name}-plan"
       (env // {
         inherit dir hackageContents;
         buildInputs = [ cabal-install fail ghc jq utillinux ];
+        EXPR = "with builtins; fromJSON (readFile ./plan.json)";
+        JQ   = ''.["install-plan"] | map({"name"    : .["pkg-name"],
+                                          "version" : .["pkg-version"],
+                                          "type"    : .["type"]})'';
       })
       ''
         set -e
@@ -61,36 +66,14 @@ with lib;
           echo "$PACKAGES" > cabal.project.local
         }
 
-        cabal new-freeze 2> >(tee ERR 1>&2) || {
-            echo "Error freezing cabal dependencies" 1>&2
-            exit 1
+        cabal new-build --dry || {
+          echo "Error dry-running build" 1>&2
+          exit 1
         }
 
-        [[ -e cabal.project.freeze ]] || fail "No cabal.project.freeze file"
-
-        echo '[' > "$out"
-        while read -r P
-        do
-          # Remove "packages:" field name
-          if echo "$P" | grep ':' > /dev/null
-          then
-            P=$(echo "$P" | cut -d ':' -f2)
-          fi
-          SKIP=0
-          for SKIPPABLE in ${concatStringsSep " " skipPackages}
-          do
-            if echo "$P" | grep "^$SKIPPABLE-[0-9.]*" > /dev/null
-            then
-              echo "Skipping dependency '$P'" 1>&2
-              SKIP=1
-            fi
-          done
-          [[ "$SKIP" -eq 1 ]] && continue
-          printf '"%s"\n' "$P" >> "$out"
-        done < <(grep '==' < cabal.project.freeze | sed -e 's/==/-/g' |
-                                                    tr -d ' '         |
-                                                    tr -d ','         )
-        echo ']' >> "$out"
+        mkdir "$out"
+        jq "$JQ" < ./dist-newstyle/cache/plan.json > "$out/plan.json"
+        echo "$EXPR" > "$out/default.nix"
       '';
 
     extrasMap = listToAttrs (map (dir: {
@@ -114,9 +97,8 @@ with lib;
 
     # If a dependency comes from extra-sources, use its path; otherwise prefix
     # with "cabal://" so cabal2nix will fetch from Hackage.
-    replacedDeps = map (dep: if hasAttr (removeVersion dep) extrasMap
-                                then getAttr (removeVersion dep) extrasMap
-                                else "cabal://${dep}")
+    replacedDeps = map ({ name, version, ... }:
+                         extrasMap."${name}" or "cabal://${name}-${version}")
                        deps;
   };
   {
