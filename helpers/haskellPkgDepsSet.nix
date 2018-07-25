@@ -2,7 +2,6 @@
   reverse, runCabal2nix, runCommand, stableHackageDb, withDeps }:
 
 {
-  delay-failure   ? false,  # Replace eval-time failures with failing derivation
   dir,
   extra-sources   ? [],
   name            ? null,
@@ -15,7 +14,7 @@ with builtins;
 with lib;
 with rec {
   inherit (haskellPkgDeps {
-    inherit delay-failure dir extra-sources hackageContents;
+    inherit dir extra-sources hackageContents;
     inherit (hsPkgs) ghc;
     name = pName;
   }) deps gcRoots;
@@ -92,9 +91,7 @@ with rec {
 {
   def = {
     gcRoots = allGCRoots;
-    hsPkgs  = if deps.delayedFailure or false
-                 then deps
-                 else overriddenHsPkgs;
+    hsPkgs  = overriddenHsPkgs;
   };
 
   tests = {};

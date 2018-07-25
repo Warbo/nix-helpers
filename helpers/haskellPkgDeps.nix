@@ -6,7 +6,6 @@ with lib;
 
 {
   def = {
-    delay-failure   ? false,  # Replace eval failures with failing derivation
     dir,
     extra-sources   ? [],
     hackageContents ? hackageDb,
@@ -30,15 +29,7 @@ with lib;
     depsDrv = runCommand "haskell-${name}-deps"
       (env // {
         inherit dir hackageContents;
-        buildInputs  = [ cabal-install fail ghc jq utillinux ];
-        delayFailure = if delay-failure then "true" else "false";
-        failFile     = writeScript "delayed-failure.nix" ''
-          with builtins;
-          {
-            delayedFailure = true;
-            stderr         = readFile ./ERR;
-          }
-        '';
+        buildInputs = [ cabal-install fail ghc jq utillinux ];
       })
       ''
         set -e
@@ -71,16 +62,8 @@ with lib;
         }
 
         cabal new-freeze 2> >(tee ERR 1>&2) || {
-          if "$delayFailure"
-          then
-            mkdir "$out"
-            cp ERR "$out/ERR"
-            cp "$failFile" "$out/default.nix"
-            exit 0
-          else
             echo "Error freezing cabal dependencies" 1>&2
             exit 1
-          fi
         }
 
         [[ -e cabal.project.freeze ]] || fail "No cabal.project.freeze file"
@@ -138,9 +121,7 @@ with lib;
   };
   {
     gcRoots = [ depsDrv ];
-    deps    = if deps.delayedFailure or false
-                 then deps
-                 else replacedDeps ++ [ dir ];
+    deps    = replacedDeps ++ [ dir ];
   };
 
   tests = {};
