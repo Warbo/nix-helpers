@@ -151,7 +151,10 @@ with rec {
           };
           with rec {
             pp     = postProcess."${name}" or (x: x);
-            func   = runCabal2nix2 { inherit name url; };
+            func   = runCabal2nix2 {
+              inherit name url;
+              args = [ "--compiler=${haskellPackages.ghc.name}" ];
+            };
             pkg    = callProperly nixpkgs self  func;
             result = pp pkg;
             # Test with super to avoid infinite loops
