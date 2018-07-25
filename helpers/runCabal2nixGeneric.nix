@@ -57,7 +57,7 @@ with rec {
     }@given: runCmd "run-cabal2nix-${name}" (env given) ''
          set -e
          export HOME="$PWD/home"
-         cp -r "$packageDb" ./home
+         cp -rs "$packageDb" ./home
          chmod 777 ./home
 
          cabal2nix ${if args == null
