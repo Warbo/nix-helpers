@@ -484,6 +484,9 @@ rec {
             # deepseq seems intimately tangled with the particular Cabal library
             deepseq = _: pinned.deepseq;
 
+            # Avoids Setup.hs problems
+            stm = _: pinned.stm;
+
             # Dependencies of semigroups vary per GHC release, so we force an
             # override to avoid problems which seem to be related to this issue
             # https://github.com/NixOS/nixpkgs/issues/16542
