@@ -15,31 +15,32 @@ with rec {
   });
 
   # Sets up the environment for running cabal2nix (lots of pettiness)
-  env = { cabal2nix, cache, packageDb, url, ... }: warn url withNix {
-    # Hackage contents to use. Get the latest content (via 'cabal update') by
-    # using hackageDb, but that doesn't cache well. Defaults to
-    # stableHackageDb, which does since it's built from a fixed git rev.
-    inherit packageDb;
+  env = { args ? null, cabal2nix, cache, packageDb, url, ... }:
+    warn url withNix {
+      # Hackage contents to use. Get the latest content (via 'cabal update') by
+      # using hackageDb, but that doesn't cache well. Defaults to
+      # stableHackageDb, which does since it's built from a fixed git rev.
+      inherit packageDb;
 
-    buildInputs = [ cabal2nix ];
+      buildInputs = [ cabal2nix ];
 
-    # Otherwise cabal2nix dies for accented characters
-    LANG           = "en_US.UTF-8";
-    LOCALE_ARCHIVE = "${glibcLocales}/lib/locale/locale-archive";
+      # Otherwise cabal2nix dies for accented characters
+      LANG           = "en_US.UTF-8";
+      LOCALE_ARCHIVE = "${glibcLocales}/lib/locale/locale-archive";
 
-    cacheDir = if hasPrefix "cabal://" url
-                  then cache
-                  else "/no-cabal2nix-cache";
+      cacheDir = if hasPrefix "cabal://" url && args == null
+                    then cache
+                    else "/no-cabal2nix-cache";
 
-    # cabal2nix version 20160308 breaks for git repos by trying to import
-    # nixexprs as JSON; we work around this by fetching separately.
-    url = if hasPrefix "http" url && hasSuffix ".git" url
-             then trace "Warning: latestGit '${url}'" latestGit {
-                    inherit url;
-                    stable = { unsafeSkip = true; };
-                  }
-             else url;
-  };
+      # cabal2nix version 20160308 breaks for git repos by trying to import
+      # nixexprs as JSON; we work around this by fetching separately.
+      url = if hasPrefix "http" url && hasSuffix ".git" url
+               then trace "Warning: latestGit '${url}'" latestGit {
+                      inherit url;
+                      stable = { unsafeSkip = true; };
+                    }
+               else url;
+    };
 
   # This is the actual implementation which runs cabal2nix and (possibly) caches
   go =
@@ -94,11 +95,11 @@ with rec {
        '';
 
   # Looks up from the cache if available, otherwise builds (and caches)
-  cached = { url, cache, ... }@args:
+  cached = { args ? null, url, cache, ... }@given:
     with { c = cache + "/exprs/${removePrefix "cabal://" url}.nix"; };
-    if hasPrefix "cabal://" url && pathExists c
+    if args == null && hasPrefix "cabal://" url && pathExists c
        then trace "Using cache: ${c}" (asPath c)
-       else go args;
+       else go given;
 };
 {
   def   = { cabal2nix, cache, packageDb }@args1:
