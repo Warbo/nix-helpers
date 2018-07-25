@@ -45,7 +45,7 @@ with lib;
 
         export HOME="$PWD/home"
         mkdir "$HOME"
-        cp -rv "$hackageContents/.cabal" "$HOME/"
+        cp -rsv "$hackageContents/.cabal" "$HOME/"
         chmod +w -R "$HOME/.cabal"
 
         cd ./src
