@@ -203,8 +203,8 @@ with rec {
             # We add warnings which, if triggered, indicate that some dependency
             # wasn't "frozen" by 'deps'
             (self: super: mapAttrs
-              (name: if elem name [ "base" "callPackage" "ghc-prim"
-                                    "mkDerivation" ]
+              (name: if elem name [ "callPackage" "mkDerivation" ] ||
+                        super."${name}" == null
                         then (x: x)
                         else trace
                                "Warning: Non-frozen Haskell package ${name}")
