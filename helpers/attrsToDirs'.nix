@@ -1,24 +1,43 @@
 # Builds a directory whose entries/content correspond to the names/values of
 # the given attrset. When a value is an attrset, the corresponding entry is
 # a directory, whose contents is generated with attrsToDirs on that value.
-{ dummyBuild, isPath, lib, nixListToBashArray, nothing, runCmd }:
+{ dummyBuild, getType, isPath, lib, nixListToBashArray, nothing, runCmd,
+  sanitiseName }:
 
 with builtins;
 with lib;
 with rec {
   toPaths = prefix: val:
-    if isPath val || isDerivation val
-       then [{ name  = prefix;
-               value = val; }]
-       else if isAttrs val
-               then concatMap (entry: toPaths (prefix + "/" + entry)
-                                              (getAttr entry val))
-                              (attrNames val)
-               else abort "Unsupported type ${typeOf val} in attrsToDirs";
+    if isPath val
+       then [{
+         name  = prefix;
+         # Use builtins.path to sanitise the file name in case it isn't suitable
+         # for the Nix store (*cough* attrsToDirs'.nix *cough*)
+         value = path {
+           name = sanitiseName (baseNameOf (toString val));
+           path = val;
+         };
+       }]
+       else if isDerivation val
+               then [{
+                 name  = prefix;
+                 value = val;
+               }]
+               else if isAttrs val
+                       then concatMap (entry: toPaths (prefix + "/" + entry)
+                                                      (getAttr entry val))
+                                      (attrNames val)
+                       else die {
+                         error   = "Unsupported type in attrsToDirs'";
+                         given   = getType val;
+                         allowed = [ "path" "derivation" "attrset" ];
+                       };
 };
 rec {
-  def = name: attrs:
+  def = rawName: attrs:
     with rec {
+      name = sanitiseName "${rawName}";
+
       # We can't have empty attr names, so always stick a dummy '_' at the start,
       # and strip it off in the build script
       data = listToAttrs (toPaths "_" attrs);
