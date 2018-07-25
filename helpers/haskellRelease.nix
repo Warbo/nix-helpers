@@ -176,65 +176,75 @@ with rec {
           result;
 
         hsPkgs = haskellPackages.override (old: {
-          overrides =
-            with rec {
-              existing     = old.overrides or (_: _: {});
+          overrides = composeList [
+            # First we apply any existing overrides on top of the defaults
+            (old.overrides or (_: _: {}))
 
-              areProcessed = processed postProcess;
+            # Next we override any packages which should be postprocessed
+            (processed postProcess)
 
-              extras       = self: super:
-                mapAttrs (name: url:
-                           with {
-                             # Use super for assertions to prevent infinite loop
-                             test   = callPkg super super { inherit name url; };
-                             result = callPkg self  super { inherit name url; };
-                           };
-                           assert isDerivation test || die {
-                             inherit name url;
-                             error = "extraSource should be derivation";
-                             given = getType test;
-                           };
-                           result)
-                         extraSources;
+            # The next overrides add the contents of extraSources (these are
+            # postprocessed, if required, thanks to using 'callPkg')
+            (self: super:
+              mapAttrs (name: url:
+                         with {
+                           # Use super for assertions to prevent infinite loop
+                           test   = callPkg super super { inherit name url; };
+                           result = callPkg self  super { inherit name url; };
+                         };
+                         assert isDerivation test || die {
+                           inherit name url;
+                           error = "extraSource should be derivation";
+                           given = getType test;
+                         };
+                         result)
+                       extraSources)
 
-              fromDeps = self: super: listToAttrs
-                (map (url:
-                       with rec {
-                         func = import (runCabal2nix2 { inherit url; });
+            # We add warnings which, if triggered, indicate that some dependency
+            # wasn't "frozen" by 'deps'
+            (self: super: mapAttrs
+              (name: trace "Warning: Using non-frozen Haskell package ${name}")
+              super)
 
-                         # Beware 'with { name = ...; }' not shadowing the outer
-                         # function's 'name' argument, due to quirky Nix scopes.
-                         pname = (func (dummyArgsFor func // {
-                           mkDerivation = args: args;
-                         })).pname;
+            # The final overrides add the packages (either specific versions or
+            # taken from specific directories) given by 'deps'
+            (self: super: listToAttrs
+              (map (url:
+                     with rec {
+                       func = import (runCabal2nix2 { inherit url; });
 
-                         # Use super for assertions to prevent infinite loop
-                         test  = callPkg super super {
-                                   inherit url;
-                                   name = pname;
-                                 };
-                         value = callPkg self  super {
-                                   inherit url;
-                                   name = pname;
-                                 };
-                       };
-                       assert isString pname || die {
-                         inherit url;
-                         error = "Dep name should be string";
-                         given = getType pname;
-                       };
-                       /*assert isDerivation test || die {
-                         inherit name url;
-                         error = "Dep should be a derivation";
-                         given = getType test;
-                       };*/
-                       {
-                         inherit value;
-                         name = pname;
-                       })
-                     deps);
-            };
-            composeList [ existing areProcessed extras fromDeps ];
+                       # Beware 'with { name = ...; }' not shadowing the outer
+                       # function's 'name' argument, due to quirky Nix scopes.
+                       pname = (func (dummyArgsFor func // {
+                         mkDerivation = args: args;
+                       })).pname;
+
+                       # Use super for assertions to prevent infinite loop
+                       test  = callPkg super super {
+                                 inherit url;
+                                 name = pname;
+                               };
+                       value = callPkg self  super {
+                                 inherit url;
+                                 name = pname;
+                               };
+                     };
+                     assert isString pname || die {
+                       inherit url;
+                       error = "Dep name should be string";
+                       given = getType pname;
+                     };
+                     /*assert isDerivation test || die {
+                       inherit name url;
+                       error = "Dep should be a derivation";
+                       given = getType test;
+                     };*/
+                     {
+                       inherit value;
+                       name = pname;
+                     })
+                   deps))
+          ];
         });
       };
       assert isAttrSet hsPkgs || die {
