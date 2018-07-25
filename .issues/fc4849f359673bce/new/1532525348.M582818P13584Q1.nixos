@@ -1,0 +1,17 @@
+From: Chris Warburton
+Date: Wed, 25 Jul 2018 14:26:21 +0100
+State: new
+Subject: Make haskellPkgDeps more robust
+Message-Id: <fc4849f359673bce-0-artemis@nixos>
+
+We were using Cabal 1.x sandboxes, but they seem to crash with new
+Hackage indices (due to unexpected fields?).
+
+We switched to using Cabal 2.x and new-freeze, but that doesn't seem to
+take dependencies of extra sources into account. For example, panhandle
+depends on lazysmallcheck2012 which isn't on Hackage; if we add it to
+a 'packages:' field of cabal.local.project, its dependencies don't seem
+to get frozen.
+
+This should be reported upstream against Cabal, but first we should make
+a small example to test that it is indeed the case.
