@@ -1,5 +1,3 @@
 { runCmd }:
 
-{ name, value }: runCmd "dummy-build-${name}"
-                        { inherit value; }
-                        ''mkdir "$out"''
+{ name, value }: runCmd "${name}" { inherit value; } ''mkdir "$out"''
