@@ -1,8 +1,8 @@
-{ cabal2nix, cabal2nixCache, haskellPackages, pinnedCabal2nix ? cabal2nix,
+{ cabal2nix, cabal2nixCache, haskellPackages, lib, pinnedCabal2nix ? cabal2nix,
   runCabal2nixGeneric, stableHackageDb, unpack }:
 
 rec {
-  def = runCabal2nixGeneric {
+  def = lib.makeOverridable runCabal2nixGeneric {
     cabal2nix = pinnedCabal2nix;
     cache     = cabal2nixCache;
     packageDb = stableHackageDb;
