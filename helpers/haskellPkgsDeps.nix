@@ -1,10 +1,10 @@
-{ attrsToDirs, haskellPkgDepsSet, lib, writeScript }:
+{ attrsToDirs', haskellPkgDepsSet, lib, writeScript }:
 
 {
   def = { deps, extra-sources, hsPkgs, useOldZlib ? false }: haskellPkgDepsSet {
     inherit extra-sources hsPkgs useOldZlib;
     name = "dummy-for-deps";
-    dir  = attrsToDirs {
+    dir  = attrsToDirs' "dummy-cabal-project-for-deps" {
       "dummy-for-deps.cabal" = writeScript "dummy-for-deps.cabal" ''
         name:                dummy-for-deps
         version:             1.0

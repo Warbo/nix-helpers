@@ -1,5 +1,5 @@
-{ attrsToDirs, cabal-install, cabalField, die, fail, ghc, hackageDb,
-  hackageTimestamp, hasBinary, installHackage, replace, runCommand, withDeps }:
+{ cabal-install, cabalField, die, fail, ghc, hackageDb, hackageTimestamp,
+  hasBinary, installHackage, replace, runCommand, withDeps }:
 
 with builtins;
 with rec {

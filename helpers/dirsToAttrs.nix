@@ -16,7 +16,7 @@
 #       };
 #     };
 #
-{ attrsToDirs, die, isPath, lib, runCommand }:
+{ attrsToDirs', die, isPath, lib, runCommand }:
 
 with builtins;
 with lib;
@@ -58,7 +58,7 @@ assert isPath test.foo.bar || {
 {
   def   = go;
   tests = runCommand "dirsToAttrs-test"
-    (go (attrsToDirs { x = ./dirsToAttrs.nix; }))
+    (go (attrsToDirs' "dirsToAttrs-test-dir" { x = ./dirsToAttrs.nix; }))
     ''
       [[ -n "$x" ]]                      || exit 1
       [[ -f "$x" ]]                      || exit 2

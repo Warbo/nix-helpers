@@ -1,7 +1,7 @@
 # Augment the environment for a derivation by allowing Nix commands to be
 # called inside the build process
 
-{ attrsToDirs, bash, isBroken, lib, nix, nixpkgs1709,
+{ bash, isBroken, lib, nix, nixpkgs1709,
   nix-daemon-tunnel-socket ? "/var/lib/nix-daemon-tunnel/socket", openssh,
   runCommand, wrap }:
 

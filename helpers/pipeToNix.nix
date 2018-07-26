@@ -1,4 +1,4 @@
-{ attrsToDirs, hasBinary, mkBin, withDeps, withNix }:
+{ hasBinary, mkBin, withDeps, withNix }:
 
 with builtins;
 with rec {
