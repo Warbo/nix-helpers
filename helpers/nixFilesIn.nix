@@ -16,14 +16,14 @@ with rec {
 
   entry = dir: f: {
     name  = lib.removeSuffix ".nix" f;
-    value = "${dir}/${f}";
+    value = dir + "/${f}";
   };
 
   go = dir: listToAttrs (map (entry dir) (content dir));
 
   testData = go ./.;
 
-  thisFile = "${./.}/nixFilesIn.nix";
+  thisFile = ./. + "/nixFilesIn.nix";
 };
 assert testData ? nixFilesIn || die {
   inherit testData;
@@ -33,9 +33,9 @@ assert testData.nixFilesIn == thisFile || die {
   inherit testData thisFile;
   error = "Expected 'testData.nixFilesIn' to match 'thisFile'";
 };
-assert dirOf testData.nixFilesIn == "${./.}" || die {
+assert dirOf testData.nixFilesIn == ./. || die {
   inherit testData;
-  thisDir = "${./.}";
+  thisDir = ./.;
   error   = "Expected 'testData.nixFilesIn' to be a file under 'thisDir'";
 };
 go
