@@ -1,28 +1,17 @@
 # Builds a directory whose entries/content correspond to the names/values of
 # the given attrset. When a value is an attrset, the corresponding entry is
 # a directory, whose contents is generated with attrsToDirs on that value.
-{ dummyBuild, getType, isPath, lib, nixListToBashArray, nothing, runCmd,
-  sanitiseName }:
+{ addPathToStore, asPath, dummyBuild, getType, hello, isPath, lib,
+  nixListToBashArray, nothing, runCmd, sanitiseName }:
 
 with builtins;
 with lib;
 with rec {
   toPaths = prefix: val:
     if isPath val
-       then [{
-         name  = prefix;
-         # Use builtins.path to sanitise the file name in case it isn't suitable
-         # for the Nix store (*cough* attrsToDirs'.nix *cough*)
-         value = path {
-           name = sanitiseName (baseNameOf (toString val));
-           path = val;
-         };
-       }]
+       then [{ name = prefix; value = addPathToStore val; }]
        else if isDerivation val
-               then [{
-                 name  = prefix;
-                 value = val;
-               }]
+               then [{ name = prefix; value = val; }]
                else if isAttrs val
                        then concatMap (entry: toPaths (prefix + "/" + entry)
                                                       (getAttr entry val))
@@ -75,5 +64,21 @@ rec {
                 ln -s "''${VALUES[$N]}" "$P"
               done
             '';
-  tests = def "attrsToDirsTest" { foo = { bar = ./. + "/attrsToDirs'.nix"; }; };
+  tests = {
+    # Our filename contains a "'" which means it isn't a valid Nix store path.
+    # Make sure we can still include it.
+    punctuated = def "attrsToDirsTest" {
+      foo = { bar = ./. + "/attrsToDirs'.nix"; };
+    };
+
+    # Nix complains if strings refer to store paths, so check that we avoid this
+    storePaths = def "storePathTest" {
+      foo = { bar = "${hello}/bin/hello"; };
+    };
+
+    # Combine the above problems
+    punctuatedStore = def "punctuatedStorePathTest" {
+      foo = { bar = "${./.}/attrsToDirs'.nix"; };
+    };
+  };
 }
