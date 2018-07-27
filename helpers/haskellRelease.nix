@@ -474,7 +474,7 @@ rec {
     #assert checkPostprocessed "nixpkgsDeps";
     testPackageSet { funcName = "mkHackageSet"; func = mkHackageSet; } //
     testPackageSet { funcName = "mkHaskellSet"; func = mkHaskellSet; } // {
-      panhandle = def {
+      /*panhandle = def {
         name        = "panhandle";
         dir         = fetchgit {
           url    = http://chriswarbo.net/git/panhandle.git;
@@ -510,7 +510,7 @@ rec {
             # https://github.com/NixOS/nixpkgs/issues/16542
             #semigroups = _: pinned.callHackage "semigroups" "0.18.2" {};
           };
-      };
+      };*/
 
       # A widely-used Haskell package, see if it works
       #text = check { name = "text"; };
