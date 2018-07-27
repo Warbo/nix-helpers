@@ -6,12 +6,15 @@
 
 {
   def   = [
+    "async"      # hashable?
     "binary"     # binary <-> Cabal
     "bytestring" # bytestring <-> test-framework
     "clock"      # clock <-> tasty
     "containers"
     "deepseq"    # deepseq <-> HUnit
+    "hashable"   # async?
     "pretty"     # QuickCheck -> template-haskell -> pretty -> QuickCheck
+    "test-framework"
     "text"
     "time"       # time <-> test-framework
     "zlib"
