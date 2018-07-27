@@ -54,8 +54,8 @@ rec {
         '';
     };
     if isStore p
-       then trace "Symlink for ${toString p}" symlink
-       else trace "Path for ${toString p}" builtins.path { name = safeName; path = p; };
+       then symlink
+       else builtins.path { name = safeName; path = p; };
 
   tests = {
     self       = def ./addPathToStore.nix;
