@@ -1,5 +1,5 @@
 { asPath, glibcLocales, haskellPackages, haskellTestCycles, latestGit, lib,
-  nothing, runCmd, unpack, withArgsOf, withNix }:
+  nothing, runCmd, withArgsOf, withNix }:
 
 with builtins;
 with lib;

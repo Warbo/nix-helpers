@@ -1,5 +1,5 @@
 { cabal2nix, cabal2nixCache, haskellPackages, lib, pinnedCabal2nix ? cabal2nix,
-  runCabal2nixGeneric, stableHackageDb, unpack }:
+  runCabal2nixGeneric, stableHackageDb, unpack' }:
 
 rec {
   def = lib.makeOverridable runCabal2nixGeneric {
@@ -14,7 +14,7 @@ rec {
     };
     canGetDir = def {
       name = "runCabal2nix-can-get-dir";
-      url  = unpack haskellPackages.list-extras.src;
+      url  = unpack' "list-extras" haskellPackages.list-extras.src;
     };
   };
 }

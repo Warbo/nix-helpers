@@ -1,6 +1,6 @@
 { cabal2nix, cabal2nixCache, cabalField, fail, ghc, glibcLocales,
   haskellPackages, jq, nix, nixpkgs1603, pinnedCabal2nix ? cabal2nix,
-  runCommand, stableHackage, unpack, utillinux, withDeps, withNix }:
+  runCommand, stableHackage, unpack', utillinux, withDeps, withNix }:
 
 with builtins;
 with rec {
@@ -123,7 +123,7 @@ with rec {
     # A widely used Haskell package; see if it works
     text = go {
       cabal-args = [];
-      dir        = unpack haskellPackages.text.src;
+      dir        = unpack' "text" haskellPackages.text.src;
       name       = "text";
     } // { name = "haskellPkgDepsDrv-test"; };
   };

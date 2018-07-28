@@ -1,7 +1,7 @@
 # Useful for release.nix files in Haskell projects
 { cabalField, collapseAttrs, composeWithArgs, die, fail, fetchgit, getType,
   haskell, haskellPkgDeps, hello, isAttrSet, isCallable, lib, nix, nothing,
-  pinnedNixpkgs, repo1609, runCabal2nix2, runCommand, unpack, withDeps, withNix,
+  pinnedNixpkgs, repo1609, runCabal2nix2, runCommand, unpack', withDeps, withNix,
   writeScript }:
 
 with builtins;
@@ -282,7 +282,7 @@ with rec {
       haskellPackages = nixpkgs.haskell.packages.ghc802;
       hs              = func {
         inherit haskellPackages nixpkgs;
-        dir          = unpack haskellPackages.digest.src;
+        dir          = unpack' "digest" haskellPackages.digest.src;
         name         = "digest";
         extraSources = {};
         postProcess  = { integer-gmp = _: hello // { name = "sentinel"; }; };
@@ -402,7 +402,8 @@ rec {
         with rec {
           result = def {
             inherit hackageSets name nixpkgsSets;
-            dir         = unpack (haskell.packages."${hsV}"."${name}").src;
+            dir         = unpack' name
+                                  (haskell.packages."${hsV}"."${name}").src;
             postProcess = {
               # Use integer-gmp from nixpkgs to avoid dealing with C libraries
               integer-gmp = _:
