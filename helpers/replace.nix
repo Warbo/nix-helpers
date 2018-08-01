@@ -27,9 +27,9 @@ with rec {
       }
 
       function dodgy {
-        # Check for empty strings or those beginning with "-", in case they
-        # cause 'go' to misbehave.
-        if [[ -z "$1" ]] || [[ "x${delim "1:0:1"}" = "x-" ]]
+        # Check for strings beginning with "-" in case 'go' treats them as flags
+        # FIXME: There should be a way to do this.
+        if [[ "x${delim "1:0:1"}" = "x-" ]]
         then
           return 0
         else
@@ -62,8 +62,9 @@ with rec {
           exit 1 # Just in case
         fi
 
-        dodgy "$1" && fail "Spotted dodgy argument '$1' (empty or '-')"
-        dodgy "$2" && fail "Spotted dodgy argument '$2' (empty of '-')"
+        [[ -z "$1" ]] && fail "Can't replace empty string"
+        dodgy "$1" && fail "Can't replace strings ($1) beginning with '-'"
+        dodgy "$2" && fail "Can't insert strings ($2) beginning with '-'"
 
         # If we reach here we have another old/new pair of strings to replace
         if [[ "${delim "#REPLACEMENTS[@]"}" -gt 0 ]]
