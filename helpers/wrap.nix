@@ -1,5 +1,5 @@
 { bash, hello, jq, lib, makeSetupHook, nixListToBashArray, pinnedNixpkgs,
-  python, runCommand, stdenv, withArgsOf, withDeps, writeScript }:
+  python, python3, runCommand, stdenv, withArgsOf, withDeps, writeScript }:
 
 with builtins;
 with lib;
@@ -9,19 +9,13 @@ with rec {
   makeWrapper = makeSetupHook {}
     "${pinnedNixpkgs.repo1609}/pkgs/build-support/setup-hooks/make-wrapper.sh";
 
-  checks = varChk // depChk // wrapChk // propCheck;
-
   # Make sure that derivations given as paths and vars aren't forced during
   # evaluation (only at build time)
   depChk =
     with {
       script = wrap {
-        vars = {
-          broken1 = runCommand "broken1" {} "exit 1";
-        };
-
-        paths = [ (runCommand "broken2" {} "exit 1") ];
-
+        vars   = { broken1 = runCommand "broken1" {} "exit 1"; };
+        paths  = [ (runCommand "broken2" {} "exit 1") ];
         script = "exit 1";
       };
     };
@@ -360,13 +354,11 @@ with rec {
 
         makeWrapper "$f" "$out" "''${ARGS[@]}"
       '';
-
-  go = args: withDeps (attrValues checks) (wrap args);
 };
 {
-  def   = go;
-  tests = checks // {
-    wrap = go {
+  def   = wrap;
+  tests = varChk // depChk // wrapChk // propCheck // {
+    wrap-test = wrap {
       name   = "wrap-test";
       paths  = [ bash ];
       vars   = {
@@ -374,5 +366,33 @@ with rec {
       };
       script = ./wrap.nix;
     };
+
+    python-test = runCommand "wrap-python-test"
+      {
+        script = wrap {
+          name   = "wrap-python-test.py";
+          paths  = [ python3 ];
+          script = ''
+            #!/usr/bin/env python3
+            from subprocess import Popen, PIPE
+            p = Popen(['cat'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            i = b'foo'
+            (sout, serr) = p.communicate(i)
+            assert sout.strip() == i, repr({
+              'error'  : 'Output of cat did not match input',
+              'input'  : i,
+              'stdout' : sout,
+              'stderr' : serr
+            })
+          '';
+        };
+      }
+      ''
+        "$script" || {
+          echo "Wrapped Python script failed" 1>&2
+          exit 1
+        }
+        mkdir "$out"
+      '';
   };
 }
