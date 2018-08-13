@@ -1,9 +1,8 @@
 # Augment the environment for a derivation by allowing Nix commands to be
 # called inside the build process
 
-{ bash, isBroken, lib, nix, nixpkgs1709,
-  nix-daemon-tunnel-socket ? "/var/lib/nix-daemon-tunnel/socket", openssh,
-  runCommand, wrap }:
+{ isBroken, lib, nix,
+  nix-daemon-tunnel-socket ? "/var/lib/nix-daemon-tunnel/socket", runCommand }:
 
 with builtins;
 with lib;
