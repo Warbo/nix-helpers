@@ -1,7 +1,7 @@
 # Useful for release.nix files in Haskell projects
 { cabalField, collapseAttrs, composeWithArgs, die, fail, fetchgit, getType,
   haskell, haskellPkgDeps, hello, isAttrSet, isCallable, lib, nix, nothing,
-  pinnedNixpkgs, repo1609, runCabal2nix2, runCommand, unpack', withDeps, withNix,
+  pinnedNixpkgs, repo1609, runCabal2nix2, runCommand, unpack', withDeps,
   writeScript }:
 
 with builtins;
