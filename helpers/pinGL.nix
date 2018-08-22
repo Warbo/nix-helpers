@@ -1,7 +1,33 @@
+# Wraps programs using 'nixGL', which lets us use different OpenGL libraries on
+# the same system. NixOS struggles to maintain purity when it comes to OpenGL
+# drivers: we can build any program against any library and version we like, but
+# they won't necessarily work on the particular X and driver combo that's in
+# use (e.g. it's common to get 'missing symbol' errors when using OpenGL
+# programs from one NixOS version on another).
+#
+# NixGL is a workaround which lets us inject a compatible drivers into a
+# program's environment. This helper function lets us wrap programs with NixGL,
+# such that they're always run with a compatible driver. For example:
+#
+#     pinGL {
+#       nixpkgsRepo = repo1709;
+#       pkg         = nixpkgs1709.firefox;
+#       binaries    = [ "firefox" ];
+#       gl          = "Intel";
+#     }
+#
+# This defines a package whose 'bin/' dir contains a script for each entry in
+# the 'binaries' argument; in this case 'firefox'. Each of these scripts is a
+# wrapper around the corresponding 'bin/' entry of the 'pkg' argument; in this
+# case '${nixpkgs1709.firefox}/bin/firefox'. These will be run with the nixGL
+# wrapper specified by the 'gl' argument; in this case 'nixGLIntel'. The driver
+# will be loaded from the nixpkgs repository given by 'nixpkgsRepo'; in this
+# case 'repo1709'. Note that nixGL relies on nixpkgs overlays, which were only
+# introduced in nixpkgs 17.03, so earlier repos will need to be sent through
+# backportOverlays.
 { attrsToDirs', backportOverlays, die, fetchFromGitHub, hasBinary, lib,
   nixpkgs1609, repo1609, wrap }:
 
-#with builtins;
 with rec {
   nixGL = fetchFromGitHub {
     owner  = "guibou";
