@@ -35,6 +35,10 @@ with rec {
       rev    = "94d80eb";
       sha256 = "1l4hdxwcqv5izxcgv3v4njq99yai8v38wx7v02v5sd96g7jj2i8f";
     };
+    repo1809 = {
+      rev    = "6a3f5bc";
+      sha256 = "1ib96has10v5nr6bzf7v8kw7yzww8zanxgw2qi1ll1sbv6kj6zpd";
+    };
   };
 
   loadRepo = n: v: {
