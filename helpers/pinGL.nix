@@ -32,8 +32,8 @@ with rec {
   nixGL = fetchFromGitHub {
     owner  = "guibou";
     repo   = "nixGL";
-    rev    = "a02970d";
-    sha256 = "1a5cd1zbrd3gnb86iyfy5p9x46gdg463w37hhpa1nfp42lc8zcg2";
+    rev    = "04a6b08";
+    sha256 = "0z1zafkb02sxng91nsx0gclc7n7sv3d5f23gp80s3mc07p22m1k5";
   };
 
   go = {
