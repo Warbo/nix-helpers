@@ -43,7 +43,7 @@ with rec {
     assert isAttrs p;
     overrideDerivation p (old: {
       setupHook = substituteAll {
-        src = ./nixGitRefs.sh;
+        src = ./nixGitRefs;
         key = "${hUrl}_${hRef}";
         val = rev;
       };
