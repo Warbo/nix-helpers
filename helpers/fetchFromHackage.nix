@@ -1,6 +1,6 @@
-{ cabal-install, ghc, installHackage, runCommand }:
+{ cabal-install, ghc, installHackage, lib, runCommand }:
 
-{
+rec {
   def = { name, version ? "" }: runCommand "fetch-from-hackage"
     {
       arg         = name + (if version == "" then "" else "-${version}");
@@ -19,5 +19,7 @@
       mv got/* "$out"
     '';
 
-  tests = {};
+  tests = lib.mapAttrs (name: version: def { inherit name version; }) {
+    vector = "0.10.9.0";
+  };
 }
