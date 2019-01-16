@@ -1,24 +1,44 @@
-{ isCallable, latestGit, lib, stdenv, substituteAll }:
+{ die, fail, getType, isCallable, latestGit, lib, runCommand, stdenv,
+  substituteAll, withLatestGit, withNix, writeScript }:
 
 with builtins;
 with lib;
+rec {
+  # Use latestGit as src for a derivation, cache the commit ID in the environment
+  def = {
+    ref            ? "HEAD",
+    refIsRev       ? false,
+    resultComposes ? false,
+    srcToPkg,
+    stable         ? {},
+    url
+  }:
 
-# Use latestGit as src for a derivation, cache the commit ID in the environment
-{
-  ref            ? "HEAD",
-  refIsRev       ? false,
-  resultComposes ? false,
-  srcToPkg,
-  stable         ? {},
-  url
-}:
+    assert isCallable srcToPkg || die {
+      error = "srcToPkg must be callable";
+      type  = getType srcToPkg;
+    };
+    assert isString url        || die {
+      error = "url must be a string";
+      type  = getType url;
+    };
+    assert isString ref || die {
+      error = "ref must be a string";
+      type  = getType ref;
+    };
+    assert isBool refIsRev || die {
+      error = "refIsRev must be a boolean";
+      type  = getType refIsRev;
+    };
+    assert isBool resultComposes || die {
+      error = "resultComposes must be a boolean";
+      type  = getType resultComposes;
+    };
+    assert refIsRev -> ref != "HEAD" || die {
+      inherit refIsRev ref;
+      error = "Need an explicit 'ref' (not HEAD) when used as a revision";
+    };
 
-assert isCallable srcToPkg;
-assert isString url;
-assert isString ref;
-assert isBool refIsRev;
-assert isBool resultComposes;
-assert refIsRev -> ref != "HEAD";
 
 with rec {
   rawSource = latestGit { inherit url stable;
