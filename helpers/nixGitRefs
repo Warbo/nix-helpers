@@ -6,3 +6,5 @@ cache_git_rev_@key@() {
 cache_git_rev_@key@
 
 envHooks+=(cache_git_rev_@key@)
+addEnvHooks "$hostOffset" cache_git_rev_@key@
+addEnvHooks 0 cache_git_rev_@key@
