@@ -133,7 +133,7 @@ rec {
         CODE=0
         OUTPUT=$(nix-shell --show-trace -E '${expr}' --run \
           'nix-shell --show-trace -E '"'"'${expr}'"'"' --run true' 2>&1) ||
-          || fail "Nested shells failed: $OUTPUT"
+          fail "Nested shells failed: $OUTPUT"
 
         echo "$OUTPUT" 1>&2
 
