@@ -112,7 +112,7 @@ rec {
       expr = ''import "${writeScript "withLatestGit-example.nix" ''
         with import ${./..};
         withLatestGit {
-          url      = /home/chris/DELETEME/nix-helpers; #"http://chriswarbo.net/git/nix-helpers.git";
+          url      = "http://chriswarbo.net/git/nix-helpers.git";
           srcToPkg = x: x;
         }''}"'';
     };
