@@ -16,7 +16,7 @@ with rec {
   # See https://github.com/proot-me/PRoot/issues/106
   PROOT_NO_SECCOMP = "1";
 
-  env = { rootfs, pkgs ? [], debs ? [] }: runCommand "debian-chroot"
+  env = { debs, pkgs, post, pre, rootfs }: runCommand "debian-chroot"
     {
       inherit rootfs PROOT_NO_SECCOMP;
       buildInputs      = [ proot ];
@@ -24,12 +24,22 @@ with rec {
       script           = writeScript "setup.sh" ''
         #!/usr/bin/env bash
         set -e
+
+        # Preprocessing
+        ${pre}
+        # End preprocessing
+
+        # Install packages
         apt-get update
         ${concatStringsSep "\n" (map (p: "apt-get install -y ${p}") pkgs)}
         while read -r P
         do
           dpkg -i "$P"
         done < <(find /root -maxdepth 1 -type f -name '*.deb' | sort -n)
+
+        # Postprocessing
+        ${post}
+        # End postprocessing
       '';
     }
     ''
@@ -66,7 +76,7 @@ with rec {
     '';
 };
 
-{ rootfs, pkgs ? [], debs ? [] }:
+{ debs ? [], pkgs ? [], post ? "", pre ? "", rootfs }:
 
 assert isList pkgs || die {
   error = "Expected 'pkgs' to be a list of package names";
@@ -90,7 +100,7 @@ wrap {
   paths  = [ bash proot ];
   vars   = {
     inherit PROOT_NO_SECCOMP;
-    env = env { inherit debs rootfs pkgs; };
+    env = env { inherit debs rootfs pkgs post pre; };
   };
   script = ''
     #!/usr/bin/env bash
