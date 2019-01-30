@@ -76,7 +76,12 @@ with rec {
     '';
 };
 
-{ debs ? [], pkgs ? [], post ? "", pre ? "", rootfs }:
+{ binds ? [ "/dev" "/home" "/nix" "/proc" "/run" "/tmp" ],
+  debs  ? [],
+  pkgs  ? [],
+  post  ? "",
+  pre   ? "",
+  rootfs }:
 
 assert isList pkgs || die {
   error = "Expected 'pkgs' to be a list of package names";
@@ -111,6 +116,6 @@ wrap {
     export TEMP=/tmp
 
     # shellcheck disable=SC2154
-    proot -r "$env" -b /proc -b /dev -b /nix -b /tmp -b /home "$@"
+    proot -r "$env" ${concatStringsSep " " (map (b: "-b " + b) binds)} "$@"
   '';
 }
