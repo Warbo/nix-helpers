@@ -29,7 +29,7 @@ mkBin {
 
     mkdir -p "$INNER"
     pushd "$INNER" > /dev/null
-      "$1"
+      out="$PWD" "$1"
     popd           > /dev/null
 
     if [[ "$SKIP_NIX" -eq 1 ]]
