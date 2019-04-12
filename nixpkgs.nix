@@ -10,8 +10,6 @@ with rec {
     repo  = "nixpkgs";
   };
 
-  importPkgs = repo: import repo { config = {}; };
-
   repos = mapAttrs (_: getNixpkgs) repoData;
 
   repoData = {
