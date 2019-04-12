@@ -1,7 +1,7 @@
 # Builds a directory whose entries/content correspond to the names/values of
 # the given attrset. When a value is an attrset, the corresponding entry is
 # a directory, whose contents is generated with attrsToDirs on that value.
-{ addPathToStore, asPath, dummyBuild, getType, hello, isPath, lib,
+{ addPathToStore, asPath, die, dummyBuild, getType, hello, isPath, lib,
   nixListToBashArray, nothing, runCmd, sanitiseName }:
 
 with builtins;
