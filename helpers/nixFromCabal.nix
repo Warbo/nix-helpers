@@ -1,5 +1,4 @@
-{ cabal2nix, composeWithArgs, glibc, haskellPackages, isCallable, lib,
-  pinnedCabal2nix ? cabal2nix, runCommand }:
+{ composeWithArgs, isCallable, lib, nixpkgs1803 }:
 
 with builtins; with lib;
 
@@ -41,7 +40,6 @@ with builtins; with lib;
   assert f == null || isCallable f;
 
   let dir      = if isAttrs src_ then src_ else unsafeDiscardStringContext src_;
-      hsVer    = haskellPackages.ghc.version;
 
       fields   = let
         # Find the .cabal file and read properties from it
@@ -55,13 +53,9 @@ with builtins; with lib;
                                 (attrNames (readDir dir)));
 
         pkgName = unsafeDiscardStringContext (getField "Name:");
-        pkgV    = unsafeDiscardStringContext (getField "Version:");
+        in { name = pkgName; };
 
-        # Read properties from derivation
-        #drvName = dir
-        in { name = pkgName; version = pkgV; };
-
-      nixed = haskellPackages.haskellSrc2nix {
+      nixed = nixpkgs1803.haskellPackages.haskellSrc2nix {
         inherit (fields) name;
         src = dir;
       };
