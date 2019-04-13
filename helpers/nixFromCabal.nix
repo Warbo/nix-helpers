@@ -61,44 +61,10 @@ with builtins; with lib;
         #drvName = dir
         in { name = pkgName; version = pkgV; };
 
-      # Produces a copy of the dir contents, along with a default.nix file
-      nixed = runCommand "nix-haskell"
-        {
-          inherit dir;
-          name             = "nixFromCabal-${hsVer}-${fields.name}-${fields.version}";
-          preferLocalBuild = true; # We need dir to exist
-          buildInputs      = [
-            glibc  # For iconv
-            pinnedCabal2nix
-          ];
-        }
-        ''
-          source $stdenv/setup
-
-          echo "Copying '$dir' to '$out'"
-          cp -r "$dir" "$out"
-          cd "$out"
-
-          echo "Setting permissions"
-          chmod -R +w . # We need this if dir has come from the store
-
-          echo "Cleaning up unnecessary files"
-          rm -rf ".git" || true
-
-          echo "Creating '$out/default.nix'"
-          touch default.nix
-          chmod +w default.nix
-
-          echo "Stripping unicode from .cabal"
-          for F in *.cabal
-          do
-            CONTENT=$(iconv -c -f utf-8 -t ascii "$F")
-            echo "$CONTENT" > "$F"
-          done
-
-          echo "Generating package definition"
-          cabal2nix ./. > default.nix
-        '';
+      nixed = haskellPackages.haskellSrc2nix {
+        inherit (fields) name;
+        src = dir;
+      };
       result = import "${nixed}";
   in
 
