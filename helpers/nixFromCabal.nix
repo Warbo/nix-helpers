@@ -7,8 +7,8 @@ with builtins; with lib;
 # allows mechanisms like "haskellPackages.callPackage" to select the appropriate
 # dependencies for this version of GHC, etc.
 
-# "dir" is the path to the Cabal project (this could be checked out via fetchgit
-# or similar)
+# "src_" is the path to the Cabal project (this could be checked out via
+# fetchgit or similar)
 
 # f is a function for transforming the resulting derivation, e.g. it might
 # override some aspects. If "f" is "null", we use the package as-is. Otherwise,
@@ -39,26 +39,22 @@ with builtins; with lib;
                                         else "${src_}");
   assert f == null || isCallable f;
 
-  let dir      = if isAttrs src_ then src_ else unsafeDiscardStringContext src_;
+  let src  = if isAttrs src_ then src_ else unsafeDiscardStringContext src_;
 
-      fields   = let
+      name = let
         # Find the .cabal file and read properties from it
         getField = f: replaceStrings [f (toLower f)] ["" ""]
                                      (head (filter (l: hasPrefix          f  l ||
                                                        hasPrefix (toLower f) l)
                                                    cabalC));
         cabalC   = map (replaceStrings [" " "\t"] ["" ""])
-                       (splitString "\n" (readFile (dir + "/${cabalF}")));
+                       (splitString "\n" (readFile (src + "/${cabalF}")));
         cabalF   = head (filter (x: hasSuffix ".cabal" x)
-                                (attrNames (readDir dir)));
+                                (attrNames (readDir src)));
 
-        pkgName = unsafeDiscardStringContext (getField "Name:");
-        in { name = pkgName; };
+        in unsafeDiscardStringContext (getField "Name:");
 
-      nixed = nixpkgs1803.haskellPackages.haskellSrc2nix {
-        inherit (fields) name;
-        src = dir;
-      };
+      nixed = nixpkgs1803.haskellPackages.haskellSrc2nix { inherit name src; };
       result = import "${nixed}";
   in
 
