@@ -1,13 +1,17 @@
 # Takes the URL of a git repo containing a .cabal file (i.e. a Haskell project).
 # Uses cabal2nix on the repo's HEAD.
-{ nixFromCabal, withLatestGit }:
+{ haskellSrc2nix, sanitiseName, withLatestGit }:
 with builtins;
-{
+rec {
   def = args@{ url, ref ? "HEAD", ... }:
     withLatestGit (args // {
-      srcToPkg       = nixFromCabal;
-      resultComposes = true;
+      srcToPkg = src: haskellSrc2nix {
+        inherit src;
+        name = args.name or sanitiseName (baseNameOf url);
+      };
     });
 
-  tests = {};
+  tests = {
+    nix-eval = def { url = http://chriswarbo.net/git/nix-eval.git; };
+  };
 }
