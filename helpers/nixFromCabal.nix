@@ -1,4 +1,4 @@
-{ composeWithArgs, isCallable, lib, nixpkgs1803 }:
+{ composeWithArgs, haskellSrc2nix, isCallable, lib }:
 
 with builtins; with lib;
 
@@ -54,7 +54,7 @@ with builtins; with lib;
 
         in unsafeDiscardStringContext (getField "Name:");
 
-      nixed = nixpkgs1803.haskellPackages.haskellSrc2nix { inherit name src; };
+      nixed = haskellSrc2nix { inherit name src; };
       result = import "${nixed}";
   in
 
