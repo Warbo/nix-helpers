@@ -1,4 +1,4 @@
-{ bash, coreutils, hello, lib, writeScript }:
+{ bash, coreutils, fail, hello, lib, runCommand, writeScript }:
 
 with {
   mkCmd = p: ''
