@@ -1,4 +1,4 @@
-{ fail, haskellPackages, runCommand, unpack' }:
+{ fail, haskellPackages, nixpkgs1803, runCommand, unpack' }:
 
 with builtins;
 rec {
@@ -34,7 +34,7 @@ rec {
   tests = runCommand "cabalField-test"
     {
       found = def {
-        dir   = unpack' "text" haskellPackages.text.src;
+        dir   = unpack' "text" nixpkgs1803.haskellPackages.text.src;
         field = "name";
       };
     }
