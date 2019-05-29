@@ -46,8 +46,8 @@ with rec {
   loadRepo = n: v: {
     name  = replaceStrings [ "repo" ] [ "nixpkgs" ] n;
     value = import v ({ config = {}; } // (if compareVersions n "repo1703" == -1
-                                             then {}
-                                             else { overlays = []; }));
+                                              then {}
+                                              else { overlays = []; }));
   };
 
   pkgSets = mapAttrs' loadRepo repos;
