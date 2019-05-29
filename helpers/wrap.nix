@@ -233,7 +233,7 @@ with rec {
       '';
   };
 
-  wrap = { paths ? [], vars ? {}, file ? null, script ? null, name ? "wrap" }:
+  wrap = { file ? null, name, paths ? [], script ? null, vars ? {} }:
     assert file != null || script != null ||
            abort "wrap needs 'file' or 'script' argument";
     with rec {
