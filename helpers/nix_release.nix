@@ -28,6 +28,7 @@ with rec {
   };
 
   nix_release = wrap {
+    name   = "nix_release";
     paths  = [ bash fail ];
     vars   = { inherit nix_release_eval; };
     script = ''

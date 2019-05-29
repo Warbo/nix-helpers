@@ -14,6 +14,7 @@ with rec {
   depChk =
     with {
       script = wrap {
+        name   = "depChk-script";
         vars   = { broken1 = runCommand "broken1" {} "exit 1"; };
         paths  = [ (runCommand "broken2" {} "exit 1") ];
         script = "exit 1";
