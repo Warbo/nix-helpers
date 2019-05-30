@@ -1,5 +1,6 @@
-{ bash, hello, jq, lib, makeSetupHook, nixListToBashArray, pinnedNixpkgs,
-  python, python3, runCommand, stdenv, withArgsOf, withDeps, writeScript }:
+{ attrsToDirs', bash, hello, jq, lib, makeSetupHook, nixListToBashArray,
+  pinnedNixpkgs, python, python3, runCommand, stdenv, withArgsOf, withDeps,
+  writeScript }:
 
 with builtins;
 with lib;
@@ -237,7 +238,21 @@ with rec {
     assert file != null || script != null ||
            abort "wrap needs 'file' or 'script' argument";
     with rec {
-      f = if file == null then writeScript name script else file;
+      # If we're given a string, write it to a file. We put that file in a
+      # directory since Python scripts can take a while to start if they live
+      # directly in the Nix store (presumably from scanning for modules).
+      inDir = runCommand "${name}-unwrapped"
+        { f = writeScript "${name}-raw" script; }
+        ''
+          mkdir "$out"
+          cp -L "$f" "$out/"${escapeShellArg name}
+        '';
+
+      newFile = "${inDir}/${name}";
+
+      f = if file == null
+             then newFile
+             else file;
 
       # Whether any extra env vars or paths are actually needed
       needEnv = if paths == [] && vars == {}
