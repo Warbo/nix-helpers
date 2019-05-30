@@ -1,4 +1,4 @@
-{ bash, ghc, python, racket, runCommand, wrap }:
+{ bash, ghc, nixpkgs1609, python, runCommand, wrap }:
 
 rec {
   def = args: runCommand args.name {} (wrap (args // {
@@ -38,7 +38,7 @@ rec {
 
     run-racket = def {
       name  = "run-racket-test";
-      paths = [ racket ];
+      paths = [ nixpkgs1609.racket ];
       script = ''
         #!/usr/bin/env racket
         #lang racket
