@@ -7,7 +7,7 @@
 #  - We can use builtins.unsafeDiscardStringContext to avoid errors, but we
 #    must ensure that the context is added back in so that dependencies are
 #    are built when needed and not garbage collected from under us.
-{ asPath, hello, lib, runCommand, sanitiseName }:
+{ asPath, hello, lib, runCommand, sanitiseName, writeScript }:
 
 with builtins;
 with lib;
@@ -35,16 +35,16 @@ rec {
       # Avoids characters which are incompatible with store paths
       safeName = sanitiseName (baseNameOf strP);
 
-      # For store paths, we make a symlink which depends on the root. This way
-      # we can avoid incompatible characters (since the root must be safe, by
-      # definition of it being a store path) without using builtins.path (which
-      # Nix complains about if we give it a store path)
+      # For store paths, we make a symlink which depends on p's context. By
+      # using the root we avoid incompatible characters, without using
+      # builtins.path (which Nix complains about if we give it a store path).
       symlink = runCommand safeName
         {
           inherit trunk;
-          root = asPath (getRoot p);
+          root = toString (asPath (getRoot p));
         }
         ''
+          ${if isString p then addContextFrom p "" else ""}
           if [[ -z "$trunk" ]]
           then
             ln -s "$root" "$out"
@@ -65,5 +65,10 @@ rec {
     storePath  = def "${hello}";
     storeEntry = def "${hello}/bin/hello";
     dodgyStore = def "${./.}/attrsToDirs'.nix";
+    notBuilt   =
+      with {
+        f = writeScript "test-file" "1234";
+      };
+      def "${f}";
   };
 }
