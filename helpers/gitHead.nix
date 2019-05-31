@@ -17,6 +17,7 @@ with rec {
       fetchRev = runCmd "repo-${sanitiseName ref}-${sanitiseName url}"
         {
           inherit ref url;
+          __noChroot     = true;
           cacheBuster    = toString currentTime;
           GIT_SSL_CAINFO = "${cacert}/etc/ssl/certs/ca-bundle.crt";
           buildInputs    = [ git ];
