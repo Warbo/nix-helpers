@@ -4,7 +4,10 @@
 { lib }:
 
 with lib;
+{
+  def = deps: drv: overrideDerivation drv (old: {
+    extraDeps = (old.extraDeps or []) ++ deps;
+  });
 
-deps: drv: overrideDerivation drv (old: {
-  extraDeps = (old.extraDeps or []) ++ deps;
-})
+  tests = {};
+}

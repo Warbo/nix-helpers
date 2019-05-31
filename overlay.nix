@@ -4,7 +4,7 @@ with builtins;
 with super.lib;
 with rec {
   # Bootstrap this function so we can use it to load everything in helpers/
-  nixFilesIn = import ./helpers/nixFilesIn.nix { inherit (super) lib; };
+  nixFilesIn = (import ./helpers/nixFilesIn.nix { inherit (super) lib; }).def;
 
   # Map from name to path, e.g. { foo = ./helpers/foo.nix;, ... }
   nixFiles   = nixFilesIn ./helpers;
@@ -13,14 +13,11 @@ with rec {
   mkPkg      = name: previous:
     with rec {
       # Like callPackage but also has access to nixpkgs, 'self' and 'super'
-      these  = self.newScope { inherit super; } (getAttr name nixFiles) {};
-      tests  = these.tests or {};
+      these = self.newScope { inherit super; } (getAttr name nixFiles) {};
     };
     {
-      defs  = previous.defs  // { "${name}" = these.def or these; };
-      tests = previous.tests // (if tests == {}
-                                    then {}
-                                    else { "${name}" = tests; });
+      defs  = previous.defs  // { "${name}" = these.def;   };
+      tests = previous.tests // { "${name}" = these.tests; };
     };
 
   pinnedNixpkgs = import ./nixpkgs.nix self super;

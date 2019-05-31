@@ -25,17 +25,22 @@ with rec {
 
   thisFile = ./. + "/nixFilesIn.nix";
 };
-assert testData ? nixFilesIn || die {
-  inherit testData;
-  error = "Expected 'nixFilesIn' to appear in 'testData'";
-};
-assert testData.nixFilesIn == thisFile || die {
-  inherit testData thisFile;
-  error = "Expected 'testData.nixFilesIn' to match 'thisFile'";
-};
-assert dirOf testData.nixFilesIn == ./. || die {
-  inherit testData;
-  thisDir = ./.;
-  error   = "Expected 'testData.nixFilesIn' to be a file under 'thisDir'";
-};
-go
+{
+  def =
+    assert testData ? nixFilesIn || die {
+      inherit testData;
+      error = "Expected 'nixFilesIn' to appear in 'testData'";
+    };
+    assert testData.nixFilesIn == thisFile || die {
+      inherit testData thisFile;
+      error = "Expected 'testData.nixFilesIn' to match 'thisFile'";
+    };
+    assert dirOf testData.nixFilesIn == ./. || die {
+      inherit testData;
+      thisDir = ./.;
+      error   = "Expected 'testData.nixFilesIn' to be a file under 'thisDir'";
+    };
+    go;
+
+  tests = {};
+}

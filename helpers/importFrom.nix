@@ -1,2 +1,5 @@
 { lib, nixFilesIn }:
-dir: lib.mapAttrs (_: import) (nixFilesIn dir)
+{
+  def   = dir: lib.mapAttrs (_: import) (nixFilesIn dir);
+  tests = {};
+}

@@ -1,3 +1,6 @@
 { runCmd }:
 
-{ name, value }: runCmd "${name}" { inherit value; } ''mkdir "$out"''
+{
+  def   = { name, value }: runCmd "${name}" { inherit value; } ''mkdir "$out"'';
+  tests = {};
+}

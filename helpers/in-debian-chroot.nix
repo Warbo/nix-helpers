@@ -76,47 +76,49 @@ with rec {
       proot -r "$out" -b /proc -b /dev -0 /setup.sh
     '';
 };
+{
+  def = {
+    binds ? [ "/dev" "/home" "/nix" "/proc" "/run" "/tmp" ],
+    debs  ? [],
+    pkgs  ? [],
+    post  ? "",
+    pre   ? "",
+    rootfs
+  }: assert isList pkgs || die {
+       error = "Expected 'pkgs' to be a list of package names";
+       type  = typeOf pkgs;
+     };
+     assert all isString pkgs || die {
+       error = "Expected package names in 'pkgs' to be strings";
+       types = map typeOf pkgs;
+     };
+     assert isList debs || die {
+       error = "Expected 'debs' to be a list of .deb files";
+       type  = typeOf debs;
+     };
+     assert all (f: elem (getType f) [ "derivation" "path" ]) debs || die {
+       error = "Expected each of 'debs' to be a derivation or path to a .deb file";
+       types = map getType debs;
+     };
+    wrap {
+      name   = "in-debian-chroot";
+      paths  = [ bash proot ];
+      vars   = {
+        inherit PROOT_NO_SECCOMP;
+        env = env { inherit debs rootfs pkgs post pre; };
+      };
+      script = ''
+        #!/usr/bin/env bash
+        export PATH="/bin:/usr/bin:/sbin:/usr/sbin:$PATH"
+        export TMPDIR=/tmp
+        export TEMPDIR=/tmp
+        export TMP=/tmp
+        export TEMP=/tmp
 
-{ binds ? [ "/dev" "/home" "/nix" "/proc" "/run" "/tmp" ],
-  debs  ? [],
-  pkgs  ? [],
-  post  ? "",
-  pre   ? "",
-  rootfs }:
+        # shellcheck disable=SC2154
+        proot -r "$env" ${concatStringsSep " " (map (b: "-b " + b) binds)} "$@"
+      '';
+    };
 
-assert isList pkgs || die {
-  error = "Expected 'pkgs' to be a list of package names";
-  type  = typeOf pkgs;
-};
-assert all isString pkgs || die {
-  error = "Expected package names in 'pkgs' to be strings";
-  types = map typeOf pkgs;
-};
-assert isList debs || die {
-  error = "Expected 'debs' to be a list of .deb files";
-  type  = typeOf debs;
-};
-assert all (f: elem (getType f) [ "derivation" "path" ]) debs || die {
-  error = "Expected each of 'debs' to be a derivation or path to a .deb file";
-  types = map getType debs;
-};
-
-wrap {
-  name   = "in-debian-chroot";
-  paths  = [ bash proot ];
-  vars   = {
-    inherit PROOT_NO_SECCOMP;
-    env = env { inherit debs rootfs pkgs post pre; };
-  };
-  script = ''
-    #!/usr/bin/env bash
-    export PATH="/bin:/usr/bin:/sbin:/usr/sbin:$PATH"
-    export TMPDIR=/tmp
-    export TEMPDIR=/tmp
-    export TMP=/tmp
-    export TEMP=/tmp
-
-    # shellcheck disable=SC2154
-    proot -r "$env" ${concatStringsSep " " (map (b: "-b " + b) binds)} "$@"
-  '';
+  tests = {};
 }

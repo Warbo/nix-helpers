@@ -1,4 +1,7 @@
 { lib }:
 
 with lib;
-concatStrings (take 2 (splitString "." nixpkgsVersion))
+{
+  def   = concatStrings (take 2 (splitString "." nixpkgsVersion));
+  tests = {};
+}

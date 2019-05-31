@@ -3,7 +3,10 @@
 
 with builtins;
 with lib;
+{
+  def = stringAsChars (c: if elem c (lowerChars ++ upperChars)
+                             then c
+                             else "");
 
-stringAsChars (c: if elem c (lowerChars ++ upperChars)
-                     then c
-                     else "")
+  tests = {};
+}
