@@ -20,6 +20,7 @@ with rec {
     {
       inherit rootfs PROOT_NO_SECCOMP;
       buildInputs      = [ proot ];
+      __noChroot       = true;
       SSL_CERT_FILE    = /etc/ssl/certs/ca-bundle.crt;
       script           = writeScript "setup.sh" ''
         #!/usr/bin/env bash
