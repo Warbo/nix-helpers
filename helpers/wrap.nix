@@ -245,7 +245,7 @@ with rec {
         { f = writeScript "${name}-raw" script; }
         ''
           mkdir "$out"
-          cp -L "$f" "$out/"${escapeShellArg name}
+          cp "$f" "$out/"${escapeShellArg name}
         '';
 
       newFile = "${inDir}/${name}";
