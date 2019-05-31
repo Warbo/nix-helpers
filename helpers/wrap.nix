@@ -1,6 +1,5 @@
-{ attrsToDirs', bash, hello, jq, lib, makeSetupHook, nixListToBashArray,
-  pinnedNixpkgs, python, python3, runCommand, stdenv, withArgsOf, withDeps,
-  writeScript }:
+{ bash, coreutils, hello, jq, lib, makeSetupHook, nixListToBashArray,
+  pinnedNixpkgs, python, python3, runCommand, stdenv, writeScript }:
 
 with builtins;
 with lib;
@@ -234,7 +233,35 @@ with rec {
       '';
   };
 
-  wrap = { file ? null, name, paths ? [], script ? null, vars ? {} }:
+  # Splits off the first line of the given string, to give { first; rest; }
+  splitLine = first: s:
+    with {
+      char = substring 0 1                s;
+      rest = substring 1 (stringLength s) s;
+    };
+    if s == "" || char == "\n"
+       then { inherit first rest; }
+       else splitLine (first + char) rest;
+
+  # Replaces /usr/bin/env in shebangs, since it doesn't exist in sandboxes
+  wrapShebang = s: if hasPrefix "#!" s
+                      then with splitLine "" s;
+                           concatStringsSep "\n" [
+                             (replaceStrings [         "/usr/bin/env" ]
+                                             [ "${coreutils}/bin/env" ]
+                                             first)
+                             rest
+                           ]
+                      else s;
+
+  wrap = {
+    file          ? null,
+    name,
+    patchShebangs ? true,
+    paths         ? [],
+    script        ? null,
+    vars          ? {}
+  }:
     assert file != null || script != null ||
            abort "wrap needs 'file' or 'script' argument";
     with rec {
@@ -242,7 +269,9 @@ with rec {
       # directory since Python scripts can take a while to start if they live
       # directly in the Nix store (presumably from scanning for modules).
       inDir = runCommand "${name}-unwrapped"
-        { f = writeScript "${name}-raw" script; }
+        { f = writeScript "${name}-raw" (if patchShebangs
+                                            then wrapShebang script
+                                            else script); }
         ''
           mkdir "$out"
           cp "$f" "$out/"${escapeShellArg name}
