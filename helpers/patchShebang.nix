@@ -25,8 +25,10 @@ with rec {
                            ]
                       else s;
 
-  patchFiles = dir: given: runCommand
-    "${sanitiseName (unsafeDiscardStringContext (baseNameOf "${given}"))}"
+  patchFiles = name: dir: given: runCommand
+    (if name == null
+        then "${unsafeDiscardStringContext (baseNameOf "${given}")}"
+        else name)
     { inherit given; }
     ''
       cp -L ${if dir then "-r" else ""} "$given" "$out"
@@ -38,11 +40,12 @@ with rec {
     '';
 };
 rec {
-  def = { dir ? null, file ? null, string ? null }:
+  def = { dir ? null, file ? null, name ? null, string ? null }:
     with { count = fold (x: count: if x == null then count + 1 else count)
                         0
                         [ string file dir ]; };
     assert count == 2 || die {
+      inherit name;
       error  = "Exactly 1 patchShebang arg must be non-null";
       dir    = typeOf dir;
       file   = typeOf file;
@@ -51,8 +54,8 @@ rec {
     if string != null
        then patchString string
        else if dir == null
-               then patchFiles false file
-               else patchFiles true  dir;
+               then patchFiles name false file
+               else patchFiles name true  dir;
 
   tests = {
     dir = runCommand "patch-dir-shebangs"

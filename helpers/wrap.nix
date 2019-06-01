@@ -263,7 +263,9 @@ with rec {
 
       f = if file == null
              then newFile
-             else file;
+             else if patchShebangs
+                     then patchShebang { inherit file name; }
+                     else file;
 
       # Whether any extra env vars or paths are actually needed
       needEnv = if paths == [] && vars == {}
