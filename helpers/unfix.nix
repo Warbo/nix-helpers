@@ -8,6 +8,9 @@
     outputHashAlgo = null;
     outputHashMode = null;
     sha256         = null;
+
+    # We're not fixed-output, so we need to bypass the sandbox
+    __noChroot = true;
   });
 
   tests = {};
