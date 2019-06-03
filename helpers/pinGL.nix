@@ -25,9 +25,11 @@
 # case 'repo1709'. Note that nixGL relies on nixpkgs overlays, which were only
 # introduced in nixpkgs 17.03, so earlier repos will need to be sent through
 # backportOverlays.
-{ attrsToDirs', backportOverlays, die, fetchFromGitHub, hasBinary, lib,
-  nixpkgs1609, repo1609, wrap }:
+{ attrsToDirs', backportOverlays, coreutils, die, fetchFromGitHub, hasBinary,
+  lib, nixpkgs1609, nixpkgs1803, patchShebang, repo1609, repo1803, runCommand,
+  wrap }:
 
+with lib;
 with rec {
   nixGL = fetchFromGitHub {
     owner  = "guibou";
@@ -55,7 +57,8 @@ with rec {
     length = if isList binaries then length binaries else "N/A";
   };
   with {
-    wrappers    = import nixGL { pkgs = import nixpkgsRepo; };
+    wrappers    = mapAttrs (name: dir: patchShebang { inherit dir name; })
+                           (import nixGL { pkgs = import nixpkgsRepo; });
     wrapperName = "nixGL" + (if gl == "Mesa" then "Intel" else gl);
   };
   assert builtins.hasAttr wrapperName wrappers || die {
@@ -69,7 +72,7 @@ with rec {
       inherit name;
       paths  = [ (builtins.getAttr wrapperName wrappers) ];
       script = ''
-        #!/usr/bin/env bash
+        #!${coreutils}/bin/env bash
         exec "${wrapperName}" "${pkg}/bin/${name}" "$@"
       '';
     });
@@ -87,5 +90,19 @@ with rec {
       binaries    = [ "firefox" ];
       gl          = "Intel";
     }) "firefox";
+
+    shebangsWillRun = runCommand "pinGL-shebangs-run"
+      {
+        wrapped = go {
+          binaries    = [ "hello" ];
+          gl          = "Intel";
+          nixpkgsRepo = repo1803;
+          pkg         = nixpkgs1803.hello;
+        };
+      }
+      ''
+        "$wrapped"/bin/hello
+        mkdir "$out"
+      '';
   };
 }
