@@ -95,6 +95,9 @@ with rec {
 
   go = attrs: vars // attrs // {
     buildInputs = (attrs.buildInputs or []) ++ [ (nix.out or nix) ];
+
+    # We need to access the tunnel file
+    __noChroot = true;
   };
 
   testStillNeeded =
