@@ -4,16 +4,10 @@
 with builtins;
 with checkRacket;
 rec {
-  racketPkg = if racketWorks
-                 then racket
-                 else trace ''WARNING: Taking racket from nixpkgs 16.09, since
-                              it's broken on i686 for newer versions''
-                            nixpkgs1609.racket;
-
   def = deps: runCommand "racket-with-deps"
     {
-      inherit deps racketPkg;
-      buildInputs = [ makeWrapper racketPkg ];
+      inherit deps racket;
+      buildInputs = [ makeWrapper racket ];
     }
     ''
       # raco writes to HOME, so make sure that's included
@@ -47,7 +41,7 @@ rec {
 
       # Provide Racket binaries patched to use our modified HOME
       mkdir -p "$out/bin"
-      for PROG in "$racketPkg"/bin/*
+      for PROG in "$racket"/bin/*
       do
         NAME=$(basename "$PROG")
         makeWrapper "$PROG" "$out/bin/$NAME" --set HOME "$out/etc"
@@ -80,7 +74,7 @@ rec {
         })
       ];
     };
-    checkWhetherBroken // {
+    {
       example-usage      = result;
       example-has-racket = hasBinary result "racket";
     };
