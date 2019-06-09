@@ -1,0 +1,8 @@
+From: Chris Warburton
+Date: Sun, 09 Jun 2019 11:42:26 +0100
+Subject: Re: Make haskellPkgDeps more robust
+Message-Id: <fc4849f359673bce-e3efdd4d00f5b3c2-artemis@nixos>
+References: <fc4849f359673bce-0-artemis@nixos>
+In-Reply-To: <fc4849f359673bce-0-artemis@nixos>
+
+Got rid of haskellPkgDeps
