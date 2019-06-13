@@ -1,0 +1,8 @@
+From: Chris Warburton
+Date: Thu, 13 Jun 2019 00:44:58 +0100
+Subject: Re: Make sure wrap quotes properly for various nixpkgs versions
+Message-Id: <cf3250b7cdd3e921-ed34ed5ec28f0277-artemis@nixos>
+References: <cf3250b7cdd3e921-0-artemis@nixos>
+In-Reply-To: <cf3250b7cdd3e921-0-artemis@nixos>
+
+Nah, just pin the old one
