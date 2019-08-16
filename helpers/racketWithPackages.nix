@@ -1,5 +1,5 @@
-{ checkRacket, fetchFromGitHub, fetchgit, hasBinary, lib, makeWrapper,
-  nixpkgs1609, racket, runCommand }:
+{ checkedRacket, fetchFromGitHub, fetchgit, hasBinary, lib, makeWrapper,
+  racket, runCommand }:
 
 with builtins;
 with {
@@ -50,15 +50,8 @@ with {
 rec {
   def   = lib.makeOverridable go { inherit racket; };
   tests =
-    with checkRacket;
     with rec {
-      racketPkg = if racketWorks
-                     then racket
-                     else trace ''WARNING: Taking racket from nixpkgs 16.09,
-                                  since it's broken on i686 for newer versions''
-                                nixpkgs1609.racket;
-
-      result = def.override { racket = racketPkg; } [
+      result = def.override { racket = checkedRacket; } [
         # Dependency of grommet
         (fetchgit {
           url    = https://gitlab.com/RayRacine/grip.git;
