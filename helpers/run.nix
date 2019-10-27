@@ -10,7 +10,7 @@ rec {
       name   = "run-bash-test";
       paths  = [ bash ];
       script = ''
-        #!/usr/bin/env bash
+        #!${bash}/bin/bash
         mkdir "$out"
       '';
     };
@@ -19,7 +19,7 @@ rec {
       name   = "run-haskell-test";
       paths  = [ ghc ];
       script = ''
-        #!/usr/bin/env runhaskell
+        #!${ghc}/bin/runhaskell
         import System.Directory
         import System.Environment
         main = getEnv "out" >>= createDirectory
@@ -30,7 +30,7 @@ rec {
       name   = "run-python-test";
       paths  = [ python ];
       script = ''
-        #!/usr/bin/env python
+        #!${python}/bin/python
         import os
         os.mkdir(os.getenv('out'))
       '';
@@ -40,7 +40,7 @@ rec {
       name  = "run-racket-test";
       paths = [ nixpkgs1609.racket ];
       script = ''
-        #!/usr/bin/env racket
+        #!${nixpkgs1609.racket}/bin/racket
         #lang racket
         (make-directory* (getenv "out"))
       '';

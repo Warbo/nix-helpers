@@ -1,4 +1,4 @@
-{ hasBinary, mkBin, withDeps, withNix }:
+{ bash, hasBinary, mkBin, withDeps, withNix }:
 
 with builtins;
 with rec {
@@ -9,7 +9,7 @@ with rec {
     paths  = nixy.buildInputs;
     vars   = removeAttrs nixy [ "buildInputs" ];
     script = ''
-      #!/usr/bin/env bash
+      #!${bash}/bin/bash
       set -e
 
       # Dumps stdin to a temporary file, adds that file to the Nix store then

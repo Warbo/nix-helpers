@@ -23,7 +23,7 @@ with rec {
       __noChroot       = true;
       SSL_CERT_FILE    = /etc/ssl/certs/ca-bundle.crt;
       script           = writeScript "setup.sh" ''
-        #!/usr/bin/env bash
+        #!${bash}/bin/bash
         set -e
 
         # Preprocessing
@@ -108,7 +108,7 @@ with rec {
         env = env { inherit debs rootfs pkgs post pre; };
       };
       script = ''
-        #!/usr/bin/env bash
+        #!${bash}/bin/bash
         export PATH="/bin:/usr/bin:/sbin:/usr/sbin:$PATH"
         export TMPDIR=/tmp
         export TEMPDIR=/tmp

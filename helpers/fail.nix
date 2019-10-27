@@ -5,7 +5,7 @@
     name   = "fail";
     paths  = [ backtrace bash ];
     script = ''
-      #!/usr/bin/env bash
+      #!${bash}/bin/bash
       set -e
       {
         echo -e "$*"

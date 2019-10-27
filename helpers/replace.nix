@@ -15,7 +15,7 @@ with rec {
     name   = "replace";
     paths  = [ bash fail ];
     script = ''
-      #!/usr/bin/env bash
+      #!${bash}/bin/bash
       set -e
 
       REPLACEMENTS=()

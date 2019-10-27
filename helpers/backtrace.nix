@@ -1,11 +1,11 @@
 # Provides a 'backtrace' command showing the process hierarchy of its caller
-{ mkBin, runCommand }:
+{ bash, mkBin, runCommand }:
 
 rec {
   def = mkBin {
     name   = "backtrace";
     script = ''
-      #!/usr/bin/env bash
+      #!${bash}/bin/bash
       set -e
 
       [[ -z "$NOTRACE" ]] || exit 0

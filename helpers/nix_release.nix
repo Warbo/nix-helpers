@@ -17,7 +17,7 @@ with rec {
       '';
     };
     script = ''
-      #!/usr/bin/env bash
+      #!${bash}/bin/bash
       set -e
 
       [[ -e release.nix ]] || fail "No release.nix found, aborting"
@@ -32,7 +32,7 @@ with rec {
     paths  = [ bash fail ];
     vars   = { inherit nix_release_eval; };
     script = ''
-      #!/usr/bin/env bash
+      #!${bash}/bin/bash
       set -e
 
       DRVPATHS=$("$nix_release_eval") ||  fail "Failed to get paths, aborting"

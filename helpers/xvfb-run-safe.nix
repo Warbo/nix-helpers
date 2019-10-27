@@ -65,7 +65,7 @@ with rec {
     name   = "xvfb-run-safe";
     paths  = [ bash fail utillinux patched x11vnc ];
     script = ''
-      #!/usr/bin/env bash
+      #!${bash}/bin/bash
       set -e
       [[ -z "$DEBUG" ]] || set -x
 

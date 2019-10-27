@@ -1,4 +1,4 @@
-{ mkBin, withNix }:
+{ bash, mkBin, withNix }:
 
 with builtins;
 with { nixy = withNix {}; };
@@ -8,7 +8,7 @@ with { nixy = withNix {}; };
     paths  = nixy.buildInputs;
     vars   = removeAttrs nixy [ "buildInputs" ];
     script = ''
-      #!/usr/bin/env bash
+      #!${bash}/bin/bash
       set -e
 
       # Runs the given command in a temporary directory, adds that directory

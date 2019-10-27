@@ -47,7 +47,7 @@ with rec {
             };
             paths  = [ jq python ];
             script = ''
-              #!/usr/bin/env bash
+              #!${bash}/bin/bash
               command -v jq || {
                 echo "No jq" 1>&2
                 exit 1
@@ -97,7 +97,7 @@ with rec {
                                  name   = "check-wrap-escaping-${n}";
                                  paths  = [ python ];
                                  script = ''
-                                   #!/usr/bin/env python
+                                   #!${python}/bin/python
                                    from os import getenv
 
                                    n   = '${n}'
@@ -171,7 +171,7 @@ with rec {
             })
           ];
           script = ''
-            #!/usr/bin/env bash
+            #!${bash}/bin/bash
             set -e
             command -v hello || {
               echo "Program 'hello' not found in PATH ($PATH)" 1>&2
@@ -217,7 +217,7 @@ with rec {
             })
           ];
           script = ''
-            #!/usr/bin/env bash
+            #!${bash}/bin/bash
             set -e
             command -v hello || {
               echo "Program 'hello' not found in PATH ($PATH)" 1>&2
@@ -402,7 +402,7 @@ with rec {
           name   = "wrap-python-test.py";
           paths  = [ python3 ];
           script = ''
-            #!/usr/bin/env python3
+            #!${python3}/bin/python3
             from subprocess import Popen, PIPE
             p = Popen(['cat'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
             i = b'foo'

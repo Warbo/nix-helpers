@@ -1,5 +1,5 @@
 # Shorthand for making a script via 'wrap' and installing it to a bin/ directory
-{ attrsToDirs', runCommand, sanitiseName, wrap }:
+{ attrsToDirs', bash, runCommand, sanitiseName, wrap }:
 
 with rec {
   go = args: attrsToDirs' (sanitiseName args.name) {
@@ -17,7 +17,7 @@ with rec {
         (go {
           name   = "ping";
           script = ''
-            #!/usr/bin/env bash
+            #!${bash}/bin/bash
             echo "pong"
           '';
         })
