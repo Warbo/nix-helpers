@@ -1,13 +1,10 @@
 # Add extra dependencies to a derivation; for example, if we only want a
-# build to succeed if some external tests pass.
+# build to succeed if some external tests pass. To override the name too, use
+# "withDeps'".
 
-{ lib }:
+{ withDeps' }:
 
-with lib;
 {
-  def = deps: drv: overrideDerivation drv (old: {
-    extraDeps = (old.extraDeps or []) ++ deps;
-  });
-
+  def   = withDeps' null;
   tests = {};
 }
