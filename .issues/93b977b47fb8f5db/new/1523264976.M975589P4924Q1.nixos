@@ -1,0 +1,15 @@
+From: Chris Warburton
+Date: Mon, 09 Apr 2018 10:06:57 +0100
+State: new
+Subject: Add a fetchIpfs function
+Message-Id: <93b977b47fb8f5db-0-artemis@nixos>
+
+Takes a hash. It should look for a /ipfs directory, if not found it
+should look for a localhost HTTP API and fall back to ipfs.io.
+
+Find some well-known content that we can use as our check.
+
+Note: we don't need to take an sha256 or anything, since IPFS is
+content-addressed.
+
+See if we can make them fixed-output derivations.
