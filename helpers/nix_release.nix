@@ -37,6 +37,10 @@ with rec {
 
       DRVPATHS=$("$nix_release_eval") ||  fail "Failed to get paths, aborting"
 
+      function build {
+          nix-store --show-trace --realise "$@"
+      }
+
       echo "Building derivations" 1>&2
       COUNT=0
       FAILS=0
@@ -47,7 +51,14 @@ with rec {
          DRV=$(echo "$PAIR" | cut -f2)
 
         echo "Building $ATTR" 1>&2
-        nix-store --show-trace --realise "$DRV" || FAILS=$(( FAILS + 1 ))
+        if [[ -z "$ADD_ROOT" ]]
+        then
+            build                                   "$@" "$DRV" ||
+                FAILS=$(( FAILS + 1 ))
+        else
+            build --indirect --add-root "$ADD_ROOT" "$@" "$DRV" ||
+                FAILS=$(( FAILS + 1 ))
+        fi
       done < <(echo "$DRVPATHS")
 
       if [[ "$FAILS" -eq 0 ]]
