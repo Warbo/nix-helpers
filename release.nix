@@ -1,2 +1,2 @@
 with import ./.;
-collapseAttrs nix-helpers-tests
+nix-helpers-tests
