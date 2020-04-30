@@ -1,7 +1,7 @@
 { die, lib, nothing }:
 
 rec {
-  def   = import ../nixpkgs.nix { inherit lib; };
+  def   = import ../../nixpkgs.nix { inherit lib; };
   tests = {
     # One reason to use old nixpkgs versions is for useful but obsolete KDE apps
     canAccessKde =
