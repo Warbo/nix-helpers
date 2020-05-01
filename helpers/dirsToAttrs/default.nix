@@ -54,16 +54,4 @@ assert isPath test.foo.bar || {
   error = "test.foo.bar isn't path";
   type  = typeOf test.foo.bar;
 };
-
-{
-  def   = go;
-  tests = runCommand "dirsToAttrs-test"
-    (go (attrsToDirs' "dirsToAttrs-test-dir" { x = ./dirsToAttrs.nix; }))
-    ''
-      [[ -n "$x" ]]                      || exit 1
-      [[ -f "$x" ]]                      || exit 2
-      grep 'builtins' < "$x" > /dev/null || exit 3
-
-      echo "pass" > "$out"
-    '';
-}
+go

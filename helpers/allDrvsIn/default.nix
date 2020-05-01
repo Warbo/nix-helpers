@@ -27,7 +27,4 @@ with rec {
   test = testData.gotLength == testData.shouldLength || abort (toJSON testData);
 };
 assert test;
-{
-  def   = go;
-  tests = withDeps (go { x = nothing; }) nothing;
-}
+go

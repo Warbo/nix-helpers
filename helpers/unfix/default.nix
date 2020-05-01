@@ -2,16 +2,12 @@
 # derivation. This can be useful if we know its hash isn't going to work.
 { lib }:
 
-{
-  def = drv: lib.overrideDerivation drv (old: {
-    outputHash     = null;
-    outputHashAlgo = null;
-    outputHashMode = null;
-    sha256         = null;
+drv: lib.overrideDerivation drv (old: {
+  outputHash     = null;
+  outputHashAlgo = null;
+  outputHashMode = null;
+  sha256         = null;
 
-    # We're not fixed-output, so we need to bypass the sandbox
-    __noChroot = true;
-  });
-
-  tests = {};
-}
+  # We're not fixed-output, so we need to bypass the sandbox
+  __noChroot = true;
+})

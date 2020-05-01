@@ -13,7 +13,4 @@ with rec {
 
   notOverride = n: v: !(elem n ["override" "overrideDerivation"]);
 };
-{
-  def   = go;
-  tests = {};
-}
+go

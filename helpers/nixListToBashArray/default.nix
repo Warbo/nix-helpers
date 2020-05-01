@@ -123,11 +123,4 @@ with rec {
 
 assert checkArgsAreNotForced;
 assert checkWeGetTheRightValues;
-{
-  def   = go;
-  tests = with go { name = "check"; args = [ "foo" ]; };
-          runCmd "check-NLTBA" env ''
-            ${code}
-            echo pass > "$out"
-          '';
-}
+go

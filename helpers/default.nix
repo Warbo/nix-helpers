@@ -1,31 +1,36 @@
 { callPackage, lib, pinnedNixpkgs }:
 
 with rec {
-  inherit (builtins) abort attrNames getAttr;
+  inherit (builtins) attrNames getAttr;
   inherit (lib) fold;
 
-  # Bootstrap this function so we can use it to load everything in helpers/
-  nixFilesIn = (import ./nixFilesIn { inherit lib; }).def;
+  # Bootstrap this function so we can use it to load all of our subdirs
+  nixDirsIn = import ./nixDirsIn {};
 
-  # Map from name to path, e.g. { foo = ./helpers/foo.nix;, ... }
-  nixFiles   = nixFilesIn ./helpers;
+  # Look for files with name 'filename' (e.g. "default.nix") in our
+  # subdirectories. Returns a map from subdir name to path, e.g.
+  # { foo = ./foo/default.nix;, ... }
+  nixFiles = filename: nixDirsIn { inherit filename; dir = ./.; };
 
-  # Import a nixFiles entry, given its name. Appends the results to 'previous'.
-  mkPkg      = name: previous:
-    with callPackage (getAttr name nixFiles) {};
-    {
-      defs  = previous.defs  // { "${name}" = def;   };
-      tests = previous.tests // { "${name}" = tests; };
-    };
-};
+  # Import './name/filename' , appending the results to 'previous'
+  addFile = filename: name: previous: previous // {
+    # Using 'callPackage' ensures derivations get appropriate 'override' attrs
+    "${name}" = callPackage (getAttr name (nixFiles filename)) {};
+  };
 
-# Accumulate the contents of all helpers/ files
-with fold mkPkg { defs = {}; tests = {}; } (attrNames nixFiles);
-with rec {
-  nix-helpers = defs // pinnedNixpkgs.defs // {
+  # Accumulate the results of 'addFile' for all files matching 'filename'
+  allFiles = filename: fold (addFile filename)
+                            {}
+                            (attrNames (nixFiles filename));
+
+  # Load definitions from 'default.nix' and tests from 'tests.nix'.
+  defs  = allFiles "default.nix";
+  tests = allFiles "tests.nix";
+
+  # Combine everything and tie the knot
+  nix-helpers = defs // pinnedNixpkgs // {
     inherit nix-helpers;
-    nix-helpers-tests = tests // { pinnedNixpkgs = pinnedNixpkgs.tests; };
-    pinnedNixpkgs     = pinnedNixpkgs.defs;
+    nix-helpers-tests = tests;
   };
 };
 nix-helpers

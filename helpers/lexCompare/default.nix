@@ -34,26 +34,4 @@ with rec {
                 # If types are different, compare the type strings instead.
                 else getType x < getType y;
 };
-{
-  def   = go;
-  tests = {
-    checks = assert -1 == go 1          2;
-             assert -1 == go "a"        "b";
-             assert -1 == go [ 1 ]      [ 2 ];
-             assert -1 == go { x = 1; } { x = 2; };
-             assert -1 == go { x = 1; } { y = 1; };
-             assert  0 == go (x: 1)     (x: 2);
-             assert  0 == go null       null;
-             assert  0 == go 1          1;
-             assert  0 == go "a"        "a";
-             assert  0 == go [ 1 ]      [ 1 ];
-             assert  0 == go { x = 1; } { x = 1; };
-             assert  1 == go 2          1;
-             assert  1 == go "b"        "a";
-             assert  1 == go [ 2 ]      [ 1 ];
-             assert  1 == go { x = 2; } { x = 1; };
-             assert  1 == go { y = 1; } { x = 1; };
-             assert  0 != go bash hello;
-             dummyBuild "lexCompare-checks";
-  };
-}
+go

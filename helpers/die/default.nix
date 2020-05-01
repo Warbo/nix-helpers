@@ -1,7 +1,3 @@
 {}:
 
-with builtins;
-{
-  def   = args: abort (toJSON args);
-  tests = {};
-}
+args: builtins.abort (builtins.toJSON args)

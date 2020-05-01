@@ -150,13 +150,10 @@ with {
     '';
 };
 rec {
-  def = rec {
-    racketWorks = currentSystem != "i686-linux" ||
-                  compareVersions nixpkgsRelease "1703" == -1;
+  racketWorks = currentSystem != "i686-linux" ||
+                compareVersions nixpkgsRelease "1703" == -1;
 
-    checkWhetherBroken = if racketWorks
-                            then { inherit racket-override-not-needed;   }
-                            else { inherit racket-override-still-needed; };
-  };
-  tests = def.checkWhetherBroken;
+  checkWhetherBroken = if racketWorks
+                          then { inherit racket-override-not-needed;   }
+                          else { inherit racket-override-still-needed; };
 }

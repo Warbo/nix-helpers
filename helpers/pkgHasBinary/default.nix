@@ -1,6 +1,3 @@
 { hasBinary, withDeps }:
 
-{
-  def   = bin: pkg: withDeps [ (hasBinary pkg bin) ] pkg;
-  tests = {};
-}
+bin: pkg: withDeps [ (hasBinary pkg bin) ] pkg

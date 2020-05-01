@@ -2,7 +2,4 @@
 # https://github.com/NixOS/nixpkgs/issues/16742
 { runCommand }:
 
-{
-  def   = name: env: runCommand name ({ passAsFile = []; } // env);
-  tests = {};
-}
+name: env: runCommand name ({ passAsFile = []; } // env)

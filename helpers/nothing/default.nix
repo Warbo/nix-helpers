@@ -1,5 +1,3 @@
 { dummyBuild }:
-rec {
-  def   = dummyBuild "nothing";
-  tests = def;
-}
+
+dummyBuild "nothing"

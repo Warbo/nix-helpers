@@ -28,10 +28,5 @@ with rec {
       nix-store --add "$F"
     '';
   };
-
-  tested = withDeps [ (hasBinary pkg "pipeToNix") ] pkg;
 };
-{
-  def   = tested;
-  tests = tested;
-}
+withDeps [ (hasBinary pkg "pipeToNix") ] pkg

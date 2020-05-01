@@ -173,7 +173,4 @@ with rec {
   };
 };
 
-{
-  def   = go;
-  tests = {};
-}
+go

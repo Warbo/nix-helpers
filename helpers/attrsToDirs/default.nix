@@ -1,5 +1,2 @@
 { attrsToDirs' }:
-{
-  def   = attrsToDirs' "merged";
-  tests = {};
-}
+attrsToDirs' "merged"

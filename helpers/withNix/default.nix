@@ -6,8 +6,8 @@
 
 with builtins;
 with lib;
+with import ./util.nix { inherit lib; };
 with rec {
-
   # Our Nix 2.x workaround won't work unless the user creates the needed socket,
   # either manually or by enabling a service, so we warn them in two ways:
   #  - We check, during evaluation, whether the socket exists. If not, we write
@@ -90,79 +90,10 @@ with rec {
                   then "nixpkgs=${<nixpkgs>}"
                   else getEnv "NIX_PATH";
   };
-
-  needWorkaround = compareVersions nixVersion "2" != -1;
-
-  go = attrs: vars // attrs // {
-    buildInputs = (attrs.buildInputs or []) ++ [ (nix.out or nix) ];
-
-    # We need to access the tunnel file
-    __noChroot = true;
-  };
-
-  testStillNeeded =
-    if needWorkaround
-       then {
-         workaroundStillNeeded =
-           isBroken (runCommand "withNix-workaround-needed"
-                                (go { NIX_REMOTE = "daemon"; })
-                                ''
-                                  nix-build -E '(import <nixpkgs> {}).hello'
-                                  mkdir "$out"
-                                '');
-       }
-       else {};
 };
-{
-  def   = go;
-  tests = testStillNeeded // {
-    canEvalNumbers = runCommand "withNix-can-eval-number" (go {}) ''
-      X=$(nix-instantiate --eval -E '1 + 2')
-      [[ "$X" -eq 3 ]] || {
-        echo "Expected 3, got '$X'" 1>&2
-        exit 1
-      }
-      mkdir "$out"
-    '';
-    canEvalDerivations = runCommand "withNix-can-eval-derivation" (go {}) ''
-      X=$(nix-instantiate --eval -E '(import <nixpkgs> {}).hello') || {
-        echo "$X" 1>&2
-        exit 1
-      }
-      mkdir "$out"
-    '';
-    canInstantiate = runCommand "withNix-can-instantiate" (go {}) ''
-      unset NIX_LOG_FD
-      nix-instantiate -E '(import <nixpkgs> {}).hello'
-      mkdir "$out"
-    '';
-    canRealise = runCommand "withNix-can-realise" (go {}) ''
-      DRV=$(nix-instantiate -E '(import <nixpkgs> {}).hello') || {
-        echo "$DRV" 1>&2
-        exit 1
-      }
-      nix-store --realise "$DRV"
-      mkdir "$out"
-    '';
-    canShell = runCommand "withNix-can-shell" (go {}) ''
-      X=$(nix-shell -p hello --run 'echo 42') || {
-        echo "$X" 1>&2
-        exit 1
-      }
-      [[ "$X" -eq 42 ]] || {
-        echo "Expected 42 got '$X'" 1>&2
-        exit 1
-      }
-      mkdir "$out"
-    '';
-    canBuildHello = runCommand "withNix-can-build-hello" (go {}) ''
-      nix-build --show-trace --no-out-link -E 'with import <nixpkgs> {}; hello'
-      mkdir "$out"
-    '';
-    canAccessFiles = runCommand "withNix-can-access-files" (go {}) ''
-      echo "<nixpkgs>" > ./test.nix
-      nix-build --show-trace -E '(import (import ./test.nix) {}).hello'
-      mkdir "$out"
-    '';
-  };
+attrs: vars // attrs // {
+  buildInputs = (attrs.buildInputs or []) ++ [ (nix.out or nix) ];
+
+  # We need to access the tunnel file
+  __noChroot = true;
 }

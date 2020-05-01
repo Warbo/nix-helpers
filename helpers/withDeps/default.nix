@@ -4,7 +4,4 @@
 
 { withDeps' }:
 
-{
-  def   = withDeps' null;
-  tests = {};
-}
+withDeps' null

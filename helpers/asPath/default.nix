@@ -20,29 +20,4 @@ with rec {
                 else rootPath + (unsafeDiscardStringContext "${path}");
 };
 
-{
-  def   = obsoleteWarn go;
-  tests =
-    assert typeOf rootPath == "path" || die {
-      error      = "rootPath should be a path";
-      actualType = typeOf rootPath;
-    };
-    assert toString rootPath == "/" || die {
-      error    = "rootPath should be /";
-      rootPath = toString rootPath;
-    };
-    assert typeOf (go ./.) == "path" || die {
-      error      = "asPath of a path should produce a path";
-      actualType = typeOf (go ./.);
-    };
-    assert toString (go ./.) == toString ./. || die {
-      error  = "asPath result didn't match input";
-      input  = toString ./.;
-      output = toString (go ./.);
-    };
-    assert typeOf (go "${hello}/bin/hello") == "path" || die {
-      error      = "asPath couldn't handle store paths";
-      actualType = typeOf (go "${hello}/bin/hello");
-    };
-    nothing;
-}
+obsoleteWarn go
