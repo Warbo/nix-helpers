@@ -8,9 +8,6 @@ with {
     sha256 = "1271g9yf77x430jdiy85v43qa8n9n6w0jlprsrv9l6kwv0qs7iv4";
   };
 };
-{
-  def   = { repo ? repo1909 }: import repo {
-            overlays = import "${src}/overlays";
-          };
-  tests = {};
+{ repo ? repo1909 }: import repo {
+  overlays = import "${src}/overlays";
 }

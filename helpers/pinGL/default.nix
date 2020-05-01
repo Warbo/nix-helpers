@@ -30,79 +30,50 @@
   wrap }:
 
 with lib;
-with rec {
+with {
   nixGL = fetchFromGitHub {
     owner  = "guibou";
     repo   = "nixGL";
     rev    = "04a6b08";
     sha256 = "0z1zafkb02sxng91nsx0gclc7n7sv3d5f23gp80s3mc07p22m1k5";
   };
-
-  go = {
-    # The nixpkgs repo we should take the GL driver from
-    nixpkgsRepo,
-
-    # The package whose binaries we'll wrap
-    pkg,
-
-    # The names of the binaries to wrap
-    binaries,
-
-    # The GL driver to wrap with (Intel means any built-in Mesa driver)
-    gl ? "Intel"
-  }:
-  assert with builtins; isList binaries && binaries != [] || die {
-    error  = "'binaries' should be a non-empty list of program names";
-    type   = typeOf binaries;
-    length = if isList binaries then length binaries else "N/A";
-  };
-  with {
-    wrappers    = mapAttrs (name: dir: patchShebang { inherit dir name; })
-                           (import nixGL { pkgs = import nixpkgsRepo; });
-    wrapperName = "nixGL" + (if gl == "Mesa" then "Intel" else gl);
-  };
-  assert builtins.hasAttr wrapperName wrappers || die {
-    inherit gl wrapperName;
-    error    = "GL wrapper not found (note that Intel == Mesa)";
-    wrappers = attrNames wrappers;
-    given    = wrapperName;
-  };
-  attrsToDirs' "gl-wrapped-${pkg.name}" {
-    bin = lib.genAttrs binaries (name: wrap {
-      inherit name;
-      paths  = [ (builtins.getAttr wrapperName wrappers) ];
-      script = ''
-        #!${coreutils}/bin/env bash
-        exec "${wrapperName}" "${pkg}/bin/${name}" "$@"
-      '';
-    });
-  };
 };
 {
-  def   = go;
-  tests = {
-    intelFirefox1609 = hasBinary (go {
-      nixpkgsRepo = backportOverlays {
-                      name = "nixpkgs1609-for-firefox";
-                      repo = repo1609;
-                    };
-      pkg         = nixpkgs1609.firefox;
-      binaries    = [ "firefox" ];
-      gl          = "Intel";
-    }) "firefox";
+  # The nixpkgs repo we should take the GL driver from
+  nixpkgsRepo,
 
-    shebangsWillRun = runCommand "pinGL-shebangs-run"
-      {
-        wrapped = go {
-          binaries    = [ "hello" ];
-          gl          = "Intel";
-          nixpkgsRepo = repo1803;
-          pkg         = nixpkgs1803.hello;
-        };
-      }
-      ''
-        "$wrapped"/bin/hello
-        mkdir "$out"
-      '';
-  };
+  # The package whose binaries we'll wrap
+  pkg,
+
+  # The names of the binaries to wrap
+  binaries,
+
+  # The GL driver to wrap with (Intel means any built-in Mesa driver)
+  gl ? "Intel"
+}:
+assert with builtins; isList binaries && binaries != [] || die {
+  error  = "'binaries' should be a non-empty list of program names";
+  type   = typeOf binaries;
+  length = if isList binaries then length binaries else "N/A";
+};
+with {
+  wrappers    = mapAttrs (name: dir: patchShebang { inherit dir name; })
+                         (import nixGL { pkgs = import nixpkgsRepo; });
+  wrapperName = "nixGL" + (if gl == "Mesa" then "Intel" else gl);
+};
+assert builtins.hasAttr wrapperName wrappers || die {
+  inherit gl wrapperName;
+  error    = "GL wrapper not found (note that Intel == Mesa)";
+  wrappers = attrNames wrappers;
+  given    = wrapperName;
+};
+attrsToDirs' "gl-wrapped-${pkg.name}" {
+  bin = lib.genAttrs binaries (name: wrap {
+    inherit name;
+    paths  = [ (builtins.getAttr wrapperName wrappers) ];
+    script = ''
+      #!${coreutils}/bin/env bash
+      exec "${wrapperName}" "${pkg}/bin/${name}" "$@"
+    '';
+  });
 }

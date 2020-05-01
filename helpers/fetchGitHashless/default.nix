@@ -3,11 +3,7 @@
 { fetchgit, unfix }:
 
 with builtins;
-{
-  def = args: unfix (fetchgit (args // {
-    # Use a dummy hash, to appease fetchgit's assertions
-    sha256 = hashString "sha256" args.url;
-  }));
-
-  tests = {};
-}
+args: unfix (fetchgit (args // {
+  # Use a dummy hash, to appease fetchgit's assertions
+  sha256 = hashString "sha256" args.url;
+}))

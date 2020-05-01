@@ -7,7 +7,4 @@ with rec {
                else go (tail lst) ++ [(head lst)];
 };
 
-{
-  def   = go;
-  tests = {};
-}
+go

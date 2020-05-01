@@ -2,20 +2,16 @@
 { runCommand }:
 
 with builtins;
-{
-  def = dirs: runCommand "merged-dirs" { dirs = map toString dirs; } ''
-    shopt -s nullglob
-    mkdir -p "$out"
+dirs: runCommand "merged-dirs" { dirs = map toString dirs; } ''
+  shopt -s nullglob
+  mkdir -p "$out"
 
-    for D in $dirs
+  for D in $dirs
+  do
+    for F in "$D"/*
     do
-      for F in "$D"/*
-      do
-        cp -as "$F" "$out"/
-      done
-      chmod +w -R "$out"
+      cp -as "$F" "$out"/
     done
-  '';
-
-  tests = {};
-}
+    chmod +w -R "$out"
+  done
+''

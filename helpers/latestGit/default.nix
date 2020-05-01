@@ -30,62 +30,27 @@ with rec {
                                };
                              });
     };
-
-  # We need a url, but ref is optional (e.g. if we want a particular branch).
-  # If 'stable.unsafeSkip' (the name is legacy) is set to 'false' it forces a
-  # stable revision to be used (given by 'stable.rev' and 'stable.sha256').
-  go = { url, ref ? "HEAD", stable ? {}, ... }@args:
-    with rec {
-      gitArgs = removeAttrs args [ "ref" "stable" ];
-
-      # In stable mode, we use the rev and sha256 hard-coded in 'stable'.
-      stableRepo = fetchgit (gitArgs // { inherit (stable) rev sha256; });
-
-      # In unstable mode, we look up the latest 'rev' dynamically
-      unstableRepo = fetchGitHashless (gitArgs // { rev = gitHead args; });
-
-      # If unsafeSkip is given, do what it says. If not, always get latest
-      # (since that's what our name implies).
-      getLatest = stable.unsafeSkip or true;
-
-      error = msg: abort (toJSON { inherit msg url ref stable; });
-    };
-    assert getLatest || stable ? rev    || error "No stable rev";
-    assert getLatest || stable ? sha256 || error "No stable sha256";
-    if getLatest then unstableRepo else stableRepo;
-
-  checks =
-    with rec {
-      url = "http://example.org";
-
-      repos = {
-        stable = go {
-          inherit url;
-          stable = { rev = "123"; sha256 = "abc"; unsafeSkip = false; };
-        };
-
-        unstable = go {
-          inherit url;
-          stable = { unsafeSkip = true; };
-        };
-
-        deep = go {
-          inherit url;
-          stable    = { rev = "123"; sha256 = "abc"; unsafeSkip = false; };
-          deepClone = true;
-        };
-      };
-
-      isDrv = name: isDerivation (getAttr name repos) || die {
-        inherit name;
-        error = "Test repo should give a derivation";
-        type  = typeOf (getAttr name repos);
-      };
-    };
-    all isDrv (attrNames repos);
 };
 
-{
-  def   = go;
-  tests = { checks = assert checks; dummyBuild "latestGit-checks"; };
-}
+# We need a url, but ref is optional (e.g. if we want a particular branch).
+# If 'stable.unsafeSkip' (the name is legacy) is set to 'false' it forces a
+# stable revision to be used (given by 'stable.rev' and 'stable.sha256').
+{ url, ref ? "HEAD", stable ? {}, ... }@args:
+  with rec {
+    gitArgs = removeAttrs args [ "ref" "stable" ];
+
+    # In stable mode, we use the rev and sha256 hard-coded in 'stable'.
+    stableRepo = fetchgit (gitArgs // { inherit (stable) rev sha256; });
+
+    # In unstable mode, we look up the latest 'rev' dynamically
+    unstableRepo = fetchGitHashless (gitArgs // { rev = gitHead args; });
+
+    # If unsafeSkip is given, do what it says. If not, always get latest
+    # (since that's what our name implies).
+    getLatest = stable.unsafeSkip or true;
+
+    error = msg: abort (toJSON { inherit msg url ref stable; });
+  };
+  assert getLatest || stable ? rev    || error "No stable rev";
+  assert getLatest || stable ? sha256 || error "No stable sha256";
+  if getLatest then unstableRepo else stableRepo

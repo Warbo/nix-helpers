@@ -16,13 +16,9 @@ with {
     };
     all (x: elem x ys) xs;
 };
-{
-  def = assert   go [     ] [       ] ;
-        assert   go [     ] [ 1 2 3 ] ;
-        assert   go [ 2 1 ] [ 1 2 3 ] ;
-        assert !(go [ 2 1 ] [       ]);
-        assert !(go [ 2 4 ] [ 1 2 3 ]);
-        go;
-
-  tests = {};
-}
+assert   go [     ] [       ] ;
+assert   go [     ] [ 1 2 3 ] ;
+assert   go [ 2 1 ] [ 1 2 3 ] ;
+assert !(go [ 2 1 ] [       ]);
+assert !(go [ 2 4 ] [ 1 2 3 ]);
+go

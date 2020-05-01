@@ -40,7 +40,4 @@ with rec {
                then newRev
                else keyRev;
 };
-{
-  def   = rev;
-  tests = {};
-}
+rev

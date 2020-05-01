@@ -9,26 +9,4 @@ with rec {
     }];
   };
 };
-{
-  def   = go;
-  tests = runCommand "mkBin-test"
-    {
-      buildInputs = [
-        (go {
-          name   = "ping";
-          script = ''
-            #!${bash}/bin/bash
-            echo "pong"
-          '';
-        })
-      ];
-    }
-    ''
-      X=$(ping)
-      [[ "x$X" = "xpong" ]] || {
-        echo "Output was '$X'" 1>&2
-        exit 1
-      }
-      echo pass > "$out"
-    '';
-}
+go

@@ -11,7 +11,4 @@ with {
     };
     pre + name + "	" + drv;
 };
-{
-  def   = x: fold (addPath x) null (reverseList (pathsTo isDerivation x));
-  tests = {};
-}
+x: fold (addPath x) null (reverseList (pathsTo isDerivation x))

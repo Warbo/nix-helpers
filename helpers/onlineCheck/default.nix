@@ -3,7 +3,5 @@
 # warn about being out of date.
 # Defaults to true; overridable by setting the env var to 0.
 {}:
-{
-  def   = builtins.getEnv "NIX_ONLINE_CHECK" != "0";
-  tests = {};
-}
+
+builtins.getEnv "NIX_ONLINE_CHECK" != "0"

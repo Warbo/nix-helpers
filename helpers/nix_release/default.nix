@@ -71,10 +71,6 @@ with rec {
     '';
   };
 };
-{
-  def = attrsToDirs' "nix_release" {
-    bin = { inherit nix_release nix_release_eval; };
-  };
-
-  tests = {};
+attrsToDirs' "nix_release" {
+  bin = { inherit nix_release nix_release_eval; };
 }
