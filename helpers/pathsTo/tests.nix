@@ -1,6 +1,6 @@
 { dummyBuild }:
 
-weith builtins;
+with builtins;
 with rec {
   simple    = pathsTo isString { x = 42; };
   nested    = pathsTo isString { x = { y = { z = "hello"; }; }; };

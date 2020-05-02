@@ -1,3 +1,3 @@
-{}:
+{ allDrvsIn, nothing, withDeps }:
 
-withDeps (go { x = nothing; }) nothing
+withDeps (allDrvsIn { x = nothing; }) nothing

@@ -23,18 +23,18 @@ with rec {
 
   testData = go ./.;
 
-  thisFile = ./. + "/nixFilesIn.nix";
+  thisFile = ./. + "/default.nix";
 };
 
-assert testData ? nixFilesIn || die {
+assert testData ? default || die {
   inherit testData;
   error = "Expected 'nixFilesIn' to appear in 'testData'";
 };
-assert testData.nixFilesIn == thisFile || die {
+assert testData.default == thisFile || die {
   inherit testData thisFile;
   error = "Expected 'testData.nixFilesIn' to match 'thisFile'";
 };
-assert dirOf testData.nixFilesIn == ./. || die {
+assert dirOf testData.default == ./. || die {
   inherit testData;
   thisDir = ./.;
   error   = "Expected 'testData.nixFilesIn' to be a file under 'thisDir'";

@@ -1,6 +1,7 @@
-{ asPath, hello, nothing, typeOf }:
+{ asPath, hello, nothing }:
 
 with builtins;
+with import ./util.nix {};
 assert typeOf rootPath == "path" || die {
   error      = "rootPath should be a path";
   actualType = typeOf rootPath;

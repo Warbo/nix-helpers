@@ -1,16 +1,16 @@
-{}:
+{ collapseAttrs, hello }:
 
 with rec {
   scalar        = 42;
-  scalarResult  = def scalar;
-  empty         = def {};
+  scalarResult  = collapseAttrs scalar;
+  empty         = collapseAttrs {};
   scalars       = { x = null; y = 42; };
-  scalarsResult = def scalars;
+  scalarsResult = collapseAttrs scalars;
   single        = { x = { y = null; }; };
-  singleResult  = def single;
+  singleResult  = collapseAttrs single;
   singleWant    = { "x.y" = null; };
   multi         = { x = 42; y = { x = { "a.b" = 123; p = [ hello ]; }; }; };
-  multiResult   = def multi;
+  multiResult   = collapseAttrs multi;
   multiWant     = { x = 42; "y.x.a.b" = 123; "y.x.p" = [ hello ]; };
 };
 assert scalar == scalarResult || die {

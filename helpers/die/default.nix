@@ -1,4 +1,4 @@
 {}:
 
 with builtins;
-args: abort (toJSON args);
+args: abort (toJSON args)

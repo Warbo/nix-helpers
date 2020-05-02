@@ -1,16 +1,16 @@
-{ addPathsToStore, hello, writeScript }:
+{ addPathToStore, hello, writeScript }:
 
 {
-  self       = addPathsToStore ./addPathToStore.nix;
-  dir        = addPathsToStore ./.;
-  dirEntry   = addPathsToStore (./. + "/addPathToStore.nix");
-  dodgyName  = addPathsToStore (./. + "/attrsToDirs'.nix");
-  storePath  = addPathsToStore "${hello}";
-  storeEntry = addPathsToStore "${hello}/bin/hello";
-  dodgyStore = addPathsToStore "${./.}/attrsToDirs'.nix";
+  self       = addPathToStore ./addPathToStore.nix;
+  dir        = addPathToStore ./.;
+  dirEntry   = addPathToStore (./. + "/addPathToStore.nix");
+  dodgyName  = addPathToStore (./. + "/attrsToDirs'.nix");
+  storePath  = addPathToStore "${hello}";
+  storeEntry = addPathToStore "${hello}/bin/hello";
+  dodgyStore = addPathToStore "${./.}/attrsToDirs'.nix";
   notBuilt   =
     with {
       f = writeScript "test-file" "1234";
     };
-    addPathsToStore "${f}";
+    addPathToStore "${f}";
 }

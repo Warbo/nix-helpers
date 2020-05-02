@@ -2,9 +2,8 @@
 
 with builtins;
 with lib;
+with import ./util.nix {};
 with rec {
-  rootPath   = /.;
-
   stillNeeded  = typeOf (toPath ./.) == "string";
   obsoleteWarn = x:
     if stillNeeded

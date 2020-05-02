@@ -1,6 +1,7 @@
-{ dummyBuild, isDerivation, latestGit }:
+{ dummyBuild, latestGit, lib }:
 
 with builtins;
+with lib;
 with rec {
   url = "http://example.org";
 

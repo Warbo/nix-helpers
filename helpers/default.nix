@@ -33,4 +33,4 @@ with rec {
     pinnedNixpkgs     = pinnedNixpkgs.defs;
   };
 };
-nix-helpers
+nix-helpers // { inherit allFiles defs tests; nix-helpers-defs = defs; nix-helpers-tests = tests; }

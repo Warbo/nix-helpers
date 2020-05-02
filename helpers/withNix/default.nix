@@ -6,7 +6,7 @@
 
 with builtins;
 with lib;
-with import ./util.nix { inherit lib; }
+with import ./util.nix { inherit lib; };
 with rec {
   # Our Nix 2.x workaround won't work unless the user creates the needed socket,
   # either manually or by enabling a service, so we warn them in two ways:

@@ -7,7 +7,7 @@
 
 with builtins;
 with lib;
-rec l:
+l:
   assert isList l || die {
     error = "asBashArray expects a list";
     type  = typeOf l;
