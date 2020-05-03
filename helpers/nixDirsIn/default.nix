@@ -15,11 +15,11 @@ with builtins;
     entries = readDir dir;
 
     hasFile = name: (getAttr name entries == "directory") &&
-                    (hasAttr filename (readDir "${dir}/${name}"));
+                    (hasAttr filename (readDir (dir + "/${name}")));
 
     output = name: {
       inherit name;
-      value = "${dir}/${name}/${filename}";
+      value = dir + "/${name}/${filename}";
     };
 
   };
