@@ -5,7 +5,7 @@
 #
 # Note that this is used to bootstrap nix-helpers, so it should work standalone.
 {
-  die ? import ./die.nix {},  # Provide fallback for bootstrapping
+  die ? import ../die {},  # Provide fallback for bootstrapping
   lib
 }:
 
