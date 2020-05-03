@@ -1,8 +1,10 @@
 # Evaluate and/or build all derivations in a release.nix file
-{ attrsToDirs', bash, fail, repo1809, withNix, wrap }:
+{ attrsToDirs', bash, fail, lib, repo1809, withNix, wrap }:
 
 with rec {
   paths = (withNix {}).buildInputs ++ [ bash fail ];
+
+  here = lib.cleanSource ../..;
 
   nix_release_eval = wrap {
     inherit paths;
@@ -11,7 +13,7 @@ with rec {
       attrs = ''
         (with import ${repo1809} {
           config   = {};
-          overlays = [ (import "${./..}/overlay.nix") ];
+          overlays = [ (import "${here}/overlay.nix") ];
         };
         drvPathsIn (import ./release.nix))
       '';
