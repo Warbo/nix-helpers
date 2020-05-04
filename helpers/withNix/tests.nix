@@ -1,4 +1,4 @@
-{ isBroken, lib, runCommand }:
+{ isBroken, lib, runCommand, withNix }:
 
 with import ./util.nix { inherit lib; };
 with {
