@@ -1,6 +1,7 @@
-{ dummyBuild }:
+{ callPackage, dummyBuild, pathsTo }:
 
 with builtins;
+with callPackage ./util.nix {};
 with rec {
   simple    = pathsTo isString { x = 42; };
   nested    = pathsTo isString { x = { y = { z = "hello"; }; }; };

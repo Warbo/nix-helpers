@@ -1,10 +1,9 @@
-{ die, dummyBuild, getType, isAttrSet, lexCompare, lib }:
+{ callPackage, die, dummyBuild, getType, isAttrSet, lib }:
 
 with builtins;
 with lib;
+with callPackage ./util.nix {};
 with rec {
-  srt = sort (x: y: lexCompare x y == -1);
-
   go = pred: path: val:
     if isAttrSet val
        then concatLists (attrValues (mapAttrs (name: go pred (path ++ [ name ]))
