@@ -1,4 +1,5 @@
-{ lib, python, python3, runCommand, wrap }:
+{ bash, hello, jq, lib, python, python3, runCommand, stdenv, wrap,
+  writeScript }:
 
 with lib;
 with {
@@ -156,7 +157,7 @@ with {
           paths  = [
             (stdenv.mkDerivation {
               name                  = "dummy";
-              src                   = ./wrap.nix;
+              src                   = ./default.nix;
               propagatedBuildInputs = [ hello ];
               installPhase          = ''mkdir "$out"'';
               unpackPhase           = "true";
@@ -186,15 +187,15 @@ with {
           paths  = [
             (stdenv.mkDerivation {
               name                  = "dummy1";
-              src                   = ./wrap.nix;
+              src                   = ./default.nix;
               propagatedBuildInputs = [
                 (stdenv.mkDerivation {
                   name                  = "dummy2";
-                  src                   = ./wrap.nix;
+                  src                   = ./default.nix;
                   propagatedBuildInputs = [
                     (stdenv.mkDerivation {
                       name                  = "dummy3";
-                      src                   = ./wrap.nix;
+                      src                   = ./default.nix;
                       propagatedBuildInputs = [ hello ];
                       installPhase          = ''mkdir "$out"'';
                       unpackPhase           = "true";
@@ -233,7 +234,7 @@ varChk // depChk // wrapChk // propCheck // {
     vars   = {
       MY_VAR = "MY VAL";
     };
-    script = ./wrap.nix;
+    script = ./default.nix;
   };
 
   python-test = runCommand "wrap-python-test"
