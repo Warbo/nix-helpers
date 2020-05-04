@@ -1,4 +1,4 @@
-{ bash, ghc, nixpkgs1609, python, run }:
+{ bash, checkedRacket, ghc, nixpkgs1609, python, run }:
 
 {
   run-bash = run {
@@ -33,9 +33,9 @@
 
   run-racket = run {
     name  = "run-racket-test";
-    paths = [ nixpkgs1609.racket ];
+    paths = [ checkedRacket ];
     script = ''
-        #!${nixpkgs1609.racket}/bin/racket
+        #!${checkedRacket}/bin/racket
         #lang racket
         (make-directory* (getenv "out"))
       '';
