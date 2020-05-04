@@ -2,15 +2,15 @@
   repo1803, runCommand }:
 
 {
-  intelFirefox1609 = hasBinary (pinGL {
+  intelBash1609 = hasBinary (pinGL {
     nixpkgsRepo = backportOverlays {
       name = "nixpkgs1609-for-firefox";
       repo = repo1609;
     };
-    pkg         = nixpkgs1609.firefox;
-    binaries    = [ "firefox" ];
+    pkg         = nixpkgs1609.bash;
+    binaries    = [ "bash" ];
     gl          = "Intel";
-  }) "firefox";
+  }) "bash";
 
   shebangsWillRun = runCommand "pinGL-shebangs-run"
     {
