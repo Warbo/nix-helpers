@@ -150,7 +150,7 @@ with {
     '';
 };
 rec {
-  racketWorks = currentSystem != "i686-linux" ||
+  racketWorks = !(elem currentSystem [ "i686-linux" "x86_64-darwin" ]) ||
                 compareVersions nixpkgsRelease "1703" == -1;
 
   checkWhetherBroken = if racketWorks
