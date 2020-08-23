@@ -5,12 +5,6 @@ with rec {
   inherit (super.lib)
     filterAttrs hasPrefix mapAttrs mapAttrs' replaceStrings stringLength;
 
-  getNixpkgs = { rev, sha256 }: super.fetchFromGitHub {
-    inherit rev sha256;
-    owner = "NixOS";
-    repo  = "nixpkgs";
-  };
-
   repos = mapAttrs (_: source: source.outPath)
                    (filterAttrs (n: _: hasPrefix "repo" n &&
                                        stringLength n == 8)
@@ -28,7 +22,7 @@ with rec {
 };
 
 {
-  defs  = repos // pkgSets // { inherit getNixpkgs; };
+  defs  = repos // pkgSets;
   tests = {
     # One reason to use old nixpkgs versions is for useful but obsolete KDE apps
     canAccessKde =
