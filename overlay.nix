@@ -1,8 +1,9 @@
 self: super:
 
-with builtins;
-with super.lib;
 with rec {
+  inherit (builtins) attrNames getAttr;
+  inherit (super.lib) fold;
+
   # Bootstrap this function so we can use it to load everything in helpers/
   nixFilesIn = (import ./helpers/nixFilesIn.nix { inherit (super) lib; }).def;
 
