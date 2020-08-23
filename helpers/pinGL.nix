@@ -25,18 +25,12 @@
 # case 'repo1709'. Note that nixGL relies on nixpkgs overlays, which were only
 # introduced in nixpkgs 17.03, so earlier repos will need to be sent through
 # backportOverlays.
-{ attrsToDirs', backportOverlays, coreutils, die, fetchFromGitHub, hasBinary,
-  lib, nixpkgs1609, nixpkgs1803, patchShebang, repo1609, repo1803, runCommand,
-  wrap }:
+{ attrsToDirs', backportOverlays, coreutils, die, hasBinary, lib, nixpkgs1609,
+  nixpkgs1803, patchShebang, repo1609, repo1803, runCommand, wrap }:
 
 with lib;
 with rec {
-  nixGL = fetchFromGitHub {
-    owner  = "guibou";
-    repo   = "nixGL";
-    rev    = "04a6b08";
-    sha256 = "0z1zafkb02sxng91nsx0gclc7n7sv3d5f23gp80s3mc07p22m1k5";
-  };
+  nixGL = nix-helpers-sources.nixgl;
 
   go = {
     # The nixpkgs repo we should take the GL driver from
