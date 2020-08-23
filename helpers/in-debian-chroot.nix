@@ -1,17 +1,11 @@
 # Run a command in a Debian chroot which has the given packages installed
-{ bash, die, fetchurl, getType, lib, proot, runCommand, wrap, writeScript }:
+{ bash, die, fetchurl, getType, lib, nix-helpers-sources, proot, runCommand,
+  wrap, writeScript }:
 
 with builtins;
 with lib;
 with rec {
-  rootVersion = "67a0101a76eed558d4b61a484a27c9f9d7a119f4/stretch";
-
-  rootRepo = "debuerreotype/docker-debian-artifacts";
-
-  rootfs = fetchurl {
-    url    = "https://github.com/${rootRepo}/raw/${rootVersion}/rootfs.tar.xz";
-    sha256 = "1ff2qjvfj6fbwwj17wgmn3a4mlka1xv1p3jyj465dbf4qf3x0ijm";
-  };
+  rootfs = nix-helpers-sources.debian-image.outPath;
 
   # See https://github.com/proot-me/PRoot/issues/106
   PROOT_NO_SECCOMP = "1";
