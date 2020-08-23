@@ -20,17 +20,14 @@ with rec {
       defs  = previous.defs  // { "${name}" = these.def;   };
       tests = previous.tests // { "${name}" = these.tests; };
     };
-
-  pinnedNixpkgs = import ./nixpkgs.nix self super;
 };
 
 # Accumulate the contents of all helpers/ files
 with fold mkPkg { defs = {}; tests = {}; } (attrNames nixFiles);
 with rec {
-  nix-helpers = defs // pinnedNixpkgs.defs // {
+  nix-helpers = defs // {
     inherit nix-helpers;
-    nix-helpers-tests = tests // { pinnedNixpkgs = pinnedNixpkgs.tests; };
-    pinnedNixpkgs     = pinnedNixpkgs.defs;
+    nix-helpers-tests = tests;
   };
 };
 nix-helpers

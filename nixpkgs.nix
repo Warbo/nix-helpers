@@ -1,9 +1,9 @@
 # Pinned nixpkgs repos
-self: super:
+{ lib }:
 with rec {
-  inherit (builtins) compareVersions;
-  inherit (super.lib)
-    filterAttrs hasPrefix mapAttrs mapAttrs' replaceStrings stringLength;
+  inherit (builtins) abort attrNames compareVersions getAttr;
+  inherit (lib)
+    filterAttrs foldl' hasPrefix mapAttrs mapAttrs' replaceStrings stringLength;
 
   repos = mapAttrs (_: source: source.outPath)
                    (filterAttrs (n: _: hasPrefix "repo" n &&
@@ -19,20 +19,21 @@ with rec {
                                  else { overlays = []; }));
     })
     repos;
+
+  latest = attrs:
+    with {
+      attr = foldl' (found: name: if found == null ||
+                                     compareVersions name found == 1
+                                     then name
+                                     else found)
+                    null
+                    (attrNames attrs);
+    };
+    assert attr != null || abort "Can't get latest from empty set";
+    getAttr attr attrs;
 };
 
-{
-  defs  = repos // pkgSets;
-  tests = {
-    # One reason to use old nixpkgs versions is for useful but obsolete KDE apps
-    canAccessKde =
-      assert pkgSets.nixpkgs1603 ? kde4 || self.die {
-        error = "nixpkgs1603 doesn't have 'kde4' attribute";
-      };
-      assert pkgSets.nixpkgs1603.callPackage
-               ({ kde4 ? null }: kde4 != null) {} || self.die {
-        error = "nixpkgs1603.callPackage should populate 'kde4' argument";
-      };
-      self.nothing;
-  };
+repos // pkgSets // {
+  repoLatest    = latest repos;
+  nixpkgsLatest = latest pkgSets;
 }
