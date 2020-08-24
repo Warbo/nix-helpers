@@ -1,7 +1,7 @@
 self: super:
 
 with rec {
-  inherit (builtins) attrNames getAttr;
+  inherit (builtins) abort attrNames getAttr;
   inherit (super.lib) fold;
 
   # Bootstrap this function so we can use it to load everything in helpers/
@@ -12,19 +12,27 @@ with rec {
 
   # Import a nixFiles entry, given its name. Appends the results to 'previous'.
   mkPkg      = name: previous:
-    with rec {
-      # Like callPackage but also has access to nixpkgs, 'self' and 'super'
+    with {
+      # Like callPackage but gives access to 'super' for breaking loops
       these = self.newScope { inherit super; } (getAttr name nixFiles) {};
     };
     {
       defs  = previous.defs  // { "${name}" = these.def;   };
       tests = previous.tests // { "${name}" = these.tests; };
     };
-};
 
-# Accumulate the contents of all helpers/ files
-with fold mkPkg { defs = {}; tests = {}; } (attrNames nixFiles);
-with rec {
+  # Expose each attribute of pinnedNixpkgs separately too (repoX and nixpkgsX)
+  nixpkgs = (import ./helpers/pinnedNixpkgs.nix {
+    inherit (super) lib;
+    die     = abort "Not used";
+    nothing = abort "Not used";
+  }).def;
+
+  # Accumulate the contents of all helpers/ files
+  inherit (fold mkPkg { defs = nixpkgs; tests = {}; } (attrNames nixFiles))
+    defs tests;
+
+  # Give nix-helpers a recursive reference to itself
   nix-helpers = defs // {
     inherit nix-helpers;
     nix-helpers-tests = tests;
