@@ -5,7 +5,9 @@ with {
   test = { args, name, pre, post }: runCommand "replace-test-${name}"
     { buildInputs = [ replace fail ]; }
     ''
-      ${pre}replace ${concatStringsSep " " args}${post}
+      ${pre}
+      replace ${concatStringsSep " " args}
+      ${post}
       mkdir "$out"
     '';
 };
