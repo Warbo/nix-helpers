@@ -5,9 +5,7 @@ with {
   test = { args, name, pre, post }: runCommand "replace-test-${name}"
     { buildInputs = [ replace fail ]; }
     ''
-      ${pre}
-      replace ${concatStringsSep " " args}
-      ${post}
+      ${pre}replace ${concatStringsSep " " args}${post}
       mkdir "$out"
     '';
 };
@@ -23,8 +21,10 @@ with {
     args = [ "old" "new" "--" "f" ];
     pre  = ''
       echo "embolden" > f
+
     '';
     post = ''
+
       X=$(cat f)
       [[ "x$X" = "xembnewen" ]] || fail "Didn't replace, got:$X"
     '';
