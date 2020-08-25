@@ -1,3 +1,3 @@
 {}:
 
-import ../nix/sources.nix
+import ../../nix/sources.nix
