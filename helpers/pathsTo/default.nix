@@ -1,7 +1,7 @@
 { die, dummyBuild, getType, isAttrSet, lexSort, lib }:
 
 with rec {
-  inherit (builtins) isAttrSet attrValues;
+  inherit (builtins) attrValues;
   inherit (lib) concatLists mapAttrs;
 
   go = pred: path: val:

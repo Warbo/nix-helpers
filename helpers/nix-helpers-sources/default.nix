@@ -1,6 +1,3 @@
 {}:
 
-{
-  def   = import ../nix/sources.nix;
-  tests = {};
-}
+import ../nix/sources.nix
