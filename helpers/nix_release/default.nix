@@ -1,5 +1,5 @@
 # Evaluate and/or build all derivations in a release.nix file
-{ attrsToDirs', bash, fail, lib, repoLatest, withNix, wrap }:
+{ attrsToDirs', bash, fail, git, lib, tar, withNix, wrap }:
 
 with rec {
   inherit (lib) cleanSource;
@@ -26,7 +26,7 @@ with rec {
   nix_release = wrap {
     name  = "nix_release";
     file  = ./nix_release.sh;
-    paths = [ bash fail ];
+    paths = (withNix {}).buildInputs ++ [ bash fail git tar ];
     vars  = { inherit nix_release_eval; };
   };
 };
