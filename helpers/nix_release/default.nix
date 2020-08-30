@@ -1,21 +1,15 @@
 # Evaluate and/or build all derivations in a release.nix file
-{ attrsToDirs', bash, fail, lib, repo1809, withNix, wrap }:
+{ attrsToDirs', bash, fail, lib, repoLatest, withNix, wrap }:
 
 with rec {
-  paths = (withNix {}).buildInputs ++ [ bash fail ];
-
-  here = lib.cleanSource ../..;
+  inherit (lib) cleanSource;
 
   nix_release_eval = wrap {
-    inherit paths;
-    name = "nix_release_eval";
-    vars = withNix {
+    name  = "nix_release_eval";
+    paths = (withNix {}).buildInputs ++ [ bash fail ];
+    vars  = withNix {
       attrs = ''
-        (with import ${repo1809} {
-          config   = {};
-          overlays = [ (import "${here}/overlay.nix") ];
-        };
-        drvPathsIn (import ./release.nix))
+        (import "${cleanSource ../..}").drvPathsIn (import ./release.nix)
       '';
     };
     script = ''
@@ -30,47 +24,10 @@ with rec {
   };
 
   nix_release = wrap {
-    name   = "nix_release";
-    paths  = [ bash fail ];
-    vars   = { inherit nix_release_eval; };
-    script = ''
-      #!${bash}/bin/bash
-      set -e
-
-      DRVPATHS=$("$nix_release_eval") ||  fail "Failed to get paths, aborting"
-
-      function build {
-          nix-store --show-trace --realise "$@"
-      }
-
-      echo "Building derivations" 1>&2
-      COUNT=0
-      FAILS=0
-      while read -r PAIR
-      do
-        COUNT=$(( COUNT + 1 ))
-        ATTR=$(echo "$PAIR" | cut -f1)
-         DRV=$(echo "$PAIR" | cut -f2)
-
-        echo "Building $ATTR" 1>&2
-        if [[ -z "$ADD_ROOT" ]]
-        then
-            build                                   "$@" "$DRV" ||
-                FAILS=$(( FAILS + 1 ))
-        else
-            build --indirect --add-root "$ADD_ROOT" "$@" "$DRV" ||
-                FAILS=$(( FAILS + 1 ))
-        fi
-      done < <(echo "$DRVPATHS")
-
-      if [[ "$FAILS" -eq 0 ]]
-      then
-        echo "All $COUNT built successfully" 1>&2
-      else
-        printf '%s/%s builds failed\n' "$FAILS" "$COUNT" 1>&2
-        exit 1
-      fi
-    '';
+    name  = "nix_release";
+    file  = ./nix_release.sh;
+    paths = [ bash fail ];
+    vars  = { inherit nix_release_eval; };
   };
 };
 attrsToDirs' "nix_release" {
