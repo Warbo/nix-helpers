@@ -3,12 +3,10 @@
 with rec {
   inherit (builtins) abort attrNames compareVersions getAttr;
   inherit (lib)
-    filterAttrs foldl' hasPrefix mapAttrs mapAttrs' replaceStrings stringLength;
+    filterAttrs foldl' hasPrefix mapAttrs' replaceStrings stringLength;
 
-  repos = mapAttrs (_: source: source.outPath)
-                   (filterAttrs (n: _: hasPrefix "repo" n &&
-                                       stringLength n == 8)
-                                (import nix/sources.nix));
+  repos = filterAttrs (n: _: hasPrefix "repo" n && stringLength n == 8)
+                      (import nix/sources.nix);
 
   pkgSets = mapAttrs'
     (n: v: {

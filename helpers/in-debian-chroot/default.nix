@@ -5,7 +5,7 @@
 with builtins;
 with lib;
 with rec {
-  rootfs = nix-helpers-sources.debian-image.outPath;
+  rootfs = nix-helpers-sources.debian-image;
 
   # See https://github.com/proot-me/PRoot/issues/106
   PROOT_NO_SECCOMP = "1";

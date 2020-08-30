@@ -1,7 +1,7 @@
 # Returns nix-helpers from the latest entry in ./nixpkgs.nix
 with rec {
   # Some arbitrary nixpkgs repo, so we can use its 'lib'
-  bootstrap = import (import ./nix/sources.nix).repo1909.outPath {
+  bootstrap = import (import ./nix/sources.nix).repo1909 {
     config   = {};
     overlays = [];
   };

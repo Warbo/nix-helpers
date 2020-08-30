@@ -31,7 +31,7 @@
 
 with lib;
 with {
-  nixGL = nix-helpers-sources.nixgl.outPath;
+  nixGL = nix-helpers-sources.nixgl;
 };
 {
   # The nixpkgs repo we should take the GL driver from
