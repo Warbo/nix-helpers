@@ -9,6 +9,11 @@ mkBin {
 
     [[ -z "$NOTRACE" ]] || exit 0
 
+    [[ -d /proc ]] || {
+      echo "No /proc found (not on Linux?), skipping backtrace" 1>&2
+      exit 0
+    }
+
     echo "Begin Backtrace:"
 
     ID="$$"  # Current PID
