@@ -2,24 +2,31 @@
 { attrsToDirs', bash, fail, git, lib, gnutar, withNix, wrap }:
 
 with rec {
-  inherit (lib) cleanSource;
+  inherit (lib) cleanSource concatStringsSep escapeShellArg;
 
   nix_release_eval = wrap {
-    name  = "nix_release_eval";
-    paths = (withNix {}).buildInputs ++ [ bash fail ];
-    vars  = withNix {
-      attrs = ''
-        (import "${cleanSource ../..}").drvPathsIn (import ./release.nix)
-      '';
-    };
+    name   = "nix_release_eval";
+    paths  = [ bash fail ];
     script = ''
       #!${bash}/bin/bash
       set -e
 
-      [[ -e release.nix ]] || fail "No release.nix found, aborting"
+      [[ -n "$1" ]] && F="$1"
+      [[ -z "$F" ]] && [[ -e     release.nix ]] && F='release.nix'
+      [[ -z "$F" ]] && [[ -e nix/release.nix ]] && F='nix/release.nix'
+      [[ -z "$F" ]] && [[ -e     default.nix ]] && F='default.nix'
+      [[ -z "$F" ]] && [[ -e nix/default.nix ]] && F='nix/default.nix'
+      [[ -z "$F" ]] &&
+        fail "Error: No file given and didn't find release.nix or default.nix"
 
-      echo "Finding derivations" 1>&2
-      nix eval --show-trace --raw "$attrs"
+      echo "Finding derivations from '$F'" 1>&2
+      F="$F" nix eval --show-trace --raw ${
+        escapeShellArg ("(" + concatStringsSep " " [
+          ''with { raw = import (./. + ("/" + (builtins.getEnv "F"))); };''
+          ''with { val = if builtins.isAttrs raw then raw else raw {}; };''
+          ''(import "${cleanSource ../..}").drvPathsIn val''
+        ] + ")")
+      }
     '';
   };
 
