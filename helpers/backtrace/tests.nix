@@ -10,7 +10,10 @@ runCommand "backtrace-test" { buildInputs = [ backtrace ]; } ''
   Y=$(backtrace)
   for Z in "Backtrace" "End Backtrace" "bash"
   do
-    echo "$Y" | grep -F "$Z" || fail "Didn't find '$Z'"
+    echo "$Y" | grep -F "$Z" || {
+      echo "Didn't find '$Z'" 1>&2
+      exit 1
+    }
   done
 
   echo pass > "$out"
