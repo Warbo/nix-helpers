@@ -9,7 +9,7 @@ else
     echo "Won't make GC roots. If you want them, give an \$ADD_ROOT dir" 1>&2
 fi
 
-DRVPATHS=$("$nix_release_eval") ||  fail "Failed to get paths, aborting"
+DRVPATHS=$("$nix_release_eval" "$@") ||  fail "Failed to get paths, aborting"
 
 function build {
     nix-store --show-trace --realise "$@"
