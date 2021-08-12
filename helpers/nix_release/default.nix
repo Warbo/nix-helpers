@@ -1,5 +1,5 @@
 # Evaluate and/or build all derivations in a release.nix file
-{ attrsToDirs', bash, fail, git, lib, gnutar, withNix, wrap }:
+{ attrsToDirs', bash, fail, git, lib, gnutar, wrap }:
 
 with rec {
   inherit (lib) cleanSource concatStringsSep escapeShellArg;
@@ -33,7 +33,7 @@ with rec {
   nix_release = wrap {
     name  = "nix_release";
     file  = ./nix_release.sh;
-    paths = (withNix {}).buildInputs ++ [ bash fail git gnutar ];
+    paths = [ bash fail git gnutar ];
     vars  = { inherit nix_release_eval; };
   };
 };
