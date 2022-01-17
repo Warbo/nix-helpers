@@ -22,10 +22,10 @@ with rec {
   fetchgit =
     with { pinned = path: callPackage "${repo1709}/${path}"; };
     pinned "pkgs/build-support/fetchgit" {
-      stdenv = stdenv // (if stdenv.lib ? fetchers
+      stdenv = stdenv // (if lib ? fetchers
                              then {}
                              else {
-                               lib = stdenv.lib // {
+                               lib = lib // {
                                  fetchers = pinned "lib/fetchers.nix" {};
                                };
                              });

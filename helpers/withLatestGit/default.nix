@@ -1,5 +1,5 @@
-{ die, fail, getType, isCallable, latestGit, lib, runCommand, stdenv,
-  substituteAll, withLatestGit, withNix, writeScript }:
+{ die, fail, getType, isCallable, latestGit, lib, runCommand, substituteAll,
+  withLatestGit, withNix, writeScript }:
 
 with builtins;
 with lib;
@@ -42,7 +42,7 @@ with lib;
   with rec {
     rawSource = latestGit { inherit url stable;
                             ref = if refIsRev then "" else ref; };
-    source    = if refIsRev then stdenv.lib.overrideDerivation
+    source    = if refIsRev then lib.overrideDerivation
                                    rawSource
                                    (old: { rev = ref; })
                             else rawSource;
