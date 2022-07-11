@@ -1,5 +1,5 @@
 # Run a command in a Debian chroot which has the given packages installed
-{ bash, die, fetchurl, getType, lib, nix-helpers-sources, proot, runCommand,
+{ bash, cacert, die, fetchurl, getType, lib, nix-helpers-sources, proot, runCommand,
   wrap, writeScript }:
 
 with builtins;
@@ -15,7 +15,7 @@ with rec {
       inherit rootfs PROOT_NO_SECCOMP;
       buildInputs      = [ proot ];
       __noChroot       = true;
-      SSL_CERT_FILE    = /etc/ssl/certs/ca-bundle.crt;
+      SSL_CERT_FILE    = "${cacert}/etc/ssl/certs/ca-bundle.crt";
       script           = writeScript "setup.sh" ''
         #!${bash}/bin/bash
         set -e
