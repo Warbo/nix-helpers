@@ -5,7 +5,7 @@ with rec {
   inherit (lib) fold;
 
   # Bootstrap this function so we can use it to load all of our subdirs
-  nixDirsIn = import ./nixDirsIn {};
+  nixDirsIn = import ./nixDirsIn { };
 
   # Look for files with name 'filename' (e.g. "default.nix") in our
   # subdirectories. Returns a map from subdir name to path, e.g.
@@ -24,7 +24,7 @@ with rec {
                             (attrNames (nixFiles filename));
 
   # Load definitions from 'default.nix' and tests from 'tests.nix'.
-  defs  = allFiles "default.nix";
+  defs = allFiles "default.nix";
   tests = allFiles "tests.nix";
 
   # Combine everything and tie the knot

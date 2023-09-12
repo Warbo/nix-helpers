@@ -5,22 +5,24 @@
 # file, e.g. "${dir}/subdir/default.nix".
 #
 # Note that this is used to bootstrap nix-helpers, so it should work standalone.
-{}:
+{ }:
 
-with builtins;
 { dir, filename ? "default.nix" }:
-  with rec {
-    subdirs = filter hasFile (attrNames entries);
+with rec {
+  inherit (builtins) attrNames filter getAttr hasAttr listToAttrs readDir;
 
-    entries = readDir dir;
+  subdirs = filter hasFile (attrNames entries);
 
-    hasFile = name: (getAttr name entries == "directory") &&
-                    (hasAttr filename (readDir (dir + "/${name}")));
+  entries = readDir dir;
 
-    output = name: {
-      inherit name;
-      value = dir + "/${name}/${filename}";
-    };
+  hasFile = name:
+    (getAttr name entries == "directory")
+    && (hasAttr filename (readDir (dir + "/${name}")));
 
+  output = name: {
+    inherit name;
+    value = dir + "/${name}/${filename}";
   };
-  listToAttrs (map output subdirs)
+
+};
+listToAttrs (map output subdirs)
