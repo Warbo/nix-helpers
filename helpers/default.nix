@@ -1,4 +1,5 @@
-{ nixpkgs-lib, nixpkgs }:
+{ nixpkgs-lib ? import ./nixpkgs-lib { }
+, nixpkgs ? (import ./pinnedNixpkgs { inherit nixpkgs-lib; }).nixpkgsLatest }:
 
 with rec {
   inherit (builtins) attrNames getAttr;
