@@ -1,6 +1,5 @@
-{ bash, coreutils, hello, jq, lib, makeSetupHook, nixListToBashArray
-, pinnedNixpkgs, python, python3, runCommand, stdenv, patchShebang, writeScript
-}:
+{ bash, coreutils, lib, makeSetupHook, nixListToBashArray, repo1609, runCommand
+, stdenv, patchShebang, writeScript }:
 
 with builtins;
 with lib;

@@ -1,4 +1,4 @@
-{ bash, checkedRacket, ghc, nixpkgs1609, python, run }:
+{ bash, checkedRacket, ghc, python, run }:
 
 {
   run-bash = run {

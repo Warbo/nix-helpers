@@ -1,4 +1,4 @@
-{ die, backportOverlays, repo1603 }:
+{ die, dummyBuild, backportOverlays, repo1603 }:
 
 {
   self1603 = with rec {
@@ -7,12 +7,13 @@
       repo = repo1603;
     };
 
-    got = import repo { overlays = [ (import ../../overlay.nix) ]; };
+    got =
+      import repo { overlays = [ (self: super: { inherit dummyBuild; }) ]; };
   };
-    assert got ? backportOverlays || die {
+    assert got ? dummyBuild || die {
       error = ''
-        Backporting nix-helpers overlay to nixpkgs 16.03 didn't produce a set
-        containing backportOverlays.
+        Backporting overlays to nixpkgs 16.03 didn't produce a set containing
+        dummyBuild.
       '';
     };
     got.dummyBuild "backport-overlays-nixpkgs1603";
