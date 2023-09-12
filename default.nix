@@ -1,6 +1,3 @@
-{ nixpkgs ?
-  (import ./nixpkgs.nix { lib = import helpers/nixpkgs-lib { }; }).repoLatest }:
-(import nixpkgs {
-  config = { };
-  overlays = [ (import ./overlay.nix) ];
-}).nix-helpers
+{ nixpkgs-lib ? import helpers/nixpkgs-lib { }
+, nixpkgs ? (import ./nixpkgs.nix { inherit nixpkgs-lib; }).nixpkgsLatest }:
+import ./helpers { inherit nixpkgs-lib nixpkgs; }

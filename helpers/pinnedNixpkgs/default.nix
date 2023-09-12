@@ -1,3 +1,1 @@
-{ lib }:
-
-import ../../nixpkgs.nix { inherit lib; }
+{ nixpkgs-lib }: import ../../nixpkgs.nix { inherit nixpkgs-lib; }

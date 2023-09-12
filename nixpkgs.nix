@@ -1,8 +1,8 @@
 # Pinned nixpkgs repos
-{ lib }:
+{ nixpkgs-lib ? import helpers/nixpkgs-lib { } }:
 with rec {
   inherit (builtins) abort attrNames compareVersions getAttr;
-  inherit (lib)
+  inherit (nixpkgs-lib)
     filterAttrs foldl' hasPrefix mapAttrs' replaceStrings stringLength;
 
   repos = filterAttrs (n: _: hasPrefix "repo" n && stringLength n == 8)
