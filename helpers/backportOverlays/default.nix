@@ -10,7 +10,8 @@
 #
 #     with import (backportOverlays {...}) { overlays = [ ... ]; }; myPkg
 #
-{ name, repo }: attrsToDirs' name {
+{ name, repo }:
+attrsToDirs' name {
   "default.nix" = writeScript "${name}-default.nix" ''
     { overlays ? [], ... }@args:
       with { inherit (import "${repo}" {}) lib; };

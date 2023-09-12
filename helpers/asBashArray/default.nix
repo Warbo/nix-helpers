@@ -8,12 +8,12 @@
 with builtins;
 with lib;
 l:
-  assert isList l || die {
-    error = "asBashArray expects a list";
-    type  = typeOf l;
-  };
-  assert all isString l || die {
-    error = "asBashArray expects strings in the given list";
-    types = map typeOf l;
-  };
-  "( " + concatStringsSep " " (map lib.escapeShellArg l) + " )"
+assert isList l || die {
+  error = "asBashArray expects a list";
+  type = typeOf l;
+};
+assert all isString l || die {
+  error = "asBashArray expects strings in the given list";
+  types = map typeOf l;
+};
+"( " + concatStringsSep " " (map lib.escapeShellArg l) + " )"

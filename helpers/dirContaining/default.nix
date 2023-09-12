@@ -8,15 +8,13 @@
 
 with builtins;
 base: files:
-  mergeDirs (map (f: runCommand "dir"
-                       {
-                         base = toString base;
-                         file = toString base + "/${f}";
-                       }
-                       ''
-                         REL=$(echo "$file" | sed -e "s@$base/@@g")
-                         DIR=$(dirname "$REL")
-                         mkdir -p "$out/$DIR"
-                         ln -s "$file" "$out/$REL"
-                       '')
-                 files)
+mergeDirs (map (f:
+  runCommand "dir" {
+    base = toString base;
+    file = toString base + "/${f}";
+  } ''
+    REL=$(echo "$file" | sed -e "s@$base/@@g")
+    DIR=$(dirname "$REL")
+    mkdir -p "$out/$DIR"
+    ln -s "$file" "$out/$REL"
+  '') files)

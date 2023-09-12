@@ -25,50 +25,49 @@
 # case 'repo1709'. Note that nixGL relies on nixpkgs overlays, which were only
 # introduced in nixpkgs 17.03, so earlier repos will need to be sent through
 # backportOverlays.
-{ attrsToDirs', backportOverlays, coreutils, die, hasBinary, lib,
-  nix-helpers-sources, nixpkgs1609, nixpkgs1803, patchShebang, repo1609,
-  repo1803, runCommand, wrap }:
+{ attrsToDirs', backportOverlays, coreutils, die, hasBinary, lib
+, nix-helpers-sources, nixpkgs1609, nixpkgs1803, patchShebang, repo1609
+, repo1803, runCommand, wrap }:
 
 with lib;
-with {
-  nixGL = nix-helpers-sources.nixgl;
-};
+with { nixGL = nix-helpers-sources.nixgl; };
 {
-  # The nixpkgs repo we should take the GL driver from
-  nixpkgsRepo,
+# The nixpkgs repo we should take the GL driver from
+nixpkgsRepo,
 
-  # The package whose binaries we'll wrap
-  pkg,
+# The package whose binaries we'll wrap
+pkg,
 
-  # The names of the binaries to wrap
-  binaries,
+# The names of the binaries to wrap
+binaries,
 
-  # The GL driver to wrap with (Intel means any built-in Mesa driver)
-  gl ? "Intel"
-}:
-assert with builtins; isList binaries && binaries != [] || die {
-  error  = "'binaries' should be a non-empty list of program names";
-  type   = typeOf binaries;
-  length = if isList binaries then length binaries else "N/A";
-};
+# The GL driver to wrap with (Intel means any built-in Mesa driver)
+gl ? "Intel" }:
+assert with builtins;
+  isList binaries && binaries != [ ] || die {
+    error = "'binaries' should be a non-empty list of program names";
+    type = typeOf binaries;
+    length = if isList binaries then length binaries else "N/A";
+  };
 with {
-  wrappers    = mapAttrs (name: dir: patchShebang { inherit dir name; })
-                         (import nixGL { pkgs = import nixpkgsRepo; });
+  wrappers = mapAttrs (name: dir: patchShebang { inherit dir name; })
+    (import nixGL { pkgs = import nixpkgsRepo; });
   wrapperName = "nixGL" + (if gl == "Mesa" then "Intel" else gl);
 };
 assert builtins.hasAttr wrapperName wrappers || die {
   inherit gl wrapperName;
-  error    = "GL wrapper not found (note that Intel == Mesa)";
+  error = "GL wrapper not found (note that Intel == Mesa)";
   wrappers = attrNames wrappers;
-  given    = wrapperName;
+  given = wrapperName;
 };
 attrsToDirs' "gl-wrapped-${pkg.name}" {
-  bin = lib.genAttrs binaries (name: wrap {
-    inherit name;
-    paths  = [ (builtins.getAttr wrapperName wrappers) ];
-    script = ''
-      #!${coreutils}/bin/env bash
-      exec "${wrapperName}" "${pkg}/bin/${name}" "$@"
-    '';
-  });
+  bin = lib.genAttrs binaries (name:
+    wrap {
+      inherit name;
+      paths = [ (builtins.getAttr wrapperName wrappers) ];
+      script = ''
+        #!${coreutils}/bin/env bash
+        exec "${wrapperName}" "${pkg}/bin/${name}" "$@"
+      '';
+    });
 }

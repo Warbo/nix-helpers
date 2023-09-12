@@ -5,10 +5,11 @@ with lib;
 with {
   addPath = x: path: str:
     with {
-      pre  = if str == null then "" else str + "\n";
+      pre = if str == null then "" else str + "\n";
       name = concatStringsSep "." path;
-      drv  = attrByPath (path ++ [ "drvPath" ]) (die { inherit path; }) x;
+      drv = attrByPath (path ++ [ "drvPath" ]) (die { inherit path; }) x;
     };
     pre + name + "	" + drv;
 };
-x: fold (addPath x) null (reverseList (pathsTo isDerivation x))
+x:
+fold (addPath x) null (reverseList (pathsTo isDerivation x))

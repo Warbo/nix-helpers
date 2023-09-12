@@ -21,22 +21,24 @@
 with builtins;
 with lib;
 with rec {
-  go = dir: mapAttrs (n: v: if v == "regular" || v == "symlink"
-                               then dir + "/${n}"
-                               else go (dir + "/${n}"))
-                     (readDir dir);
+  go = dir:
+    mapAttrs (n: v:
+      if v == "regular" || v == "symlink" then
+        dir + "/${n}"
+      else
+        go (dir + "/${n}")) (readDir dir);
 };
 
 # Check that we can access some known files/directories
 with {
-  test = go (runCommand "dirsToAttrs-test-data" {} ''
+  test = go (runCommand "dirsToAttrs-test-data" { } ''
     mkdir -p "$out/foo"
     echo "baz" > "$out/foo/bar"
   '');
 };
 assert isAttrs test || die {
   error = "test isn't attrset";
-  type  = typeOf test;
+  type = typeOf test;
 };
 assert test ? foo || die {
   error = "No 'foo' in test";
@@ -44,7 +46,7 @@ assert test ? foo || die {
 };
 assert isAttrs test.foo || {
   error = "test.foo isn't attrset";
-  type  = typeOf test.foo;
+  type = typeOf test.foo;
 };
 assert test.foo ? bar || {
   error = "No 'bar' in test.foo";
@@ -52,6 +54,6 @@ assert test.foo ? bar || {
 };
 assert isPath test.foo.bar || {
   error = "test.foo.bar isn't path";
-  type  = typeOf test.foo.bar;
+  type = typeOf test.foo.bar;
 };
 go

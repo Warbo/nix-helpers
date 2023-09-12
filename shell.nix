@@ -1,7 +1,5 @@
-with {
-  inherit (import ./.) nixpkgsLatest pinnedNiv;
-};
+with { inherit (import ./.) nixpkgsLatest pinnedNiv; };
 nixpkgsLatest.stdenv.mkDerivation {
-  name        = "nix-helpers-env";
+  name = "nix-helpers-env";
   buildInputs = [ pinnedNiv ];
 }

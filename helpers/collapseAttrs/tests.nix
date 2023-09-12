@@ -1,25 +1,40 @@
 { collapseAttrs, die, hello }:
 
 with rec {
-  scalar        = 42;
-  scalarResult  = collapseAttrs scalar;
-  empty         = collapseAttrs {};
-  scalars       = { x = null; y = 42; };
+  scalar = 42;
+  scalarResult = collapseAttrs scalar;
+  empty = collapseAttrs { };
+  scalars = {
+    x = null;
+    y = 42;
+  };
   scalarsResult = collapseAttrs scalars;
-  single        = { x = { y = null; }; };
-  singleResult  = collapseAttrs single;
-  singleWant    = { "x.y" = null; };
-  multi         = { x = 42; y = { x = { "a.b" = 123; p = [ hello ]; }; }; };
-  multiResult   = collapseAttrs multi;
-  multiWant     = { x = 42; "y.x.a.b" = 123; "y.x.p" = [ hello ]; };
+  single = { x = { y = null; }; };
+  singleResult = collapseAttrs single;
+  singleWant = { "x.y" = null; };
+  multi = {
+    x = 42;
+    y = {
+      x = {
+        "a.b" = 123;
+        p = [ hello ];
+      };
+    };
+  };
+  multiResult = collapseAttrs multi;
+  multiWant = {
+    x = 42;
+    "y.x.a.b" = 123;
+    "y.x.p" = [ hello ];
+  };
 };
 assert scalar == scalarResult || die {
   inherit scalar scalarResult;
   error = "Collapsing non-set shouldn't change value";
 };
-assert empty == {} || die {
+assert empty == { } || die {
   inherit empty;
-  error  = "Collapsing empty set should give an empty set";
+  error = "Collapsing empty set should give an empty set";
 };
 assert scalarsResult == scalars || die {
   inherit scalars scalarsResult;
@@ -33,4 +48,4 @@ assert multiWant == multiResult || die {
   inherit multi multiResult multiWant;
   error = "Didn't collapse multiple entries properly";
 };
-{}
+{ }

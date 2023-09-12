@@ -2,4 +2,5 @@
 
 with builtins;
 with lib;
-x: typeOf x == "path" || (typeOf x == "string" && hasPrefix "/" x)
+x:
+typeOf x == "path" || (typeOf x == "string" && hasPrefix "/" x)

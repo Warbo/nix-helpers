@@ -8,62 +8,60 @@ with rec {
   braced = s: "$" + "{" + s + "}";
 
   # Patch xvfb_run to stop it merging stderr into stdout
-  patched = runCommand "patch-xvfb-run"
-    {
-      buildInputs = [ fail replace ];
-      old         = xvfb_run;
-      broken      = ''DISPLAY=:$SERVERNUM XAUTHORITY=$AUTHFILE "$@" 2>&1'';
-      fixed       = ''
-        [[ -z "$DEBUG" ]] || set -x
-        VNCPID=""
-        if [[ "x$XVFB_VNC" = "x1" ]]
-        then
-          echo "Starting VNC server, as requested" 1>&2
-          DISPLAY=":$SERVERNUM" XAUTHORITY="$AUTHFILE" x11vnc -localhost \
-                                                              -quiet 1>&2 &
-          VNCPID="$!"
-        fi
-        DISPLAY=":$SERVERNUM" XAUTHORITY="$AUTHFILE" "$@"
-        [[ -z "$VNCPID" ]] || kill "$VNCPID"
-      '';
-    }
-    ''
-      set -e
-
-      cp -rv "$old" "$out"
-      chmod +w -R "$out"
-
-      # Update references, e.g. in makeWrapper scripts
-      find "$out" -type f | while read -r FILE
-      do
-        replace "$old" "$out" -- "$FILE"
-      done
-
-      # Look for the script. If it's been through makeWrapper, use the original.
-         NAME="xvfb-run"
-      WRAPPED="$out/bin/.${braced "NAME"}-wrapped"
-       SCRIPT="$out/bin/$NAME"
-
-      if [[ -f "$WRAPPED" ]]
+  patched = runCommand "patch-xvfb-run" {
+    buildInputs = [ fail replace ];
+    old = xvfb_run;
+    broken = ''DISPLAY=:$SERVERNUM XAUTHORITY=$AUTHFILE "$@" 2>&1'';
+    fixed = ''
+      [[ -z "$DEBUG" ]] || set -x
+      VNCPID=""
+      if [[ "x$XVFB_VNC" = "x1" ]]
       then
-        SCRIPT="$WRAPPED"
+        echo "Starting VNC server, as requested" 1>&2
+        DISPLAY=":$SERVERNUM" XAUTHORITY="$AUTHFILE" x11vnc -localhost \
+                                                            -quiet 1>&2 &
+        VNCPID="$!"
       fi
-
-      [[ -f "$SCRIPT" ]] || fail "xvfb-run script '$SCRIPT' not found"
-
-      if grep -F "$broken" < "$SCRIPT"
-      then
-        echo "Patching broken xvfb-run script" 1>&2
-        replace "$broken" "$fixed" -- "$SCRIPT"
-      else
-        echo "Not patching '$SCRIPT' since it doesn't appear broken" 1>&2
-      fi
+      DISPLAY=":$SERVERNUM" XAUTHORITY="$AUTHFILE" "$@"
+      [[ -z "$VNCPID" ]] || kill "$VNCPID"
     '';
+  } ''
+    set -e
+
+    cp -rv "$old" "$out"
+    chmod +w -R "$out"
+
+    # Update references, e.g. in makeWrapper scripts
+    find "$out" -type f | while read -r FILE
+    do
+      replace "$old" "$out" -- "$FILE"
+    done
+
+    # Look for the script. If it's been through makeWrapper, use the original.
+       NAME="xvfb-run"
+    WRAPPED="$out/bin/.${braced "NAME"}-wrapped"
+     SCRIPT="$out/bin/$NAME"
+
+    if [[ -f "$WRAPPED" ]]
+    then
+      SCRIPT="$WRAPPED"
+    fi
+
+    [[ -f "$SCRIPT" ]] || fail "xvfb-run script '$SCRIPT' not found"
+
+    if grep -F "$broken" < "$SCRIPT"
+    then
+      echo "Patching broken xvfb-run script" 1>&2
+      replace "$broken" "$fixed" -- "$SCRIPT"
+    else
+      echo "Not patching '$SCRIPT' since it doesn't appear broken" 1>&2
+    fi
+  '';
 
   # Wrap xvfb_run, so we can find a free DISPLAY number, etc.
   go = mkBin {
-    name   = "xvfb-run-safe";
-    paths  = [ bash fail utillinux patched x11vnc ];
+    name = "xvfb-run-safe";
+    paths = [ bash fail utillinux patched x11vnc ];
     script = ''
       #!${bash}/bin/bash
       set -e

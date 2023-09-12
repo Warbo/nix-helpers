@@ -6,7 +6,8 @@
 { lib }:
 
 with lib;
-name: deps: drv: overrideDerivation drv (old:
-  (if name == null then {} else { inherit name; }) // {
-    extraDeps = (old.extraDeps or []) ++ deps;
+name: deps: drv:
+overrideDerivation drv (old:
+  (if name == null then { } else { inherit name; }) // {
+    extraDeps = (old.extraDeps or [ ]) ++ deps;
   })

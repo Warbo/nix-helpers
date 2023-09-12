@@ -2,12 +2,12 @@
 
 with builtins;
 with rec {
-  nixy = withNix {};
+  nixy = withNix { };
 
   pkg = mkBin {
-    name   = "pipeToNix";
-    paths  = nixy.buildInputs;
-    vars   = removeAttrs nixy [ "buildInputs" ];
+    name = "pipeToNix";
+    paths = nixy.buildInputs;
+    vars = removeAttrs nixy [ "buildInputs" ];
     script = ''
       #!${bash}/bin/bash
       set -e

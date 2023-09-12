@@ -12,46 +12,47 @@
 with builtins;
 with lib;
 p:
-  with rec {
-    strP = unsafeDiscardStringContext (toString p);
+with rec {
+  strP = unsafeDiscardStringContext (toString p);
 
-    # Checks whether a path is from the Nix store, since Nix will abort if
-    # store paths are referenced in certain ways.
-    isStore = x: hasPrefix storeDir (toString x);
+  # Checks whether a path is from the Nix store, since Nix will abort if
+  # store paths are referenced in certain ways.
+  isStore = x: hasPrefix storeDir (toString x);
 
-    # Chops suffices off a store path until it's a top-level entry, e.g.
-    #   getRoot "/nix/store/...-foo/bar/baz" -> "/nix/store/...-foo"
-    # This way we're guaranteed to avoid filename characters which aren't
-    # valid store paths.
-    getRoot = x: if toString (dirOf x) == toString storeDir
-                    then x
-                    else getRoot (dirOf x);
+  # Chops suffices off a store path until it's a top-level entry, e.g.
+  #   getRoot "/nix/store/...-foo/bar/baz" -> "/nix/store/...-foo"
+  # This way we're guaranteed to avoid filename characters which aren't
+  # valid store paths.
+  getRoot = x:
+    if toString (dirOf x) == toString storeDir then x else getRoot (dirOf x);
 
-    # Complements getRoot:
-    #   p = "/nix/store/...-foo/bar/baz" -> trunk = "bar/baz"
-    trunk = removePrefix "/" (removePrefix (getRoot strP) strP);
+  # Complements getRoot:
+  #   p = "/nix/store/...-foo/bar/baz" -> trunk = "bar/baz"
+  trunk = removePrefix "/" (removePrefix (getRoot strP) strP);
 
-    # Avoids characters which are incompatible with store paths
-    safeName = sanitiseName (baseNameOf strP);
+  # Avoids characters which are incompatible with store paths
+  safeName = sanitiseName (baseNameOf strP);
 
-    # For store paths, we make a symlink which depends on p's context. By
-    # using the root we avoid incompatible characters, without using
-    # builtins.path (which Nix complains about if we give it a store path).
-    symlink = runCommand safeName
-      {
-        inherit trunk;
-        root = toString (asPath (getRoot p));
-      }
-      ''
-        ${if isString p then addContextFrom p "" else ""}
-        if [[ -z "$trunk" ]]
-        then
-          ln -s "$root" "$out"
-        else
-          ln -s "$root/$trunk" "$out"
-        fi
-      '';
-  };
-  if isStore p
-     then symlink
-     else builtins.path { name = safeName; path = p; }
+  # For store paths, we make a symlink which depends on p's context. By
+  # using the root we avoid incompatible characters, without using
+  # builtins.path (which Nix complains about if we give it a store path).
+  symlink = runCommand safeName {
+    inherit trunk;
+    root = toString (asPath (getRoot p));
+  } ''
+    ${if isString p then addContextFrom p "" else ""}
+    if [[ -z "$trunk" ]]
+    then
+      ln -s "$root" "$out"
+    else
+      ln -s "$root/$trunk" "$out"
+    fi
+  '';
+};
+if isStore p then
+  symlink
+else
+  builtins.path {
+    name = safeName;
+    path = p;
+  }

@@ -1,3 +1,4 @@
 { hasBinary, withDeps }:
 
-bin: pkg: withDeps [ (hasBinary pkg bin) ] pkg
+bin: pkg:
+withDeps [ (hasBinary pkg bin) ] pkg

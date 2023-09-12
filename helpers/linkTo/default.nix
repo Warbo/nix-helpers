@@ -1,5 +1,6 @@
 { runCommand }:
 
-{ name, path }: runCommand name { inherit path; } ''
+{ name, path }:
+runCommand name { inherit path; } ''
   ln -s "$path" "$out"
 ''

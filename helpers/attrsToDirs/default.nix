@@ -1,2 +1,1 @@
-{ attrsToDirs' }:
-attrsToDirs' "merged"
+{ attrsToDirs' }: attrsToDirs' "merged"

@@ -4,9 +4,9 @@
 with builtins;
 with lib;
 xs: ys:
-  with rec {
-    lx     = length xs;
-    ly     = length ys;
-    minlen = if lx < ly then lx else ly;
-  };
-  take minlen (reverse xs) == take minlen (reverse ys)
+with rec {
+  lx = length xs;
+  ly = length ys;
+  minlen = if lx < ly then lx else ly;
+};
+take minlen (reverse xs) == take minlen (reverse ys)

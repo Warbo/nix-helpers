@@ -7,22 +7,28 @@ with rec {
   go = { path, value, set }:
     with rec {
       name = head path;
-      new  = if length path == 1
-                then value
-                else go {
-                  inherit value;
-                  path = (tail path);
-                  set  = set."${name}" or {};
-                };
+      new = if length path == 1 then
+        value
+      else
+        go {
+          inherit value;
+          path = (tail path);
+          set = set."${name}" or { };
+        };
     };
-    set // { "${name}" = new; };
+    set // {
+      "${name}" = new;
+    };
 
   # Unit test
   testData = rec {
-    inputPath  = [ "x" "y" "z" ];
+    inputPath = [ "x" "y" "z" ];
     inputValue = 1337;
-    inputSet   = {
-      a = { b = 1; c = null; };
+    inputSet = {
+      a = {
+        b = 1;
+        c = null;
+      };
       b = [ "foo" "bar" ];
       x = {
         a = 1;
@@ -34,7 +40,10 @@ with rec {
     };
 
     expected = {
-      a = { b = 1; c = null; };
+      a = {
+        b = 1;
+        c = null;
+      };
       b = [ "foo" "bar" ];
       x = {
         a = 1;
@@ -46,9 +55,13 @@ with rec {
       };
     };
 
-    got     = go { path = inputPath; value = inputValue; set = inputSet; };
+    got = go {
+      path = inputPath;
+      value = inputValue;
+      set = inputSet;
+    };
     message = "'got' should match 'expected'";
-    result  = got == expected;
+    result = got == expected;
   };
 
   test = testData.result || abort (toJSON testData);

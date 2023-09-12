@@ -20,10 +20,9 @@ with {
   #  - We need to ensure we're checking the version of nixpkgs that's called
   #    us, which might not be <nixpkgs>. We use the 'path' attribute of
   #    nixpkgs for this.
-  racket-override-still-needed = runCommand
-    "racket-override-still-needed-for-nixpkgs${nixpkgsRelease}"
-    (withNix { buildInputs = [ fail ]; })
-    ''
+  racket-override-still-needed =
+    runCommand "racket-override-still-needed-for-nixpkgs${nixpkgsRelease}"
+    (withNix { buildInputs = [ fail ]; }) ''
       echo "Checking whether Racket in nixpkgs${nixpkgsRelease}," 1>&2
       echo "from ${path}, is still broken on ${currentSystem}."   1>&2
       KNOWN=0
@@ -140,20 +139,20 @@ with {
       mkdir "$out"
     '';
 
-  racket-override-not-needed = runCommand
-    "racket-override-not-needed-for-nixpkgs${nixpkgsRelease}"
-    (withNix { buildInputs = [ fail ]; })
-    ''
+  racket-override-not-needed =
+    runCommand "racket-override-not-needed-for-nixpkgs${nixpkgsRelease}"
+    (withNix { buildInputs = [ fail ]; }) ''
       X=$(nix-instantiate -E '(import "${path}" {}).racket' 2>&1) ||
         fail "Couldn't instantiate Racket:\n$X\nSeems broken to me!"
       mkdir "$out"
     '';
-};
-rec {
-  racketWorks = !(elem currentSystem [ "i686-linux" "x86_64-darwin" ]) ||
-                compareVersions nixpkgsRelease "1703" == -1;
+}; rec {
+  racketWorks = !(elem currentSystem [ "i686-linux" "x86_64-darwin" ])
+    || compareVersions nixpkgsRelease "1703" == -1;
 
-  checkWhetherBroken = if racketWorks
-                          then { inherit racket-override-not-needed;   }
-                          else { inherit racket-override-still-needed; };
+  checkWhetherBroken = if racketWorks then {
+    inherit racket-override-not-needed;
+  } else {
+    inherit racket-override-still-needed;
+  };
 }

@@ -2,7 +2,7 @@
 { bash, mkBin, runCommand }:
 
 mkBin {
-  name   = "backtrace";
+  name = "backtrace";
   script = ''
     #!${bash}/bin/bash
     set -e

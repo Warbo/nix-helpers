@@ -2,11 +2,12 @@
 { attrsToDirs', bash, runCommand, sanitiseName, wrap }:
 
 with rec {
-  go = args: attrsToDirs' (sanitiseName args.name) {
-    bin = builtins.listToAttrs [{
-      inherit (args) name;
-      value = wrap args;
-    }];
-  };
+  go = args:
+    attrsToDirs' (sanitiseName args.name) {
+      bin = builtins.listToAttrs [{
+        inherit (args) name;
+        value = wrap args;
+      }];
+    };
 };
 go

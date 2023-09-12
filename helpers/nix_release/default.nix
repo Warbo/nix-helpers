@@ -7,8 +7,8 @@ with rec {
   # TODO: It might be better to check if the import is callable, rather than
   # not-an-attrset. In particular, it would be nice to support {__functor = ...}
   nix_release_eval = wrap {
-    name   = "nix_release_eval";
-    paths  = [ bash fail ];
+    name = "nix_release_eval";
+    paths = [ bash fail ];
     script = ''
       #!${bash}/bin/bash
       set -e
@@ -46,7 +46,7 @@ with rec {
       F="$F" nix eval --show-trace --raw ${
         escapeShellArg ("(" + concatStringsSep " " [
           ''with { raw = import (./. + ("/" + (builtins.getEnv "F"))); };''
-          ''with { val = if builtins.isAttrs raw then raw else raw {}; };''
+          "with { val = if builtins.isAttrs raw then raw else raw {}; };"
           ''(import "${cleanSource ../..}").drvPathsIn val''
         ] + ")")
       }
@@ -54,12 +54,10 @@ with rec {
   };
 
   nix_release = wrap {
-    name  = "nix_release";
-    file  = ./nix_release.sh;
+    name = "nix_release";
+    file = ./nix_release.sh;
     paths = [ bash fail git gnutar ];
-    vars  = { inherit nix_release_eval; };
+    vars = { inherit nix_release_eval; };
   };
 };
-attrsToDirs' "nix_release" {
-  bin = { inherit nix_release nix_release_eval; };
-}
+attrsToDirs' "nix_release" { bin = { inherit nix_release nix_release_eval; }; }

@@ -1,11 +1,11 @@
 { bash, mkBin, withNix }:
 
 with builtins;
-with { nixy = withNix {}; };
+with { nixy = withNix { }; };
 mkBin {
-  name   = "inNixedDir";
-  paths  = nixy.buildInputs;
-  vars   = removeAttrs nixy [ "buildInputs" ];
+  name = "inNixedDir";
+  paths = nixy.buildInputs;
+  vars = removeAttrs nixy [ "buildInputs" ];
   script = ''
     #!${bash}/bin/bash
     set -e

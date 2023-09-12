@@ -1,9 +1,7 @@
 { lib, reverse }:
 
 with lib;
-with rec {
-  go = x: concatStringsSep "" (reverse (stringToCharacters x));
-};
+with rec { go = x: concatStringsSep "" (reverse (stringToCharacters x)); };
 assert go "hello" == "olleh";
-assert go ""      == "";
+assert go "" == "";
 go

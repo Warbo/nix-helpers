@@ -1,14 +1,14 @@
-{ checkedRacket, fetchFromGitHub, fetchgit, hasBinary, lib, makeWrapper,
-  racket, runCommand }:
+{ checkedRacket, fetchFromGitHub, fetchgit, hasBinary, lib, makeWrapper, racket
+, runCommand }:
 
 with builtins;
 with {
-  go = { racket }: deps: runCommand "${racket.name}-with-deps"
-    {
+  go = { racket }:
+    deps:
+    runCommand "${racket.name}-with-deps" {
       inherit deps racket;
       buildInputs = [ makeWrapper racket ];
-    }
-    ''
+    } ''
       # raco writes to HOME, so make sure that's included
       export HOME="$out/etc"
       mkdir -p "$HOME"

@@ -1,26 +1,26 @@
 { asPath, hello, nothing }:
 
 with builtins;
-with import ./util.nix {};
+with import ./util.nix { };
 assert typeOf rootPath == "path" || die {
-  error      = "rootPath should be a path";
+  error = "rootPath should be a path";
   actualType = typeOf rootPath;
 };
 assert toString rootPath == "/" || die {
-  error    = "rootPath should be /";
+  error = "rootPath should be /";
   rootPath = toString rootPath;
 };
 assert typeOf (asPath ./.) == "path" || die {
-  error      = "asPath of a path should produce a path";
+  error = "asPath of a path should produce a path";
   actualType = typeOf (asPath ./.);
 };
 assert toString (asPath ./.) == toString ./. || die {
-  error  = "asPath result didn't match input";
-  input  = toString ./.;
+  error = "asPath result didn't match input";
+  input = toString ./.;
   output = toString (asPath ./.);
 };
 assert typeOf (asPath "${hello}/bin/hello") == "path" || die {
-  error      = "asPath couldn't handle store paths";
+  error = "asPath couldn't handle store paths";
   actualType = typeOf (asPath "${hello}/bin/hello");
 };
 nothing

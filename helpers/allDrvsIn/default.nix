@@ -11,15 +11,19 @@ with rec {
       a = 5;
       b = null;
       c = true;
-      d = {};
+      d = { };
       e = "hello";
-      f = { x = nothing; y = nothing; g = []; };
+      f = {
+        x = nothing;
+        y = nothing;
+        g = [ ];
+      };
       z = nothing;
     };
 
-    message      = "gotLength should equal shouldLength";
-    output       = go input;
-    gotLength    = length output;
+    message = "gotLength should equal shouldLength";
+    output = go input;
+    gotLength = length output;
     shouldLength = 3;
   };
 

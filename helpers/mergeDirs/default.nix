@@ -2,7 +2,8 @@
 { runCommand }:
 
 with builtins;
-dirs: runCommand "merged-dirs" { dirs = map toString dirs; } ''
+dirs:
+runCommand "merged-dirs" { dirs = map toString dirs; } ''
   shopt -s nullglob
   mkdir -p "$out"
 

@@ -1,7 +1,8 @@
 # Extract a given tarball. If it's not a tarball, just copy.
 { runCommand }:
 
-name: src: runCommand name { inherit src; } ''
+name: src:
+runCommand name { inherit src; } ''
   isTar() {
     echo "$1" | grep -i '\.tar' 1>/dev/null && return 0
     echo "$1" | grep -i '\.tgz' 1>/dev/null && return 0

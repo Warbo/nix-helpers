@@ -1,5 +1,4 @@
 { runCommand }:
 
-prefer: fallback: if (builtins.tryEval prefer).success
-                     then prefer
-                     else fallback
+prefer: fallback:
+if (builtins.tryEval prefer).success then prefer else fallback

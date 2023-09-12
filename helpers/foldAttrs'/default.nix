@@ -2,6 +2,5 @@
 
 with builtins;
 with lib;
-f: z: attrs: fold (name: f name (getAttr name attrs))
-                  z
-                  (attrNames attrs)
+f: z: attrs:
+fold (name: f name (getAttr name attrs)) z (attrNames attrs)

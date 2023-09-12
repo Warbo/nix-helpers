@@ -1,10 +1,11 @@
 { die }:
 
-src_: f: die {
+src_: f:
+die {
   inherit src_;
-  error    = "deprecated";
+  error = "deprecated";
   function = "nixFromCabal";
-  message  = ''
+  message = ''
     nixFromCabal is overly complex, does too much and can be replaced with
     other functions. In particular:
       - nixpkgs functions like hackage2nix and haskellSrc2nix can make a Nix

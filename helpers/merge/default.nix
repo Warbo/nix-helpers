@@ -2,4 +2,4 @@
 { die, lib }:
 
 with lib;
-fold (x: y: x // y) {}
+fold (x: y: x // y) { }

@@ -8,12 +8,10 @@ assert super ? replace || die {
   names = attrNames super;
   inherit (super) src;
 };
-with {
-  delim = x: "$" + "{" + x + "}";
-};
+with { delim = x: "$" + "{" + x + "}"; };
 mkBin {
-  name   = "replace";
-  paths  = [ bash fail ];
+  name = "replace";
+  paths = [ bash fail ];
   script = ''
     #!${bash}/bin/bash
     set -e
@@ -23,7 +21,8 @@ mkBin {
 
     function nonEven {
       fail "Non-even number of replacement strings. Found string pairs '${
-            delim "REPLACEMENTS[*]"}' and failed with leftovers '$*'."
+        delim "REPLACEMENTS[*]"
+      }' and failed with leftovers '$*'."
     }
 
     function dodgy {

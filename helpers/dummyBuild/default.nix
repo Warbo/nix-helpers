@@ -1,3 +1,7 @@
 { dummyWithEnv }:
 
-name: dummyWithEnv { inherit name; value = ""; }
+name:
+dummyWithEnv {
+  inherit name;
+  value = "";
+}

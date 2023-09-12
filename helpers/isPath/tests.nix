@@ -2,23 +2,23 @@
 
 {
   relative = dummyWithEnv {
-    name  = "relativePathIsPath";
-    value =   isPath ./isPath.nix;
+    name = "relativePathIsPath";
+    value = isPath ./isPath.nix;
   };
   absolute = dummyWithEnv {
-    name  = "absolutePathIsPath";
-    value =   isPath /tmp;
+    name = "absolutePathIsPath";
+    value = isPath /tmp;
   };
   pathString = dummyWithEnv {
-    name  = "pathStringIsPath";
-    value =   isPath "/tmp";
+    name = "pathStringIsPath";
+    value = isPath "/tmp";
   };
   nonPathString = dummyWithEnv {
-    name  = "stringIsNotPath";
+    name = "stringIsNotPath";
     value = !(isPath "foo");
   };
   other = dummyWithEnv {
-    name  = "otherIsNotPath";
+    name = "otherIsNotPath";
     value = !(isPath 42);
   };
 }

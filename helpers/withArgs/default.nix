@@ -8,17 +8,17 @@ with lib;
 # TODO: Hopefully Nix will get a feature to set a function's argument names
 args: f:
 
-  with rec {
+with rec {
 
-    # Build a string "a,b,c" for the arguments "args"
-    arglist = concatStringsSep "," args;
+  # Build a string "a,b,c" for the arguments "args"
+  arglist = concatStringsSep "," args;
 
-    # Strip any dependencies off our string, so it can be embedded
-    arglistF = unsafeDiscardStringContext arglist;
+  # Strip any dependencies off our string, so it can be embedded
+  arglistF = unsafeDiscardStringContext arglist;
 
-    # Write an eta-expansion of "f", which accepts the arguments "args"
-    content = "f: args@{${arglistF}, ...}: f args";
+  # Write an eta-expansion of "f", which accepts the arguments "args"
+  content = "f: args@{${arglistF}, ...}: f args";
 
-    eta = import (toFile "withArgs.nix" content) f;
-  };
-  eta
+  eta = import (toFile "withArgs.nix" content) f;
+};
+eta

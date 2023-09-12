@@ -1,3 +1,3 @@
 { nix-helpers-sources }:
 
-(import nix-helpers-sources.niv {}).niv
+(import nix-helpers-sources.niv { }).niv
