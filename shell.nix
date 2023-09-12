@@ -1,5 +1,8 @@
-with { inherit (import ./.) nixpkgsLatest pinnedNiv; };
-nixpkgsLatest.stdenv.mkDerivation {
+args@{ ... }:
+with {
+  inherit (import ./. (removeAttrs args [ "inNixShell" ])) nixpkgs pinnedNiv;
+};
+nixpkgs.stdenv.mkDerivation {
   name = "nix-helpers-env";
-  buildInputs = [ pinnedNiv ];
+  buildInputs = [ nixpkgs.nix-eval-jobs nixpkgs.nixfmt pinnedNiv ];
 }
