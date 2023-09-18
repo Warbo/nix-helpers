@@ -2,8 +2,8 @@
 , nixpkgs ? (import ./pinnedNixpkgs { inherit nixpkgs-lib; }).nixpkgsLatest }:
 
 with rec {
-  inherit (builtins) attrNames getAttr;
-  inherit (nixpkgs-lib) fold;
+  inherit (builtins) attrNames getAttr isAttrs;
+  inherit (nixpkgs-lib) fold mapAttrs;
 
   callPackage = nixpkgs.newScope nix-helpers;
 
@@ -39,7 +39,11 @@ with rec {
 
   nix-helpers = pinnedNixpkgs // defs // {
     inherit nix-helpers nixpkgs nixpkgs-lib;
-    nix-helpers-tests = tests;
+    nix-helpers-tests = {
+      recurseForDerivations = true;
+    } // mapAttrs
+      (_: x: if isAttrs x then { recurseForDerivations = true; } // x else x)
+      tests;
   };
 };
 nix-helpers
