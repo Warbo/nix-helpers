@@ -1,13 +1,9 @@
 # A wrapper around the 'replace' command, which is simpler and saner. We used to
 # use a binary from MariaDB but it's now removed, and it was a heavy dependency.
-{ bash, die, fail, mkBin, runCommand, super }:
+{ bash, die, fail, mkBin, runCommand, nixpkgs }:
 
 with builtins;
-assert super ? replace || die {
-  error = "No 'replace' in super.";
-  names = attrNames super;
-  inherit (super) src;
-};
+assert nixpkgs ? replace || die { error = "No 'replace' in given nixpkgs."; };
 with { delim = x: "$" + "{" + x + "}"; };
 mkBin {
   name = "replace";
@@ -93,7 +89,7 @@ mkBin {
       #   -e forces case sensitivity
       #   -s allows replacement anywhere, not just at "word boundaries"
       #   -f forces in-place replacement,
-      "${super.replace}/bin/replace-literal" -e -s "$@"
+      "${nixpkgs.replace}/bin/replace-literal" -e -s "$@"
     }
 
     if [[ "${delim "#FILES[@]"}" -eq 0 ]]
