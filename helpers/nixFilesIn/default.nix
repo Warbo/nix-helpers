@@ -4,36 +4,28 @@
 # prefix and ".nix" suffix, e.g. "${dir}/foo.nix".
 #
 # Note that this is used to bootstrap nix-helpers, so it should work standalone.
-{ die ? import ../die { }, # Provide fallback for bootstrapping
-lib }:
+{ die ? import ../die { }, suffixedFilesIn ? import ../suffixedFilesIn { } }:
 
 with builtins;
 with rec {
-  content = dir: filter (lib.hasSuffix ".nix") (attrNames (readDir dir));
-
-  entry = dir: f: {
-    name = lib.removeSuffix ".nix" f;
-    value = dir + "/${f}";
-  };
-
-  go = dir: listToAttrs (map (entry dir) (content dir));
+  go = suffixedFilesIn ".nix";
 
   testData = go ./.;
 
-  thisFile = ./. + "/default.nix";
+  thisFile = ./default.nix;
 };
 
 assert testData ? default || die {
   inherit testData;
-  error = "Expected 'nixFilesIn' to appear in 'testData'";
+  error = "Expected 'default' to appear in 'testData'";
 };
 assert testData.default == thisFile || die {
   inherit testData thisFile;
-  error = "Expected 'testData.nixFilesIn' to match 'thisFile'";
+  error = "Expected 'testData.default' to match 'thisFile'";
 };
 assert dirOf testData.default == ./. || die {
   inherit testData;
   thisDir = ./.;
-  error = "Expected 'testData.nixFilesIn' to be a file under 'thisDir'";
+  error = "Expected 'testData.default' to be a file under 'thisDir'";
 };
 go
