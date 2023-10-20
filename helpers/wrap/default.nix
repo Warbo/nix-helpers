@@ -6,7 +6,7 @@ with lib;
 with rec {
   # Load makeWrapper from 16.09 so that it has known behaviour w.r.t. quoting,
   # etc.
-  makeWrapper = makeSetupHook { }
+  makeWrapper = makeSetupHook { name = "make-wrapper"; }
     "${repo1609}/pkgs/build-support/setup-hooks/make-wrapper.sh";
 };
 { file ? null, name, patchShebangs ? true, paths ? [ ], script ? null
