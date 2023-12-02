@@ -1,11 +1,9 @@
-{ checkedRacket, fetchFromGitHub, fetchgit, hasBinary, lib, makeWrapper, racket
-, runCommand }:
+{ lib, makeWrapper, racket, runCommand }:
 
-with builtins;
 with {
-  go = { racket }:
+  go = { racket, name ? "${racket.name}-with-deps" }:
     deps:
-    runCommand "${racket.name}-with-deps" {
+    runCommand name {
       inherit deps racket;
       buildInputs = [ makeWrapper racket ];
     } ''
