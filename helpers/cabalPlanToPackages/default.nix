@@ -1,4 +1,4 @@
-{ haskell, haskellPackages }:
+{ haskell, haskellPackages, lib }:
 with {
   inherit (builtins) filter listToAttrs map;
   oldHaskellPackages = haskellPackages;
@@ -16,7 +16,11 @@ with rec {
 
   fixes = self: super: {
     # TODO: Disable all tests, to prevent circular dependencies
-    mkDerivation = args: super.mkDerivation (args // { doCheck = false; });
+    mkDerivation = lib.setFunctionArgs
+      (args: super.mkDerivation (args // { doCheck = false; }))
+      super.mkDerivation // {
+        original = haskellPackages.mkDerivation;
+      };
 
     # The splitmix package lists 'testu01' as a required "system dependency"
     testu01 = null;
