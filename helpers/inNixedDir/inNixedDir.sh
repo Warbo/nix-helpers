@@ -14,6 +14,7 @@ then
     INNER="$NAME"
 else
     SCRATCH=$(mktemp -d)
+    # shellcheck disable=SC2064
     trap "rm -rf $SCRATCH" EXIT
     INNER="$SCRATCH/$NAME"
 fi
