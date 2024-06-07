@@ -2,18 +2,18 @@
   bash,
   hasBinary,
   mkBin,
+  nix,
   withDeps,
-  withNix,
 }:
 
 with builtins;
 with rec {
-  nixy = withNix { };
+  got = builtins.getEnv "NIX_PATH";
 
   pkg = mkBin {
     name = "pipeToNix";
-    paths = nixy.buildInputs;
-    vars = removeAttrs nixy [ "buildInputs" ];
+    paths = [ nix.out ];
+    vars.NIX_PATH = if got == "" then "nixpkgs=${<nixpkgs>}" else got;
     script = ''
       #!${bash}/bin/bash
       set -e
