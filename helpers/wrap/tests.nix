@@ -3,7 +3,6 @@
   hello,
   jq,
   lib,
-  python,
   python3,
   runCommand,
   stdenv,
@@ -49,7 +48,7 @@ with {
           };
           paths = [
             jq
-            python
+            python3
           ];
           script = ''
             #!${bash}/bin/bash
@@ -58,8 +57,8 @@ with {
               exit 1
             }
 
-            command -v python || {
-              echo "No python" 1>&2
+            command -v python3 || {
+              echo "No python3" 1>&2
               exit 1
             }
 
@@ -104,9 +103,9 @@ with {
               "${n}" = v;
             };
             name = "check-wrap-escaping-${n}";
-            paths = [ python ];
+            paths = [ python3 ];
             script = ''
-              #!${python}/bin/python
+              #!${python3}/bin/python3
               from os import getenv
 
               n   = '${n}'
@@ -290,7 +289,7 @@ varChk
       }
       ''
         "$script" || {
-          echo "Wrapped Python script failed" 1>&2
+          echo "Wrapped Python3 script failed" 1>&2
           exit 1
         }
         mkdir "$out"
