@@ -2,7 +2,7 @@
   bash,
   checkedRacket,
   ghc,
-  python,
+  python3,
   run,
 }:
 
@@ -29,9 +29,9 @@
 
   run-python = run {
     name = "run-python-test";
-    paths = [ python ];
+    paths = [ python3 ];
     script = ''
-      #!${python}/bin/python
+      #!${python3}/bin/python
       import os
       os.mkdir(os.getenv('out'))
     '';
