@@ -1,8 +1,8 @@
 {
   bash,
-  checkedRacket,
   ghc,
   python3,
+  racket,
   run,
 }:
 
@@ -39,9 +39,9 @@
 
   run-racket = run {
     name = "run-racket-test";
-    paths = [ checkedRacket ];
+    paths = [ racket ];
     script = ''
-      #!${checkedRacket}/bin/racket
+      #!${racket}/bin/racket
       #lang racket
       (make-directory* (getenv "out"))
     '';

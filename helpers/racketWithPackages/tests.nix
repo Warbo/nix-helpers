@@ -1,5 +1,4 @@
 {
-  checkedRacket,
   fetchFromGitHub,
   fetchgit,
   hasBinary,
@@ -7,7 +6,7 @@
 }:
 
 with {
-  result = racketWithPackages.override { racket = checkedRacket; } [
+  result = racketWithPackages [
     # Dependency of grommet
     (fetchgit {
       url = "https://gitlab.com/RayRacine/grip.git";

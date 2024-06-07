@@ -1,3 +1,0 @@
-{ checkRacket }:
-
-checkRacket.checkWhetherBroken
