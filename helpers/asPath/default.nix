@@ -1,11 +1,17 @@
-{ die, hello, lib, nothing }:
+{
+  die,
+  hello,
+  lib,
+  nothing,
+}:
 
 with builtins;
 with lib;
 with import ./util.nix { };
 with rec {
   stillNeeded = typeOf (toPath ./.) == "string";
-  obsoleteWarn = x:
+  obsoleteWarn =
+    x:
     if stillNeeded then
       x
     else
@@ -15,7 +21,8 @@ with rec {
   # "a string that refers to a store path cannot be appended to a path". Note
   # that it's safe to do this, because a new context will be created when the
   # resulting path gets converted to a string (e.g. as a derivation attribute).
-  go = path:
+  go =
+    path:
     if typeOf path == "path" then
       path
     else

@@ -1,3 +1,7 @@
-{ allDrvsIn, nothing, withDeps }:
+{
+  allDrvsIn,
+  nothing,
+  withDeps,
+}:
 
 withDeps (allDrvsIn { x = nothing; }) nothing

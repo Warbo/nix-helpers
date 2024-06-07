@@ -1,4 +1,9 @@
-{ hackageIndex, jq, lib, writeScriptBin }:
+{
+  hackageIndex,
+  jq,
+  lib,
+  writeScriptBin,
+}:
 writeScriptBin "curl" ''
   #!/bin/sh
   set -e
@@ -23,11 +28,18 @@ writeScriptBin "curl" ''
           keys = { };
           version = 5;
           roles =
-            lib.genAttrs [ "mirrors" "root" "snapshot" "targets" "timestamp" ]
-            (_: {
-              keyids = [ ];
-              threshold = 0;
-            });
+            lib.genAttrs
+              [
+                "mirrors"
+                "root"
+                "snapshot"
+                "targets"
+                "timestamp"
+              ]
+              (_: {
+                keyids = [ ];
+                threshold = 0;
+              });
         };
       }
     }'

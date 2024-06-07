@@ -1,4 +1,10 @@
-{ bash, hasBinary, mkBin, withDeps, withNix }:
+{
+  bash,
+  hasBinary,
+  mkBin,
+  withDeps,
+  withNix,
+}:
 
 with builtins;
 with rec {

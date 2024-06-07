@@ -1,4 +1,10 @@
-{ bash, checkedRacket, ghc, python, run }:
+{
+  bash,
+  checkedRacket,
+  ghc,
+  python,
+  run,
+}:
 
 {
   run-bash = run {

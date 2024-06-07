@@ -1,5 +1,9 @@
 # Traverse nested attribute sets, gathering a list of all derivations we find
-{ lib, nothing, withDeps }:
+{
+  lib,
+  nothing,
+  withDeps,
+}:
 
 with builtins;
 with lib;

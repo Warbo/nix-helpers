@@ -7,7 +7,14 @@
 #  - We can use builtins.unsafeDiscardStringContext to avoid errors, but we
 #    must ensure that the context is added back in so that dependencies are
 #    are built when needed and not garbage collected from under us.
-{ asPath, hello, lib, runCommand, sanitiseName, writeScript }:
+{
+  asPath,
+  hello,
+  lib,
+  runCommand,
+  sanitiseName,
+  writeScript,
+}:
 
 with builtins;
 with lib;
@@ -23,8 +30,8 @@ with rec {
   #   getRoot "/nix/store/...-foo/bar/baz" -> "/nix/store/...-foo"
   # This way we're guaranteed to avoid filename characters which aren't
   # valid store paths.
-  getRoot = x:
-    if toString (dirOf x) == toString storeDir then x else getRoot (dirOf x);
+  getRoot =
+    x: if toString (dirOf x) == toString storeDir then x else getRoot (dirOf x);
 
   # Complements getRoot:
   #   p = "/nix/store/...-foo/bar/baz" -> trunk = "bar/baz"
@@ -36,18 +43,21 @@ with rec {
   # For store paths, we make a symlink which depends on p's context. By
   # using the root we avoid incompatible characters, without using
   # builtins.path (which Nix complains about if we give it a store path).
-  symlink = runCommand safeName {
-    inherit trunk;
-    root = toString (asPath (getRoot p));
-  } ''
-    ${if isString p then addContextFrom p "" else ""}
-    if [[ -z "$trunk" ]]
-    then
-      ln -s "$root" "$out"
-    else
-      ln -s "$root/$trunk" "$out"
-    fi
-  '';
+  symlink =
+    runCommand safeName
+      {
+        inherit trunk;
+        root = toString (asPath (getRoot p));
+      }
+      ''
+        ${if isString p then addContextFrom p "" else ""}
+        if [[ -z "$trunk" ]]
+        then
+          ln -s "$root" "$out"
+        else
+          ln -s "$root/$trunk" "$out"
+        fi
+      '';
 };
 if isStore p then
   symlink

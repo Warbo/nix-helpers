@@ -1,5 +1,9 @@
 # Provides a 'backtrace' command showing the process hierarchy of its caller
-{ bash, mkBin, runCommand }:
+{
+  bash,
+  mkBin,
+  runCommand,
+}:
 
 mkBin {
   name = "backtrace";

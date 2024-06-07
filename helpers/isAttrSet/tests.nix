@@ -1,4 +1,8 @@
-{ callPackage, hello, isAttrSet }:
+{
+  callPackage,
+  hello,
+  isAttrSet,
+}:
 
 assert isAttrSet { };
 assert isAttrSet { x = "y"; };

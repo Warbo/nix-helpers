@@ -4,32 +4,43 @@ with builtins;
 with lib;
 with rec {
   # The actual function
-  go = { path, value, set }:
+  go =
+    {
+      path,
+      value,
+      set,
+    }:
     with rec {
       name = head path;
-      new = if length path == 1 then
-        value
-      else
-        go {
-          inherit value;
-          path = (tail path);
-          set = set."${name}" or { };
-        };
+      new =
+        if length path == 1 then
+          value
+        else
+          go {
+            inherit value;
+            path = (tail path);
+            set = set."${name}" or { };
+          };
     };
-    set // {
-      "${name}" = new;
-    };
+    set // { "${name}" = new; };
 
   # Unit test
   testData = rec {
-    inputPath = [ "x" "y" "z" ];
+    inputPath = [
+      "x"
+      "y"
+      "z"
+    ];
     inputValue = 1337;
     inputSet = {
       a = {
         b = 1;
         c = null;
       };
-      b = [ "foo" "bar" ];
+      b = [
+        "foo"
+        "bar"
+      ];
       x = {
         a = 1;
         y = {
@@ -44,7 +55,10 @@ with rec {
         b = 1;
         c = null;
       };
-      b = [ "foo" "bar" ];
+      b = [
+        "foo"
+        "bar"
+      ];
       x = {
         a = 1;
         y = {

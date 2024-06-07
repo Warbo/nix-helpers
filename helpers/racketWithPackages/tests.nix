@@ -1,4 +1,10 @@
-{ checkedRacket, fetchFromGitHub, fetchgit, hasBinary, racketWithPackages }:
+{
+  checkedRacket,
+  fetchFromGitHub,
+  fetchgit,
+  hasBinary,
+  racketWithPackages,
+}:
 
 with {
   result = racketWithPackages.override { racket = checkedRacket; } [
@@ -24,7 +30,8 @@ with {
       sha256 = "06z5bhmvpdhy4bakh30fzha4s0xp2arjq8h9cyi65b1y18cd148x";
     })
   ];
-}; {
+};
+{
   example-usage = result;
   example-has-racket = hasBinary result "racket";
 }

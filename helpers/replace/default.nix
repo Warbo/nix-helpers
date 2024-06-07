@@ -1,13 +1,23 @@
 # A wrapper around the 'replace' command, which is simpler and saner. We used to
 # use a binary from MariaDB but it's now removed, and it was a heavy dependency.
-{ bash, die, fail, mkBin, runCommand, nixpkgs }:
+{
+  bash,
+  die,
+  fail,
+  mkBin,
+  runCommand,
+  nixpkgs,
+}:
 
 with builtins;
 assert nixpkgs ? replace || die { error = "No 'replace' in given nixpkgs."; };
 with { delim = x: "$" + "{" + x + "}"; };
 mkBin {
   name = "replace";
-  paths = [ bash fail ];
+  paths = [
+    bash
+    fail
+  ];
   script = ''
     #!${bash}/bin/bash
     set -e
@@ -16,9 +26,7 @@ mkBin {
     FILES=()
 
     function nonEven {
-      fail "Non-even number of replacement strings. Found string pairs '${
-        delim "REPLACEMENTS[*]"
-      }' and failed with leftovers '$*'."
+      fail "Non-even number of replacement strings. Found string pairs '${delim "REPLACEMENTS[*]"}' and failed with leftovers '$*'."
     }
 
     function dodgy {

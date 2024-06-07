@@ -4,7 +4,10 @@
 # prefix and ".nix" suffix, e.g. "${dir}/foo.nix".
 #
 # Note that this is used to bootstrap nix-helpers, so it should work standalone.
-{ die ? import ../die { }, suffixedFilesIn ? import ../suffixedFilesIn { } }:
+{
+  die ? import ../die { },
+  suffixedFilesIn ? import ../suffixedFilesIn { },
+}:
 
 with builtins;
 with rec {
@@ -15,17 +18,23 @@ with rec {
   thisFile = ./default.nix;
 };
 
-assert testData ? default || die {
-  inherit testData;
-  error = "Expected 'default' to appear in 'testData'";
-};
-assert testData.default == thisFile || die {
-  inherit testData thisFile;
-  error = "Expected 'testData.default' to match 'thisFile'";
-};
-assert dirOf testData.default == ./. || die {
-  inherit testData;
-  thisDir = ./.;
-  error = "Expected 'testData.default' to be a file under 'thisDir'";
-};
+assert
+  testData ? default
+  || die {
+    inherit testData;
+    error = "Expected 'default' to appear in 'testData'";
+  };
+assert
+  testData.default == thisFile
+  || die {
+    inherit testData thisFile;
+    error = "Expected 'testData.default' to match 'thisFile'";
+  };
+assert
+  dirOf testData.default == ./.
+  || die {
+    inherit testData;
+    thisDir = ./.;
+    error = "Expected 'testData.default' to be a file under 'thisDir'";
+  };
 go

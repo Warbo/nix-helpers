@@ -1,4 +1,9 @@
-{ bash, coreutils, lib, writeScript }:
+{
+  bash,
+  coreutils,
+  lib,
+  writeScript,
+}:
 
 toFail:
 lib.overrideDerivation toFail (old: {

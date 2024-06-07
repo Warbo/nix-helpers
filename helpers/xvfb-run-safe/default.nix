@@ -1,67 +1,88 @@
 # xvfb-run has a few annoyances. Most important are that, prior to the end of
 # 2017, it redirects stderr to stdout; it also clobbers itself if multiple
 # instances are run. We fix this, as well as providing niceties like VNC access.
-{ bash, fail, mkBin, replace, runCommand, utillinux, x11vnc, xvfb_run }:
+{
+  bash,
+  fail,
+  mkBin,
+  replace,
+  runCommand,
+  utillinux,
+  x11vnc,
+  xvfb_run,
+}:
 
 with rec {
   # Hack to avoid unwanted quasiquotes
   braced = s: "$" + "{" + s + "}";
 
   # Patch xvfb_run to stop it merging stderr into stdout
-  patched = runCommand "patch-xvfb-run" {
-    buildInputs = [ fail replace ];
-    old = xvfb_run;
-    broken = ''DISPLAY=:$SERVERNUM XAUTHORITY=$AUTHFILE "$@" 2>&1'';
-    fixed = ''
-      [[ -z "$DEBUG" ]] || set -x
-      VNCPID=""
-      if [[ "x$XVFB_VNC" = "x1" ]]
-      then
-        echo "Starting VNC server, as requested" 1>&2
-        DISPLAY=":$SERVERNUM" XAUTHORITY="$AUTHFILE" x11vnc -localhost \
-                                                            -quiet 1>&2 &
-        VNCPID="$!"
-      fi
-      DISPLAY=":$SERVERNUM" XAUTHORITY="$AUTHFILE" "$@"
-      [[ -z "$VNCPID" ]] || kill "$VNCPID"
-    '';
-  } ''
-    set -e
+  patched =
+    runCommand "patch-xvfb-run"
+      {
+        buildInputs = [
+          fail
+          replace
+        ];
+        old = xvfb_run;
+        broken = ''DISPLAY=:$SERVERNUM XAUTHORITY=$AUTHFILE "$@" 2>&1'';
+        fixed = ''
+          [[ -z "$DEBUG" ]] || set -x
+          VNCPID=""
+          if [[ "x$XVFB_VNC" = "x1" ]]
+          then
+            echo "Starting VNC server, as requested" 1>&2
+            DISPLAY=":$SERVERNUM" XAUTHORITY="$AUTHFILE" x11vnc -localhost \
+                                                                -quiet 1>&2 &
+            VNCPID="$!"
+          fi
+          DISPLAY=":$SERVERNUM" XAUTHORITY="$AUTHFILE" "$@"
+          [[ -z "$VNCPID" ]] || kill "$VNCPID"
+        '';
+      }
+      ''
+        set -e
 
-    cp -rv "$old" "$out"
-    chmod +w -R "$out"
+        cp -rv "$old" "$out"
+        chmod +w -R "$out"
 
-    # Update references, e.g. in makeWrapper scripts
-    find "$out" -type f | while read -r FILE
-    do
-      replace "$old" "$out" -- "$FILE"
-    done
+        # Update references, e.g. in makeWrapper scripts
+        find "$out" -type f | while read -r FILE
+        do
+          replace "$old" "$out" -- "$FILE"
+        done
 
-    # Look for the script. If it's been through makeWrapper, use the original.
-       NAME="xvfb-run"
-    WRAPPED="$out/bin/.${braced "NAME"}-wrapped"
-     SCRIPT="$out/bin/$NAME"
+        # Look for the script. If it's been through makeWrapper, use the original.
+           NAME="xvfb-run"
+        WRAPPED="$out/bin/.${braced "NAME"}-wrapped"
+         SCRIPT="$out/bin/$NAME"
 
-    if [[ -f "$WRAPPED" ]]
-    then
-      SCRIPT="$WRAPPED"
-    fi
+        if [[ -f "$WRAPPED" ]]
+        then
+          SCRIPT="$WRAPPED"
+        fi
 
-    [[ -f "$SCRIPT" ]] || fail "xvfb-run script '$SCRIPT' not found"
+        [[ -f "$SCRIPT" ]] || fail "xvfb-run script '$SCRIPT' not found"
 
-    if grep -F "$broken" < "$SCRIPT"
-    then
-      echo "Patching broken xvfb-run script" 1>&2
-      replace "$broken" "$fixed" -- "$SCRIPT"
-    else
-      echo "Not patching '$SCRIPT' since it doesn't appear broken" 1>&2
-    fi
-  '';
+        if grep -F "$broken" < "$SCRIPT"
+        then
+          echo "Patching broken xvfb-run script" 1>&2
+          replace "$broken" "$fixed" -- "$SCRIPT"
+        else
+          echo "Not patching '$SCRIPT' since it doesn't appear broken" 1>&2
+        fi
+      '';
 
   # Wrap xvfb_run, so we can find a free DISPLAY number, etc.
   go = mkBin {
     name = "xvfb-run-safe";
-    paths = [ bash fail utillinux patched x11vnc ];
+    paths = [
+      bash
+      fail
+      utillinux
+      patched
+      x11vnc
+    ];
     script = ''
       #!${bash}/bin/bash
       set -e

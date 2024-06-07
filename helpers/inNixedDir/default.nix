@@ -1,4 +1,8 @@
-{ bash, mkBin, withNix }:
+{
+  bash,
+  mkBin,
+  withNix,
+}:
 
 with builtins;
 with {
@@ -10,6 +14,7 @@ mkBin {
   name = "inNixedDir";
   paths = nixy.buildInputs;
   vars = removeAttrs nixy [ "buildInputs" ];
-} // {
+}
+// {
   file = "${file}";
 }

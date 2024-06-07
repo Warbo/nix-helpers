@@ -1,8 +1,15 @@
-{ backtrace, bash, mkBin }:
+{
+  backtrace,
+  bash,
+  mkBin,
+}:
 
 mkBin {
   name = "fail";
-  paths = [ backtrace bash ];
+  paths = [
+    backtrace
+    bash
+  ];
   script = ''
     #!${bash}/bin/bash
     set -e

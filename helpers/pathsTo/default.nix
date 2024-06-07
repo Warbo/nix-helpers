@@ -1,10 +1,18 @@
-{ die, dummyBuild, getType, isAttrSet, lexSort, lib }:
+{
+  die,
+  dummyBuild,
+  getType,
+  isAttrSet,
+  lexSort,
+  lib,
+}:
 
 with rec {
   inherit (builtins) attrValues;
   inherit (lib) concatLists mapAttrs;
 
-  go = pred: path: val:
+  go =
+    pred: path: val:
     if isAttrSet val then
       concatLists (attrValues (mapAttrs (name: go pred (path ++ [ name ])) val))
     else if pred val then
@@ -13,8 +21,10 @@ with rec {
       [ ];
 };
 pred: val:
-assert isAttrSet val || die {
-  error = "pathsTo should be given an attrset";
-  given = getType val;
-};
+assert
+  isAttrSet val
+  || die {
+    error = "pathsTo should be given an attrset";
+    given = getType val;
+  };
 lexSort (go pred [ ] val)

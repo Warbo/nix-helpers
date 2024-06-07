@@ -1,9 +1,14 @@
-{ die, lib, pathsTo }:
+{
+  die,
+  lib,
+  pathsTo,
+}:
 
 with builtins;
 with lib;
 with {
-  addPath = x: path: str:
+  addPath =
+    x: path: str:
     with {
       pre = if str == null then "" else str + "\n";
       name = concatStringsSep "." path;
@@ -11,5 +16,4 @@ with {
     };
     pre + name + "	" + drv;
 };
-x:
-fold (addPath x) null (reverseList (pathsTo isDerivation x))
+x: fold (addPath x) null (reverseList (pathsTo isDerivation x))

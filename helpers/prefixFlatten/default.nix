@@ -3,8 +3,16 @@
 
 with lib;
 attrs:
-listToAttrs (concatLists (mapAttrsToList (outer:
-  mapAttrsToList (inner: value: {
-    inherit value;
-    name = outer + inner;
-  })) attrs))
+listToAttrs (
+  concatLists (
+    mapAttrsToList (
+      outer:
+      mapAttrsToList (
+        inner: value: {
+          inherit value;
+          name = outer + inner;
+        }
+      )
+    ) attrs
+  )
+)

@@ -1,4 +1,8 @@
-{ addPathToStore, hello, writeScript }:
+{
+  addPathToStore,
+  hello,
+  writeScript,
+}:
 
 {
   self = addPathToStore ../addPathToStore/default.nix;
@@ -8,6 +12,5 @@
   storePath = addPathToStore "${hello}";
   storeEntry = addPathToStore "${hello}/bin/hello";
   dodgyStore = addPathToStore "${./..}/attrsToDirs'/default.nix";
-  notBuilt = with { f = writeScript "test-file" "1234"; };
-    addPathToStore "${f}";
+  notBuilt = with { f = writeScript "test-file" "1234"; }; addPathToStore "${f}";
 }

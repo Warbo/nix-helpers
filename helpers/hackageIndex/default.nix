@@ -1,12 +1,21 @@
-{ all-cabal-hashes, haskellPackages, lib, runCommand, writeScript }:
+{
+  all-cabal-hashes,
+  haskellPackages,
+  lib,
+  runCommand,
+  writeScript,
+}:
 
 with {
   rev = lib.removePrefix "all-cabal-hashes-" all-cabal-hashes.name;
 
   mkHackageIndex = writeScript "mkHackageIndex" ''
     #!${
-      haskellPackages.ghcWithPackages
-      (pkgs: [ pkgs.aeson pkgs.MissingH pkgs.tar ])
+      haskellPackages.ghcWithPackages (pkgs: [
+        pkgs.aeson
+        pkgs.MissingH
+        pkgs.tar
+      ])
     }/bin/runhaskell
     ${builtins.readFile ./mkHackageIndex.hs}
   '';

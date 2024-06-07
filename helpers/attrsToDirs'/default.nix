@@ -1,9 +1,23 @@
 # Builds a directory whose entries/content correspond to the names/values of
 # the given attrset. When a value is an attrset, the corresponding entry is
 # a directory, whose contents is generated with attrsToDirs on that value.
-{ addPathToStore, asPath, die, dummyBuild, foldAttrs', getType, hello, isPath
-, lib, nixListToBashArray, nothing, runCmd, runCommand, sanitiseName
-, writeScript }:
+{
+  addPathToStore,
+  asPath,
+  die,
+  dummyBuild,
+  foldAttrs',
+  getType,
+  hello,
+  isPath,
+  lib,
+  nixListToBashArray,
+  nothing,
+  runCmd,
+  runCommand,
+  sanitiseName,
+  writeScript,
+}:
 
 with builtins;
 with lib;
@@ -12,21 +26,35 @@ with rec {
   # pairs, where each value is a path or derivation, and each name is the path
   # through the attrsets to reach that value. Values which are paths get copied
   # into the Nix store first.
-  toPaths = prefix: val:
-    if isPath val then [{
-      name = prefix;
-      value = addPathToStore val;
-    }] else if isDerivation val then [{
-      name = prefix;
-      value = val;
-    }] else if isAttrs val then
-      concatMap (entry: toPaths (prefix + "/" + entry) (getAttr entry val))
-      (attrNames val)
+  toPaths =
+    prefix: val:
+    if isPath val then
+      [
+        {
+          name = prefix;
+          value = addPathToStore val;
+        }
+      ]
+    else if isDerivation val then
+      [
+        {
+          name = prefix;
+          value = val;
+        }
+      ]
+    else if isAttrs val then
+      concatMap (entry: toPaths (prefix + "/" + entry) (getAttr entry val)) (
+        attrNames val
+      )
     else
       die {
         error = "Unsupported type in attrsToDirs'";
         given = getType val;
-        allowed = [ "path" "derivation" "set" ];
+        allowed = [
+          "path"
+          "derivation"
+          "set"
+        ];
       };
 };
 rawName: attrs:

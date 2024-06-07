@@ -2,7 +2,14 @@
 # want to replace 'racket' with 'checkedRacket' system-wide (in which case
 # 'then racket' will loop)
 
-{ checkRacket, lib, nixpkgs1609, racket, repo1609, stdenv }:
+{
+  checkRacket,
+  lib,
+  nixpkgs1609,
+  racket,
+  repo1609,
+  stdenv,
+}:
 
 with builtins;
 with lib;
@@ -16,7 +23,9 @@ with rec {
   macPkgs = import "${repo1609}" {
     config = {
       packageOverrides = super: {
-        dejavu_fonts = { minimal = ""; }; # Don't work on macOS
+        dejavu_fonts = {
+          minimal = "";
+        }; # Don't work on macOS
       };
     };
   };

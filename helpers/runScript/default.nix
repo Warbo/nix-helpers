@@ -1,4 +1,9 @@
-{ lib, nix, runCommand, writeScript }:
+{
+  lib,
+  nix,
+  runCommand,
+  writeScript,
+}:
 with builtins;
 with lib;
 
@@ -9,9 +14,9 @@ let
   nixEnv = env // {
     NIX_REMOTE = "daemon";
     NIX_PATH = builtins.getEnv "NIX_PATH";
-    buildInputs = [ nix ]
-      ++ (if env ? buildInputs then env.buildInputs else [ ]);
+    buildInputs = [ nix ] ++ (if env ? buildInputs then env.buildInputs else [ ]);
   };
   script = writeScript "script" text;
   runner = runCommand "runner" nixEnv script;
-in readFile "${runner}"
+in
+readFile "${runner}"

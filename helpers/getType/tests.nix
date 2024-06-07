@@ -1,4 +1,8 @@
-{ callPackage, getType, hello }:
+{
+  callPackage,
+  getType,
+  hello,
+}:
 
 assert getType hello == "derivation";
 assert getType { } == "set";

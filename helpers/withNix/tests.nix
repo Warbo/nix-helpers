@@ -1,17 +1,27 @@
-{ isBroken, lib, runCommand, withNix }:
+{
+  isBroken,
+  lib,
+  runCommand,
+  withNix,
+}:
 
 with import ./util.nix { inherit lib; };
 with {
-  testStillNeeded = if needWorkaround then {
-    workaroundStillNeeded = isBroken (runCommand "withNix-workaround-needed"
-      (withNix { NIX_REMOTE = "daemon"; }) ''
-        nix-build -E '(import <nixpkgs> {}).hello'
-        mkdir "$out"
-      '');
-  } else
-    { };
+  testStillNeeded =
+    if needWorkaround then
+      {
+        workaroundStillNeeded = isBroken (
+          runCommand "withNix-workaround-needed" (withNix { NIX_REMOTE = "daemon"; }) ''
+            nix-build -E '(import <nixpkgs> {}).hello'
+            mkdir "$out"
+          ''
+        );
+      }
+    else
+      { };
 };
-testStillNeeded // {
+testStillNeeded
+// {
   canEvalNumbers = runCommand "withNix-can-eval-number" (withNix { }) ''
     X=$(nix-instantiate --eval -E '1 + 2')
     [[ "$X" -eq 3 ]] || {

@@ -1,38 +1,51 @@
-{ attrsToDirs', hello, runCommand, writeScript }:
+{
+  attrsToDirs',
+  hello,
+  runCommand,
+  writeScript,
+}:
 
 {
   # Our filename contains a "'" which means it isn't a valid Nix store path.
   # Make sure we can still include it.
   punctuated = attrsToDirs' "attrsToDirsTest" {
-    foo = { bar = ./.. + "/attrsToDirs'/default.nix"; };
+    foo = {
+      bar = ./.. + "/attrsToDirs'/default.nix";
+    };
   };
 
   # Nix complains if strings refer to store paths, so check that we avoid this
-  storePaths =
-    attrsToDirs' "storePathTest" { foo = { bar = "${hello}/bin/hello"; }; };
+  storePaths = attrsToDirs' "storePathTest" {
+    foo = {
+      bar = "${hello}/bin/hello";
+    };
+  };
 
   # Combine the above problems
   punctuatedStore = attrsToDirs' "punctuatedStorePathTest" {
-    foo = { bar = "${./..}/attrsToDirs'/default.nix"; };
+    foo = {
+      bar = "${./..}/attrsToDirs'/default.nix";
+    };
   };
 
   # Check that dependencies of (strings of) paths become dependencies of the
   # resulting derivation.
-  dependenciesPreserved = with rec {
-    file1 = writeScript "test-file1" "content1";
-    file2 = writeScript "test-file2" "content2";
-    link1 = runCommand "test-link1" { inherit file1; } ''
-      mkdir "$out"
-      ln -s "$file1" "$out/link1"
-    '';
-    link2 = runCommand "test-link2" { inherit file2; } ''
-      ln -s "$file2" "$out"
-    '';
-    dir = attrsToDirs' "dirsWithDeps" {
-      entry1 = "${link1}/link1";
-      entry2 = "${link2}";
+  dependenciesPreserved =
+    with rec {
+      file1 = writeScript "test-file1" "content1";
+      file2 = writeScript "test-file2" "content2";
+      link1 = runCommand "test-link1" { inherit file1; } ''
+        mkdir "$out"
+        ln -s "$file1" "$out/link1"
+      '';
+      link2 = runCommand "test-link2" { inherit file2; } ''
+        ln -s "$file2" "$out"
+      '';
+      dir = attrsToDirs' "dirsWithDeps" {
+        entry1 = "${link1}/link1";
+        entry2 = "${link2}";
+      };
     };
-  };
     runCommand "dependenciesPreservedTest" { inherit dir; } ''
       function fail {
         echo "$*" 1>&2

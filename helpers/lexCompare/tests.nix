@@ -1,4 +1,9 @@
-{ bash, dummyBuild, hello, lexCompare }:
+{
+  bash,
+  dummyBuild,
+  hello,
+  lexCompare,
+}:
 
 assert -1 == lexCompare 1 2;
 assert -1 == lexCompare "a" "b";

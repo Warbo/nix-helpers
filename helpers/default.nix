@@ -1,5 +1,7 @@
-{ nixpkgs-lib ? import ./nixpkgs-lib { }
-, nixpkgs ? (import ./pinnedNixpkgs { inherit nixpkgs-lib; }).nixpkgsLatest }:
+{
+  nixpkgs-lib ? import ./nixpkgs-lib { },
+  nixpkgs ? (import ./pinnedNixpkgs { inherit nixpkgs-lib; }).nixpkgsLatest,
+}:
 
 with rec {
   inherit (builtins) attrNames getAttr isAttrs;
@@ -11,11 +13,14 @@ with rec {
   nixDirsIn = import ./nixDirsIn { };
 
   # Accumulate the results of 'addFile' for all files matching 'filename'
-  allFiles = filename:
+  allFiles =
+    filename:
     with rec {
       # Import './name/filename' , appending the results to 'previous'
-      addFile = name: previous:
-        previous // {
+      addFile =
+        name: previous:
+        previous
+        // {
           # Using 'callPackage' ensures derivations get appropriate 'override' attrs
           "${name}" = callPackage (getAttr name found) { };
         };
@@ -37,13 +42,18 @@ with rec {
   # Combine everything and tie the knot
   pinnedNixpkgs = import ./pinnedNixpkgs { inherit nixpkgs-lib; };
 
-  nix-helpers = pinnedNixpkgs // defs // {
-    inherit nix-helpers nixpkgs nixpkgs-lib;
-    nix-helpers-tests = {
-      recurseForDerivations = true;
-    } // mapAttrs
-      (_: x: if isAttrs x then { recurseForDerivations = true; } // x else x)
-      tests;
-  };
+  nix-helpers =
+    pinnedNixpkgs
+    // defs
+    // {
+      inherit nix-helpers nixpkgs nixpkgs-lib;
+      nix-helpers-tests =
+        {
+          recurseForDerivations = true;
+        }
+        // mapAttrs (
+          _: x: if isAttrs x then { recurseForDerivations = true; } // x else x
+        ) tests;
+    };
 };
 nix-helpers
