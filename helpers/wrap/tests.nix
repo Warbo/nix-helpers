@@ -115,7 +115,7 @@ with {
 
               assert env == v, msg.format(n, env, v)
 
-              print 'true'
+              print('true')
             '';
           };
         } ''"$cmd" > "$out"''
