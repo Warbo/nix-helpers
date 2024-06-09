@@ -6,7 +6,7 @@
       src = fetchGit {
         url = "http://chriswarbo.net/git/json-to-msgpack.git";
         ref = "master";
-        rev = "07bf1f3ddc7c46fae7095ec8e496defc357882ce";
+        rev = "cc98560d2c4dae2f9d8ba5ea4e2966233a5d5327";
       };
     };
     callCabal2nixWithPlan {
