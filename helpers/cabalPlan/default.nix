@@ -6,12 +6,18 @@
   lib,
   runCommand,
 }:
-with { oldHackageIndex = hackageIndex; };
+with {
+  oldCabalInstall = cabal-install;
+  oldGhc = ghc;
+  oldHackageIndex = hackageIndex;
+};
 {
   name,
   cabalFile,
   doCheck ? true,
   doBench ? false,
+  cabal-install ? oldCabalInstall,
+  ghc ? oldGhc,
   hackageIndex ? oldHackageIndex,
 }:
 with {

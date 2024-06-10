@@ -24,7 +24,8 @@ with {
       doCheck
       hackageIndex
       name
-      ;
+    ;
+    inherit (haskellPackages) cabal-install ghc;
   },
 }:
 with rec {
