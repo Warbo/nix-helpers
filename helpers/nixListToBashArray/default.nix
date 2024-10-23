@@ -19,13 +19,21 @@
 # Take lib from nixpkgs1609, since other versions (e.g. 1603) mess up escaping
 {
   nothing,
-  pinnedNixpkgs,
+  nixpkgs-lib,
   runCommand,
 }:
 
-with builtins;
-with pinnedNixpkgs.nixpkgs1609.lib;
 with rec {
+  inherit (builtins)
+    attrNames
+    attrValues
+    foldl'
+    length
+    stringLength
+    toString
+    ;
+  inherit (nixpkgs-lib) escapeShellArg;
+
   # This is the actual implementation
   go =
     { args, name }:
