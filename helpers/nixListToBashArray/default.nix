@@ -20,7 +20,7 @@
 {
   nothing,
   pinnedNixpkgs,
-  runCmd,
+  runCommand,
 }:
 
 with builtins;
@@ -98,7 +98,7 @@ with rec {
     with rec {
       context = env;
 
-      check = runCmd "check-NLTBA.nix" context ''
+      check = runCommand "check-NLTBA.nix" context ''
         function fail() {
           echo -e "$*" 1>&2
           exit 1
