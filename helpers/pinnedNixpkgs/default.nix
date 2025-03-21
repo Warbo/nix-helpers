@@ -1,6 +1,7 @@
 # Pinned nixpkgs repos
 {
   nixpkgs-lib ? import ../nixpkgs-lib { },
+  getNixpkgs ? import ../getNixpkgs {} # TODO: Use this instead of sources.json
 }:
 with rec {
   inherit (builtins)

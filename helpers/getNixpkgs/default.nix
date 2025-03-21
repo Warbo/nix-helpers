@@ -1,5 +1,4 @@
-{ fetchFromGitHub }:
-
+{ fetchFromGitHub ? import ../fetchFromGitHub {} }:
 { rev, sha256 }:
 fetchFromGitHub {
   inherit rev sha256;
