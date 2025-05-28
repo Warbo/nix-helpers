@@ -1,6 +1,11 @@
+with {
+  # Instance of pinnedNixpkgs that doesn't depend on anything else; useful to
+  # avoid infinite recursion while bootstrapping.
+  bootPinnedNixpkgs = import ./pinnedNixpkgs;
+};
 {
   nixpkgs-lib ? import ./nixpkgs-lib { },
-  nixpkgs ? (import ./pinnedNixpkgs { inherit nixpkgs-lib; }).nixpkgsLatest,
+  nixpkgs ? (bootPinnedNixpkgs { inherit nixpkgs-lib; }).nixpkgsLatest,
 }:
 
 with rec {
@@ -39,9 +44,13 @@ with rec {
   defs = allFiles "default.nix";
   tests = allFiles "tests.nix";
 
-  # Combine everything and tie the knot
-  pinnedNixpkgs = import ./pinnedNixpkgs { inherit nixpkgs-lib; };
+  # Takes its (lazy) values from defs.pinnedNixpkgs, but its (strict) keys from
+  # bootPinnedNixpkgs; so it can be spliced into our result without looping.
+  pinnedNixpkgs = builtins.mapAttrs
+    (n: _: getAttr n defs.pinnedNixpkgs)
+    (bootPinnedNixpkgs { inherit nixpkgs-lib; });
 
+  # Combine everything and tie the knot
   nix-helpers =
     pinnedNixpkgs
     // defs
