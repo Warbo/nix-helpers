@@ -93,6 +93,12 @@ with rec {
       rev = "62c435d93bf046a5396f3016472e8f7c8e2aed65";
       sha256 = "0zpvadqbs19jblnd0j2rfs9m7j0n5spx0vilq8907g2gqrx63fqp";
     };
+    repo2505 = {
+      # As long as fetchTreeFromGitHub relies on nixpkgsLatest.fetchurl, the
+      # latest entry needs to use a rev & sha256, rather than a tree
+      rev = "11cb3517b3af6af300dd6c055aeda73c9bf52c48";
+      sha256 = "1915r28xc4znrh2vf4rrjnxldw2imysz819gzhk9qlrkqanmfsxd";
+    };
   };
 
   pkgSets = mapAttrs' (n: v: {
