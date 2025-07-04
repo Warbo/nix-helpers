@@ -141,7 +141,7 @@ with rec {
     from = "yaml";
     to = "toml";
     filter = [
-      "."
+      ".[0]"
       "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)"
     ];
   });
@@ -211,10 +211,7 @@ with rec {
       inputFile = exampleTomlFile;
       from = "toml";
       to = "toml";
-      filter = [
-        "."
-        "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)"
-      ];
+      filter = ".";
     }) "toml"
   );
 
