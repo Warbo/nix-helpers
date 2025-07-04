@@ -64,28 +64,53 @@ with rec {
         filter = ".";
       });
 
-  json-to-yaml = run {
-    name = "json-to-yaml";
+  # JSON to other formats (check conversion by converting back to JSON)
+  jsonToYamlOutput = run {
+    name = "json-to-yaml-output";
     inputFile = exampleJsonFile;
     from = "json";
     to = "yaml";
+    filter = ".";
+  };
+  json-to-yaml = run {
+    name = "json-to-yaml-check";
+    inputFile = jsonToYamlOutput;
+    from = "yaml";
+    to = "json";
+    # Check for presence of key elements from the original JSON
     filter = ".string_example and .integer_example and (.array_example | is_array) and (.object_example | is_object) // halt_error(\"JSON to YAML conversion failed\")";
   };
 
-  json-to-xml = run {
-    name = "json-to-xml";
+  jsonToXmlOutput = run {
+    name = "json-to-xml-output";
     inputFile = exampleJsonFile;
     from = "json";
     to = "xml";
-    filter = ".root.string_example and .root.integer_example and (.root.array_example | is_array) and (.root.object_example | is_object) // halt_error(\"JSON to XML conversion failed\")";
+    filter = ".";
+  };
+  json-to-xml = run {
+    name = "json-to-xml-check";
+    inputFile = jsonToXmlOutput;
+    from = "xml";
+    to = "json";
+    # Check for presence of key elements in the XML-to-JSON structure
+    filter = ".root.string_example.\"#text\" and .root.integer_example.\"#text\" and (.root.array_example | is_array) and (.root.object_example | is_object) // halt_error(\"JSON to XML conversion failed\")";
   };
 
-  json-to-toml = run {
-    name = "json-to-toml";
+  jsonToTomlOutput = run {
+    name = "json-to-toml-output";
     inputFile = exampleJsonFile;
     from = "json";
     to = "toml";
-    filter = ".string and .integer and .float and (.boolean_true | is_boolean) and (.boolean_false | is_boolean) and (.simple_array | is_array) and .owner.name and .database.server // halt_error(\"JSON to TOML conversion failed\")";
+    filter = ".";
+  };
+  json-to-toml = run {
+    name = "json-to-toml-check";
+    inputFile = jsonToTomlOutput;
+    from = "toml";
+    to = "json";
+    # Check for presence of simple types that TOML can represent
+    filter = ".string_example and .integer_example and .float_example and (.boolean_true | is_boolean) and (.boolean_false | is_boolean) // halt_error(\"JSON to TOML conversion failed\")";
   };
 
   json-filter-specific =
@@ -118,19 +143,36 @@ with rec {
     filter = ".";
   });
 
-  yaml-to-xml = run {
-    name = "yaml-to-xml";
+  # YAML to other formats (check conversion by converting back to JSON)
+  yamlToXmlOutput = run {
+    name = "yaml-to-xml-output";
     inputFile = exampleYamlFile;
     from = "yaml";
     to = "xml";
-    filter = ".root.string_key and .root.integer_key and (.root.list_of_strings | is_array) and (.root.nested_map | is_object) // halt_error(\"YAML to XML conversion failed\")";
+    filter = ".";
+  };
+  yaml-to-xml = run {
+    name = "yaml-to-xml-check";
+    inputFile = yamlToXmlOutput;
+    from = "xml";
+    to = "json";
+    # Check for presence of key elements in the XML-to-JSON structure
+    filter = ".root.string_key.\"#text\" and .root.integer_key.\"#text\" and (.root.list_of_strings | is_array) and (.root.nested_map | is_object) // halt_error(\"YAML to XML conversion failed\")";
   };
 
-  yaml-to-toml = run {
-    name = "yaml-to-toml";
+  yamlToTomlOutput = run {
+    name = "yaml-to-toml-output";
     inputFile = exampleYamlFile;
     from = "yaml";
     to = "toml";
+    filter = ".";
+  };
+  yaml-to-toml = run {
+    name = "yaml-to-toml-check";
+    inputFile = yamlToTomlOutput;
+    from = "toml";
+    to = "json";
+    # Check for presence of key elements that TOML can represent
     filter = ".string_key and .integer_key and .float_key and (.boolean_true | is_boolean) and (.boolean_false | is_boolean) and (.list_of_numbers | is_array) and .nested_map.level1.level2.key // halt_error(\"YAML to TOML conversion failed\")";
   };
 
@@ -170,19 +212,36 @@ with rec {
     filter = ".";
   }));
 
-  xml-to-yaml = run {
-    name = "xml-to-yaml";
+  # XML to other formats (check conversion by converting back to JSON)
+  xmlToYamlOutput = run {
+    name = "xml-to-yaml-output";
     inputFile = exampleXmlFile;
     from = "xml";
     to = "yaml";
-    filter = ".root.element1.\"#text\" and .root.element2.\"test:namespacedElement\".\"#text\" and .root.element3.\"#text\" // halt_error(\"XML to YAML conversion failed\")";
+    filter = ".";
+  };
+  xml-to-yaml = run {
+    name = "xml-to-yaml-check";
+    inputFile = xmlToYamlOutput;
+    from = "yaml";
+    to = "json";
+    # Check for presence of key elements from the XML-to-JSON structure
+    filter = ".root.element1.\"#text\" and .root.element1.\"@attribute1\" and .root.element2.\"test:namespacedElement\".\"#text\" and .root.element3.\"#text\" // halt_error(\"XML to YAML conversion failed\")";
   };
 
-  xml-to-toml = run {
-    name = "xml-to-toml";
+  xmlToTomlOutput = run {
+    name = "xml-to-toml-output";
     inputFile = exampleXmlFile;
     from = "xml";
     to = "toml";
+    filter = ".";
+  };
+  xml-to-toml = run {
+    name = "xml-to-toml-check";
+    inputFile = xmlToTomlOutput;
+    from = "toml";
+    to = "json";
+    # Check for presence of key elements that TOML can represent
     filter = ".root.element1.\"#text\" and .root.element1.\"@attribute1\" and .root.element2.\"test:namespacedElement\".\"#text\" // halt_error(\"XML to TOML conversion failed\")";
   };
 
@@ -222,20 +281,37 @@ with rec {
     filter = ".";
   }));
 
-  toml-to-yaml = run {
-    name = "toml-to-yaml";
+  # TOML to other formats (check conversion by converting back to JSON)
+  tomlToYamlOutput = run {
+    name = "toml-to-yaml-output";
     inputFile = exampleTomlFile;
     from = "toml";
     to = "yaml";
+    filter = ".";
+  };
+  toml-to-yaml = run {
+    name = "toml-to-yaml-check";
+    inputFile = tomlToYamlOutput;
+    from = "yaml";
+    to = "json";
+    # Check for presence of key elements from the original TOML
     filter = ".string and .integer and .float and (.boolean_true | is_boolean) and (.boolean_false | is_boolean) and (.simple_array | is_array) and .owner.name and .database.server // halt_error(\"TOML to YAML conversion failed\")";
   };
 
-  toml-to-xml = run {
-    name = "toml-to-xml";
+  tomlToXmlOutput = run {
+    name = "toml-to-xml-output";
     inputFile = exampleTomlFile;
     from = "toml";
     to = "xml";
-    filter = ".root.string and .root.integer and .root.float and (.root.boolean_true | is_boolean) and (.root.boolean_false | is_boolean) and (.root.simple_array | is_array) and .root.owner.name and .root.database.server // halt_error(\"TOML to XML conversion failed\")";
+    filter = ".";
+  };
+  toml-to-xml = run {
+    name = "toml-to-xml-check";
+    inputFile = tomlToXmlOutput;
+    from = "xml";
+    to = "json";
+    # Check for presence of key elements in the XML-to-JSON structure
+    filter = ".root.string.\"#text\" and .root.integer.\"#text\" and .root.float.\"#text\" and (.root.boolean_true | is_boolean) and (.root.boolean_false | is_boolean) and (.root.simple_array | is_array) and .root.owner.name.\"#text\" and .root.database.server.\"#text\" // halt_error(\"TOML to XML conversion failed\")";
   };
 
   toml-filter-specific =
