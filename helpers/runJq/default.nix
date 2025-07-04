@@ -120,17 +120,18 @@ with {
 };
 runCommand name
   {
-    buildInputs = [
-      (
-        {
+    buildInputs =
+      with {
+        tools = {
           json = jq;
           toml = yq;
           xml = yq;
           yaml = yq;
-        }
-        .${from}
-      )
-    ];
+        };
+      }; [
+        tools.${from}
+        tools.${to}
+      ];
   }
   ''
     ${
