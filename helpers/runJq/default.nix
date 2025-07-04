@@ -42,7 +42,7 @@ with rec {
     json = "jq";
     toml = "tomlq";
     xml = "xq";
-    yaml = "yq --yaml-roundtrip";
+    yaml = "yq";
   };
 
   # How to convert the resulting JSON into each output format.
