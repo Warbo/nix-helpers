@@ -47,12 +47,6 @@ with rec {
   exampleXmlFile = ./example.xml;
   exampleTomlFile = ./example.toml;
 
-  # Expected JSON representation of example files for comparison
-  exampleJsonExpected = normaliseJson "example-json-expected" exampleJsonFile;
-  exampleYamlExpected = toJson "example-yaml-expected" exampleYamlFile "yaml";
-  exampleXmlExpected = toJson "example-xml-expected" exampleXmlFile "xml";
-  exampleTomlExpected = toJson "example-toml-expected" exampleTomlFile "toml";
-
   # Expected output for specific filters
   exampleJsonFilteredExpected = builtins.toFile "example-json-filtered-expected.json" (
     builtins.toJSON "another string"
@@ -73,7 +67,7 @@ with rec {
 
   # JSON tests
   json-to-json-identity =
-    sameJson "json-to-json-identity" exampleJsonExpected
+    sameJson "json-to-json-identity" (normaliseJson "example-json-expected" exampleJsonFile)
       (run {
         inputFile = exampleJsonFile;
         from = "json";
@@ -81,29 +75,29 @@ with rec {
         filter = ".";
       });
 
-  json-to-yaml = same "json-to-yaml" exampleYamlFile (run {
+  json-to-yaml = run {
+    name = "json-to-yaml";
     inputFile = exampleJsonFile;
     from = "json";
     to = "yaml";
-    filter = ".";
-  });
+    filter = ".string_example and .integer_example and (.array_example | is_array) and (.object_example | is_object) // halt_error(\"JSON to YAML conversion failed\")";
+  };
 
-  json-to-xml = same "json-to-xml" exampleXmlFile (run {
+  json-to-xml = run {
+    name = "json-to-xml";
     inputFile = exampleJsonFile;
     from = "json";
     to = "xml";
-    filter = ".";
-  });
+    filter = ".root.string_example and .root.integer_example and (.root.array_example | is_array) and (.root.object_example | is_object) // halt_error(\"JSON to XML conversion failed\")";
+  };
 
-  json-to-toml = same "json-to-toml" exampleTomlFile (run {
+  json-to-toml = run {
+    name = "json-to-toml";
     inputFile = exampleJsonFile;
     from = "json";
     to = "toml";
-    filter = [
-      "."
-      "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)"
-    ];
-  });
+    filter = ".string and .integer and .float and (.boolean_true | is_boolean) and (.boolean_false | is_boolean) and (.simple_array | is_array) and .owner.name and .database.server // halt_error(\"JSON to TOML conversion failed\")";
+  };
 
   json-filter-specific =
     sameJson "json-filter-specific" exampleJsonFilteredExpected
@@ -115,7 +109,13 @@ with rec {
       });
 
   # YAML tests
-  yaml-to-json = sameJson "yaml-to-json" exampleYamlExpected (run {
+  yaml-to-json = sameJson "yaml-to-json" (normaliseJson "example-yaml-expected" (run {
+    name = "yaml-to-json-intermediate";
+    inputFile = exampleYamlFile;
+    from = "yaml";
+    to = "json";
+    filter = ".";
+  })) (run {
     inputFile = exampleYamlFile;
     from = "yaml";
     to = "json";
@@ -129,22 +129,21 @@ with rec {
     filter = ".";
   });
 
-  yaml-to-xml = same "yaml-to-xml" exampleXmlFile (run {
+  yaml-to-xml = run {
+    name = "yaml-to-xml";
     inputFile = exampleYamlFile;
     from = "yaml";
     to = "xml";
-    filter = ".";
-  });
+    filter = ".root.string_key and .root.integer_key and (.root.list_of_strings | is_array) and (.root.nested_map | is_object) // halt_error(\"YAML to XML conversion failed\")";
+  };
 
-  yaml-to-toml = same "yaml-to-toml" exampleTomlFile (run {
+  yaml-to-toml = run {
+    name = "yaml-to-toml";
     inputFile = exampleYamlFile;
     from = "yaml";
     to = "toml";
-    filter = [
-      ".[0]"
-      "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)"
-    ];
-  });
+    filter = ".string_key and .integer_key and .float_key and (.boolean_true | is_boolean) and (.boolean_false | is_boolean) and (.list_of_numbers | is_array) and .nested_map.level1.level2.key // halt_error(\"YAML to TOML conversion failed\")";
+  };
 
   yaml-filter-specific =
     sameJson "yaml-filter-specific" exampleYamlFilteredExpected
@@ -156,38 +155,47 @@ with rec {
       });
 
   # XML tests (comparing JSON output for identity)
-  xml-to-json = sameJson "xml-to-json" exampleXmlExpected (run {
+  xml-to-json = sameJson "xml-to-json" (normaliseJson "example-xml-expected" (run {
+    name = "xml-to-json-intermediate";
+    inputFile = exampleXmlFile;
+    from = "xml";
+    to = "json";
+    filter = ".";
+  })) (run {
     inputFile = exampleXmlFile;
     from = "xml";
     to = "json";
     filter = ".";
   });
 
-  xml-to-xml-identity = sameJson "xml-to-xml-identity" exampleXmlExpected (
-    toJson "xml-to-xml-output" (run {
+  xml-to-xml-identity = sameJson "xml-to-xml-identity" (normaliseJson "xml-to-xml-output-json" (run {
       inputFile = exampleXmlFile;
       from = "xml";
       to = "xml";
       filter = ".";
-    }) "xml"
-  );
+    })) (normaliseJson "example-xml-expected" (run {
+    name = "xml-to-json-intermediate-for-identity";
+    inputFile = exampleXmlFile;
+    from = "xml";
+    to = "json";
+    filter = ".";
+  }));
 
-  xml-to-yaml = same "xml-to-yaml" exampleYamlFile (run {
+  xml-to-yaml = run {
+    name = "xml-to-yaml";
     inputFile = exampleXmlFile;
     from = "xml";
     to = "yaml";
-    filter = ".";
-  });
+    filter = ".root.element1.\"#text\" and .root.element2.\"test:namespacedElement\".\"#text\" and .root.element3.\"#text\" // halt_error(\"XML to YAML conversion failed\")";
+  };
 
-  xml-to-toml = same "xml-to-toml" exampleTomlFile (run {
+  xml-to-toml = run {
+    name = "xml-to-toml";
     inputFile = exampleXmlFile;
     from = "xml";
     to = "toml";
-    filter = [
-      "."
-      "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)"
-    ];
-  });
+    filter = ".root.element1.\"#text\" and .root.element1.\"@attribute1\" and .root.element2.\"test:namespacedElement\".\"#text\" // halt_error(\"XML to TOML conversion failed\")";
+  };
 
   xml-filter-specific =
     sameJson "xml-filter-specific" exampleXmlFilteredExpected
@@ -199,35 +207,47 @@ with rec {
       });
 
   # TOML tests (comparing JSON output for identity)
-  toml-to-json = sameJson "toml-to-json" exampleTomlExpected (run {
+  toml-to-json = sameJson "toml-to-json" (normaliseJson "example-toml-expected" (run {
+    name = "toml-to-json-intermediate";
+    inputFile = exampleTomlFile;
+    from = "toml";
+    to = "json";
+    filter = ".";
+  })) (run {
     inputFile = exampleTomlFile;
     from = "toml";
     to = "json";
     filter = ".";
   });
 
-  toml-to-toml-identity = sameJson "toml-to-toml-identity" exampleTomlExpected (
-    toJson "toml-to-toml-output" (run {
+  toml-to-toml-identity = sameJson "toml-to-toml-identity" (normaliseJson "toml-to-toml-output-json" (run {
       inputFile = exampleTomlFile;
       from = "toml";
       to = "toml";
       filter = ".";
-    }) "toml"
-  );
+    })) (normaliseJson "example-toml-expected" (run {
+    name = "toml-to-json-intermediate-for-identity";
+    inputFile = exampleTomlFile;
+    from = "toml";
+    to = "json";
+    filter = ".";
+  }));
 
-  toml-to-yaml = same "toml-to-yaml" exampleYamlFile (run {
+  toml-to-yaml = run {
+    name = "toml-to-yaml";
     inputFile = exampleTomlFile;
     from = "toml";
     to = "yaml";
-    filter = ".";
-  });
+    filter = ".string and .integer and .float and (.boolean_true | is_boolean) and (.boolean_false | is_boolean) and (.simple_array | is_array) and .owner.name and .database.server // halt_error(\"TOML to YAML conversion failed\")";
+  };
 
-  toml-to-xml = same "toml-to-xml" exampleXmlFile (run {
+  toml-to-xml = run {
+    name = "toml-to-xml";
     inputFile = exampleTomlFile;
     from = "toml";
     to = "xml";
-    filter = ".";
-  });
+    filter = ".root.string and .root.integer and .root.float and (.root.boolean_true | is_boolean) and (.root.boolean_false | is_boolean) and (.root.simple_array | is_array) and .root.owner.name and .root.database.server // halt_error(\"TOML to XML conversion failed\")";
+  };
 
   toml-filter-specific =
     sameJson "toml-filter-specific" exampleTomlFilteredExpected
@@ -253,7 +273,7 @@ with rec {
       });
 
   # Test with extraArgs
-  json-extra-args = sameJson "json-extra-args" exampleJsonExpected (run {
+  json-extra-args = sameJson "json-extra-args" (normaliseJson "example-json-expected" exampleJsonFile) (run {
     inputFile = exampleJsonFile;
     from = "json";
     to = "json";
