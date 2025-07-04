@@ -137,7 +137,7 @@ with rec {
     inputFile = exampleYamlFile;
     from = "yaml";
     to = "toml";
-    filter = ".";
+    filter = [ "." "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)" ];
   });
 
   yaml-filter-specific =
@@ -202,7 +202,7 @@ with rec {
       inputFile = exampleTomlFile;
       from = "toml";
       to = "toml";
-      filter = ".";
+      filter = [ "." "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)" ];
     }) "toml"
   );
 
