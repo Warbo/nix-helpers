@@ -82,4 +82,3 @@ The quick brown fox jumps over the lazy dog.
 # Comments
 # This is a full-line comment
 key = "value" # This is an end-of-line comment
-```
