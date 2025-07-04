@@ -1,0 +1,85 @@
+# This is a TOML document demonstrating various features.
+
+# Basic types
+string = "I'm a string."
+integer = 123
+float = 3.14159
+boolean_true = true
+boolean_false = false
+
+# Dates and Times
+local_date = 2024-07-04
+local_time = 12:30:00
+local_datetime = 2024-07-04T12:30:00
+utc_datetime = 2024-07-04T12:30:00Z
+offset_datetime = 2024-07-04T12:30:00-05:00
+
+# Arrays
+simple_array = [ 1, 2, 3 ]
+string_array = [ "apple", "banana", "cherry" ]
+mixed_array = [ 1, "two", true, 3.0 ]
+nested_array = [ [ 1, 2 ], [ 3, 4 ] ]
+array_of_tables = [
+  { name = "item1", value = 10 },
+  { name = "item2", value = 20 }
+]
+
+# Tables
+[owner]
+name = "Tom Preston-Werner"
+dob = 1979-05-27T07:32:00-08:00 # First class dates
+
+[database]
+server = "192.168.1.1"
+ports = [ 8001, 8001, 8002 ]
+connection_max = 5000
+enabled = true
+
+# Nested tables
+[database.replication]
+enabled = true
+role = "master"
+
+# Another table
+[servers]
+
+# Dotted keys for nested tables
+[servers.alpha]
+ip = "10.0.0.1"
+dc = "eqdc10"
+
+[servers.beta]
+ip = "10.0.0.2"
+dc = "eqdc10"
+
+# Inline tables
+inline_table = { name = "inline", version = "1.0" }
+another_inline = { x = 1, y = 2, z = { a = 3, b = 4 } }
+
+# Array of tables (alternative syntax)
+[[products]]
+name = "Hammer"
+sku = 738594937
+
+[[products]]
+name = "Nail"
+sku = 284758393
+color = "gray"
+
+# Multi-line strings
+multiline_string = """
+This is a multi-line string.
+It can span multiple lines.
+"""
+
+# Literal strings (no escaping)
+literal_string = 'C:\Users\nodejs\templates'
+multiline_literal_string = '''
+The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy dog.
+'''
+
+# Comments
+# This is a full-line comment
+key = "value" # This is an end-of-line comment
+```
