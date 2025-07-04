@@ -99,7 +99,10 @@ with rec {
     inputFile = exampleJsonFile;
     from = "json";
     to = "toml";
-    filter = [ "." "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)" ];
+    filter = [
+      "."
+      "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)"
+    ];
   });
 
   json-filter-specific =
@@ -137,7 +140,10 @@ with rec {
     inputFile = exampleYamlFile;
     from = "yaml";
     to = "toml";
-    filter = [ "." "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)" ];
+    filter = [
+      "."
+      "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)"
+    ];
   });
 
   yaml-filter-specific =
@@ -177,7 +183,10 @@ with rec {
     inputFile = exampleXmlFile;
     from = "xml";
     to = "toml";
-    filter = [ "." "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)" ];
+    filter = [
+      "."
+      "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)"
+    ];
   });
 
   xml-filter-specific =
@@ -202,7 +211,10 @@ with rec {
       inputFile = exampleTomlFile;
       from = "toml";
       to = "toml";
-      filter = [ "." "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)" ];
+      filter = [
+        "."
+        "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)"
+      ];
     }) "toml"
   );
 
