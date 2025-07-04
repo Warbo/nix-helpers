@@ -100,8 +100,8 @@ with rec {
     # Check for presence of key elements in the XML-to-JSON structure
     filter = [
       ". as $x"
-      "$x.root.string_example.\"#text\" | if . then empty else \"missing root.string_example.#text\" end | halt_error"
-      "$x.root.integer_example.\"#text\" | if . then empty else \"missing root.integer_example.#text\" end | halt_error"
+      ''$x.root.string_example."#text" | if . then empty else "missing root.string_example.#text" end | halt_error''
+      ''$x.root.integer_example."#text" | if . then empty else "missing root.integer_example.#text" end | halt_error''
       "$x.root.array_example | if (is_array) then empty else \"root.array_example is not an array\") end | halt_error"
       "$x.root.object_example | if (is_object) then empty else \"root.object_example is not an object\") end | halt_error"
     ];
@@ -256,10 +256,10 @@ with rec {
     # Check for presence of key elements from the XML-to-JSON structure
     filter = [
       ". as $x"
-      "$x.root.element1.\"#text\" | if . then empty else \"missing root.element1.#text\" end | halt_error"
-      "$x.root.element1.\"@attribute1\" | if . then empty else \"missing root.element1.@attribute1\" end | halt_error"
-      "$x.root.element2.\"test:namespacedElement\".\"#text\" | if . then empty else \"missing root.element2.test:namespacedElement.#text\" end | halt_error"
-      "$x.root.element3.\"#text\" | if . then empty else \"missing root.element3.#text\" end | halt_error"
+      ''$x.root.element1."#text" | if . then empty else "missing root.element1.#text" end | halt_error''
+      ''$x.root.element1."@attribute1" | if . then empty else "missing root.element1.@attribute1" end | halt_error''
+      ''$x.root.element2."test:namespacedElement"."#text" | if . then empty else "missing root.element2.test:namespacedElement.#text" end | halt_error''
+      ''$x.root.element3."#text" | if . then empty else "missing root.element3.#text" end | halt_error''
     ];
   };
 
@@ -289,7 +289,7 @@ with rec {
         inputFile = exampleXmlFile;
         from = "xml";
         to = "json";
-        filter = ".root.element1.\"#text\""; # Note: xq/yq structure for text content
+        filter = ''.root.element1."#text"''; # Note: xq/yq structure for text content
       });
 
   # TOML tests (comparing JSON output for identity)
