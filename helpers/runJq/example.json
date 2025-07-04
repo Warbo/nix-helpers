@@ -1,0 +1,34 @@
+{
+  "string_example": "This is a string with \"quotes\", a \\backslash\\, a \nnewline, a \ttab, and unicode characters like \u20AC (Euro symbol).",
+  "integer_example": 12345,
+  "float_example": -987.65e-2,
+  "boolean_true": true,
+  "boolean_false": false,
+  "null_example": null,
+  "array_example": [
+    1,
+    "two",
+    false,
+    null,
+    {
+      "nested_object_in_array": "hello"
+    },
+    [
+      "nested_array_in_array",
+      true
+    ]
+  ],
+  "object_example": {
+    "nested_string": "another string",
+    "nested_number": 3.14159,
+    "nested_array_in_object": [
+      "item1",
+      "item2"
+    ],
+    "nested_object_in_object": {
+      "deeply_nested": "value"
+    }
+  },
+  "empty_object": {},
+  "empty_array": []
+}
