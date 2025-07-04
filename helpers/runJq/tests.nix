@@ -99,7 +99,7 @@ with rec {
     inputFile = exampleJsonFile;
     from = "json";
     to = "toml";
-    filter = ".";
+    filter = [ "." "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)" ];
   });
 
   json-filter-specific =
@@ -177,7 +177,7 @@ with rec {
     inputFile = exampleXmlFile;
     from = "xml";
     to = "toml";
-    filter = ".";
+    filter = [ "." "walk(if type == \"object\" then with_entries(select(.value != null)) else . end)" ];
   });
 
   xml-filter-specific =
