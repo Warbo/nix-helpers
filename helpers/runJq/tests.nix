@@ -359,14 +359,14 @@ with rec {
     # Check for presence of key elements in the XML-to-JSON structure
     filter = [
       ". as $x"
-      "$x.root.string.\"#text\" | if . then empty else \"missing root.string.#text\" end | halt_error"
-      "$x.root.integer.\"#text\" | if . then empty else \"missing root.integer.#text\" end | halt_error"
-      "$x.root.float.\"#text\" | if . then empty else \"missing root.float.#text\" end | halt_error"
+      ''$x.root.string."#text" | if . then empty else "missing root.string.#text" end | halt_error''
+      ''$x.root.integer."#text" | if . then empty else "missing root.integer.#text" end | halt_error''
+      ''$x.root.float."#text" | if . then empty else "missing root.float.#text" end | halt_error''
       "$x.root.boolean_true | if (is_boolean) then empty else \"root.boolean_true is not a boolean\") end | halt_error"
       "$x.root.boolean_false | if (is_boolean) then empty else \"root.boolean_false is not a boolean\") end | halt_error"
       "$x.root.simple_array | if (is_array) then empty else \"root.simple_array is not an array\") end | halt_error"
-      "$x.root.owner.name.\"#text\" | if . then empty else \"missing root.owner.name.#text\" end | halt_error"
-      "$x.root.database.server.\"#text\" | if . then empty else \"missing root.database.server.#text\" end | halt_error"
+      ''$x.root.owner.name."#text" | if . then empty else "missing root.owner.name.#text" end | halt_error''
+      ''$x.root.database.server."#text" | if . then empty else "missing root.database.server.#text" end | halt_error''
     ];
   };
 
