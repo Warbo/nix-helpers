@@ -19,7 +19,13 @@ with rec {
     isList
     isString
     ;
-  inherit (lib) concatMapStringsSep escapeShellArg removeSuffix toLower;
+  inherit (lib)
+    concatMapStringsSep
+    concatStringsSep
+    escapeShellArg
+    removeSuffix
+    toLower
+    ;
 
   # Normalises user-provided format to a smaller set
   formats = {
@@ -103,6 +109,9 @@ with rec {
     [ (mkFilter filter) ]
   ],
   extraArgs ? [ ],
+
+  # When 'true', shows the input, output and intermediate data on stderr
+  debug ? false,
 }:
 with {
   argString = concatMapStringsSep " " escapeShellArg args;
@@ -124,5 +133,36 @@ runCommand name
     ];
   }
   ''
-    ${inCommands.${from}} ${argString} ${input} | ${outCommands.${to}} > "$out"
+    ${
+      if debug then
+        if inputFile == null then
+          ''echo "NO INPUT FILE" 1>&2''
+        else
+          ''
+            {
+              echo 'BEGIN_INPUT'
+              cat ${inputFile}
+              echo 'END_INPUT'
+            } 1>&2
+          ''
+      else
+        ""
+    }
+    ${concatStringsSep " | " (catNull [
+      ''${inCommands.${from}} ${argString} ${input}''
+      (if debug then "tee >(cat 1>&2)" else null)
+      ''${outCommands.${to}} > "$out"''
+    ])}
+    ${
+      if debug then
+        ''
+          {
+            echo 'BEGIN_OUTPUT'
+            cat "$out"
+            echo 'END_OUTPUT'
+          } 1>&2
+        ''
+      else
+        ""
+    }
   ''
