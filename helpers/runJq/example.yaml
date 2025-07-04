@@ -43,6 +43,9 @@ literal_string: |
   Newlines are preserved.
   It can span multiple lines.
 
+# Binary data (base64 encoded)
+binary_data: !!binary aGVsbG8gd29ybGQ= # Base64 encoding of "hello world"
+
 # Anchors and Aliases (for reusing content)
 common_data: &shared_content
   status: active
