@@ -79,10 +79,10 @@ with rec {
     # Check for presence of key elements from the original JSON
     filter = [
       ". as $x"
-      "$x.string_example | if . then . else halt_error(\"JSON to YAML conversion failed: missing string_example\") end"
-      "$x.integer_example | if . then . else halt_error(\"JSON to YAML conversion failed: missing integer_example\") end"
-      "$x.array_example | if (is_array) then . else halt_error(\"JSON to YAML conversion failed: array_example is not an array\") end"
-      "$x.object_example | if (is_object) then . else halt_error(\"JSON to YAML conversion failed: object_example is not an object\") end"
+      "$x.string_example | if . then empty else \"JSON to YAML conversion failed: missing string_example\" end | halt_error"
+      "$x.integer_example | if . then empty else \"JSON to YAML conversion failed: missing integer_example\" end | halt_error"
+      "$x.array_example | if (is_array) then empty else \"JSON to YAML conversion failed: array_example is not an array\") end | halt_error"
+      "$x.object_example | if (is_object) then empty else \"JSON to YAML conversion failed: object_example is not an object\") end | halt_error"
     ];
   };
 
@@ -100,10 +100,10 @@ with rec {
     # Check for presence of key elements in the XML-to-JSON structure
     filter = [
       ". as $x"
-      "$x.root.string_example.\"#text\" | if . then . else halt_error(\"JSON to XML conversion failed: missing root.string_example.#text\") end"
-      "$x.root.integer_example.\"#text\" | if . then . else halt_error(\"JSON to XML conversion failed: missing root.integer_example.#text\") end"
-      "$x.root.array_example | if (is_array) then . else halt_error(\"JSON to XML conversion failed: root.array_example is not an array\") end"
-      "$x.root.object_example | if (is_object) then . else halt_error(\"JSON to XML conversion failed: root.object_example is not an object\") end"
+      "$x.root.string_example.\"#text\" | if . then empty else \"JSON to XML conversion failed: missing root.string_example.#text\" end | halt_error"
+      "$x.root.integer_example.\"#text\" | if . then empty else \"JSON to XML conversion failed: missing root.integer_example.#text\" end | halt_error"
+      "$x.root.array_example | if (is_array) then empty else \"JSON to XML conversion failed: root.array_example is not an array\") end | halt_error"
+      "$x.root.object_example | if (is_object) then empty else \"JSON to XML conversion failed: root.object_example is not an object\") end | halt_error"
     ];
   };
 
@@ -121,11 +121,11 @@ with rec {
     # Check for presence of simple types that TOML can represent
     filter = [
       ". as $x"
-      "$x.string_example | if . then . else halt_error(\"JSON to TOML conversion failed: missing string_example\") end"
-      "$x.integer_example | if . then . else halt_error(\"JSON to TOML conversion failed: missing integer_example\") end"
-      "$x.float_example | if . then . else halt_error(\"JSON to TOML conversion failed: missing float_example\") end"
-      "$x.boolean_true | if (is_boolean) then . else halt_error(\"JSON to TOML conversion failed: boolean_true is not a boolean\") end"
-      "$x.boolean_false | if (is_boolean) then . else halt_error(\"JSON to TOML conversion failed: boolean_false is not a boolean\") end"
+      "$x.string_example | if . then empty else \"JSON to TOML conversion failed: missing string_example\" end | halt_error"
+      "$x.integer_example | if . then empty else \"JSON to TOML conversion failed: missing integer_example\" end | halt_error"
+      "$x.float_example | if . then empty else \"JSON to TOML conversion failed: missing float_example\" end | halt_error"
+      "$x.boolean_true | if (is_boolean) then empty else \"JSON to TOML conversion failed: boolean_true is not a boolean\") end | halt_error"
+      "$x.boolean_false | if (is_boolean) then empty else \"JSON to TOML conversion failed: boolean_false is not a boolean\") end | halt_error"
     ];
   };
 
@@ -174,10 +174,10 @@ with rec {
     # Check for presence of key elements in the XML-to-JSON structure
     filter = [
       ". as $x"
-      "$x.root.string_key.\"#text\" | if . then . else halt_error(\"YAML to XML conversion failed: missing root.string_key.#text\") end"
-      "$x.root.integer_key.\"#text\" | if . then . else halt_error(\"YAML to XML conversion failed: missing root.integer_key.#text\") end"
-      "$x.root.list_of_strings | if (is_array) then . else halt_error(\"YAML to XML conversion failed: root.list_of_strings is not an array\") end"
-      "$x.root.nested_map | if (is_object) then . else halt_error(\"YAML to XML conversion failed: root.nested_map is not an object\") end"
+      "$x.root.string_key.\"#text\" | if . then empty else \"YAML to XML conversion failed: missing root.string_key.#text\" end | halt_error"
+      "$x.root.integer_key.\"#text\" | if . then empty else \"YAML to XML conversion failed: missing root.integer_key.#text\" end | halt_error"
+      "$x.root.list_of_strings | if (is_array) then empty else \"YAML to XML conversion failed: root.list_of_strings is not an array\") end | halt_error"
+      "$x.root.nested_map | if (is_object) then empty else \"YAML to XML conversion failed: root.nested_map is not an object\") end | halt_error"
     ];
   };
 
@@ -195,13 +195,13 @@ with rec {
     # Check for presence of key elements that TOML can represent
     filter = [
       ". as $x"
-      "$x.string_key | if . then . else halt_error(\"YAML to TOML conversion failed: missing string_key\") end"
-      "$x.integer_key | if . then . else halt_error(\"YAML to TOML conversion failed: missing integer_key\") end"
-      "$x.float_key | if . then . else halt_error(\"YAML to TOML conversion failed: missing float_key\") end"
-      "$x.boolean_true | if (is_boolean) then . else halt_error(\"YAML to TOML conversion failed: boolean_true is not a boolean\") end"
-      "$x.boolean_false | if (is_boolean) then . else halt_error(\"YAML to TOML conversion failed: boolean_false is not a boolean\") end"
-      "$x.list_of_numbers | if (is_array) then . else halt_error(\"YAML to TOML conversion failed: list_of_numbers is not an array\") end"
-      "$x.nested_map.level1.level2.key | if . then . else halt_error(\"YAML to TOML conversion failed: missing nested_map.level1.level2.key\") end"
+      "$x.string_key | if . then empty else \"YAML to TOML conversion failed: missing string_key\" end | halt_error"
+      "$x.integer_key | if . then empty else \"YAML to TOML conversion failed: missing integer_key\" end | halt_error"
+      "$x.float_key | if . then empty else \"YAML to TOML conversion failed: missing float_key\" end | halt_error"
+      "$x.boolean_true | if (is_boolean) then empty else \"YAML to TOML conversion failed: boolean_true is not a boolean\") end | halt_error"
+      "$x.boolean_false | if (is_boolean) then empty else \"YAML to TOML conversion failed: boolean_false is not a boolean\") end | halt_error"
+      "$x.list_of_numbers | if (is_array) then empty else \"YAML to TOML conversion failed: list_of_numbers is not an array\") end | halt_error"
+      "$x.nested_map.level1.level2.key | if . then empty else \"YAML to TOML conversion failed: missing nested_map.level1.level2.key\" end | halt_error"
     ];
   };
 
@@ -256,10 +256,10 @@ with rec {
     # Check for presence of key elements from the XML-to-JSON structure
     filter = [
       ". as $x"
-      "$x.root.element1.\"#text\" | if . then . else halt_error(\"XML to YAML conversion failed: missing root.element1.#text\") end"
-      "$x.root.element1.\"@attribute1\" | if . then . else halt_error(\"XML to YAML conversion failed: missing root.element1.@attribute1\") end"
-      "$x.root.element2.\"test:namespacedElement\".\"#text\" | if . then . else halt_error(\"XML to YAML conversion failed: missing root.element2.test:namespacedElement.#text\") end"
-      "$x.root.element3.\"#text\" | if . then . else halt_error(\"XML to YAML conversion failed: missing root.element3.#text\") end"
+      "$x.root.element1.\"#text\" | if . then empty else \"XML to YAML conversion failed: missing root.element1.#text\" end | halt_error"
+      "$x.root.element1.\"@attribute1\" | if . then empty else \"XML to YAML conversion failed: missing root.element1.@attribute1\" end | halt_error"
+      "$x.root.element2.\"test:namespacedElement\".\"#text\" | if . then empty else \"XML to YAML conversion failed: missing root.element2.test:namespacedElement.#text\" end | halt_error"
+      "$x.root.element3.\"#text\" | if . then empty else \"XML to YAML conversion failed: missing root.element3.#text\" end | halt_error"
     ];
   };
 
@@ -277,9 +277,9 @@ with rec {
     # Check for presence of key elements that TOML can represent
     filter = [
       ". as $x"
-      "$x.root.element1.\"#text\" | if . then . else halt_error(\"XML to TOML conversion failed: missing root.element1.#text\") end"
-      "$x.root.element1.\"@attribute1\" | if . then . else halt_error(\"XML to TOML conversion failed: missing root.element1.@attribute1\") end"
-      "$x.root.element2.\"test:namespacedElement\".\"#text\" | if . then . else halt_error(\"XML to TOML conversion failed: missing root.element2.test:namespacedElement.#text\") end"
+      "$x.root.element1.\"#text\" | if . then empty else \"XML to TOML conversion failed: missing root.element1.#text\" end | halt_error"
+      "$x.root.element1.\"@attribute1\" | if . then empty else \"XML to TOML conversion failed: missing root.element1.@attribute1\" end | halt_error"
+      "$x.root.element2.\"test:namespacedElement\".\"#text\" | if . then empty else \"XML to TOML conversion failed: missing root.element2.test:namespacedElement.#text\" end | halt_error"
     ];
   };
 
@@ -334,14 +334,14 @@ with rec {
     # Check for presence of key elements from the original TOML
     filter = [
       ". as $x"
-      "$x.string | if . then . else halt_error(\"TOML to YAML conversion failed: missing string\") end"
-      "$x.integer | if . then . else halt_error(\"TOML to YAML conversion failed: missing integer\") end"
-      "$x.float | if . then . else halt_error(\"TOML to YAML conversion failed: missing float\") end"
-      "$x.boolean_true | if (is_boolean) then . else halt_error(\"TOML to YAML conversion failed: boolean_true is not a boolean\") end"
-      "$x.boolean_false | if (is_boolean) then . else halt_error(\"TOML to YAML conversion failed: boolean_false is not a boolean\") end"
-      "$x.simple_array | if (is_array) then . else halt_error(\"TOML to YAML conversion failed: simple_array is not an array\") end"
-      "$x.owner.name | if . then . else halt_error(\"TOML to YAML conversion failed: missing owner.name\") end"
-      "$x.database.server | if . then . else halt_error(\"TOML to YAML conversion failed: missing database.server\") end"
+      "$x.string | if . then empty else \"TOML to YAML conversion failed: missing string\" end | halt_error"
+      "$x.integer | if . then empty else \"TOML to YAML conversion failed: missing integer\" end | halt_error"
+      "$x.float | if . then empty else \"TOML to YAML conversion failed: missing float\" end | halt_error"
+      "$x.boolean_true | if (is_boolean) then empty else \"TOML to YAML conversion failed: boolean_true is not a boolean\") end | halt_error"
+      "$x.boolean_false | if (is_boolean) then empty else \"TOML to YAML conversion failed: boolean_false is not a boolean\") end | halt_error"
+      "$x.simple_array | if (is_array) then empty else \"TOML to YAML conversion failed: simple_array is not an array\") end | halt_error"
+      "$x.owner.name | if . then empty else \"TOML to YAML conversion failed: missing owner.name\" end | halt_error"
+      "$x.database.server | if . then empty else \"TOML to YAML conversion failed: missing database.server\" end | halt_error"
     ];
   };
 
@@ -359,14 +359,14 @@ with rec {
     # Check for presence of key elements in the XML-to-JSON structure
     filter = [
       ". as $x"
-      "$x.root.string.\"#text\" | if . then . else halt_error(\"TOML to XML conversion failed: missing root.string.#text\") end"
-      "$x.root.integer.\"#text\" | if . then . else halt_error(\"TOML to XML conversion failed: missing root.integer.#text\") end"
-      "$x.root.float.\"#text\" | if . then . else halt_error(\"TOML to XML conversion failed: missing root.float.#text\") end"
-      "$x.root.boolean_true | if (is_boolean) then . else halt_error(\"TOML to XML conversion failed: root.boolean_true is not a boolean\") end"
-      "$x.root.boolean_false | if (is_boolean) then . else halt_error(\"TOML to XML conversion failed: root.boolean_false is not a boolean\") end"
-      "$x.root.simple_array | if (is_array) then . else halt_error(\"TOML to XML conversion failed: root.simple_array is not an array\") end"
-      "$x.root.owner.name.\"#text\" | if . then . else halt_error(\"TOML to XML conversion failed: missing root.owner.name.#text\") end"
-      "$x.root.database.server.\"#text\" | if . then . else halt_error(\"TOML to XML conversion failed: missing root.database.server.#text\") end"
+      "$x.root.string.\"#text\" | if . then empty else \"TOML to XML conversion failed: missing root.string.#text\" end | halt_error"
+      "$x.root.integer.\"#text\" | if . then empty else \"TOML to XML conversion failed: missing root.integer.#text\" end | halt_error"
+      "$x.root.float.\"#text\" | if . then empty else \"TOML to XML conversion failed: missing root.float.#text\" end | halt_error"
+      "$x.root.boolean_true | if (is_boolean) then empty else \"TOML to XML conversion failed: root.boolean_true is not a boolean\") end | halt_error"
+      "$x.root.boolean_false | if (is_boolean) then empty else \"TOML to XML conversion failed: root.boolean_false is not a boolean\") end | halt_error"
+      "$x.root.simple_array | if (is_array) then empty else \"TOML to XML conversion failed: root.simple_array is not an array\") end | halt_error"
+      "$x.root.owner.name.\"#text\" | if . then empty else \"TOML to XML conversion failed: missing root.owner.name.#text\" end | halt_error"
+      "$x.root.database.server.\"#text\" | if . then empty else \"TOML to XML conversion failed: missing root.database.server.#text\" end | halt_error"
     ];
   };
 
