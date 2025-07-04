@@ -30,17 +30,6 @@ with rec {
     label: x: y:
     same label (normaliseJson "${label}-x" x) (normaliseJson "${label}-y" y);
 
-  # Helper to convert XML/TOML to JSON for comparison
-  toJson =
-    label: file: format:
-    run {
-      name = "to-json-${label}";
-      inputFile = file;
-      from = format;
-      to = "json";
-      filter = ".";
-    };
-
   # Example files
   exampleJsonFile = ./example.json;
   exampleYamlFile = ./example.yaml;
