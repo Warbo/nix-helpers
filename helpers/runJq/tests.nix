@@ -79,10 +79,10 @@ with rec {
     # Check for presence of key elements from the original JSON
     filter = [
       ". as $x"
-      "$x.string_example | if . then empty else \"missing string_example\" end | halt_error"
-      "$x.integer_example | if . then empty else \"missing integer_example\" end | halt_error"
-      "$x.array_example | if (is_array) then empty else \"array_example is not an array\") end | halt_error"
-      "$x.object_example | if (is_object) then empty else \"object_example is not an object\") end | halt_error"
+      ''$x.string_example | if . then empty else "missing string_example" end | halt_error''
+      ''$x.integer_example | if . then empty else "missing integer_example" end | halt_error''
+      ''$x.array_example | if (is_array) then empty else "array_example is not an array") end | halt_error''
+      ''$x.object_example | if (is_object) then empty else "object_example is not an object") end | halt_error''
     ];
   };
 
@@ -102,8 +102,8 @@ with rec {
       ". as $x"
       ''$x.root.string_example."#text" | if . then empty else "missing root.string_example.#text" end | halt_error''
       ''$x.root.integer_example."#text" | if . then empty else "missing root.integer_example.#text" end | halt_error''
-      "$x.root.array_example | if (is_array) then empty else \"root.array_example is not an array\") end | halt_error"
-      "$x.root.object_example | if (is_object) then empty else \"root.object_example is not an object\") end | halt_error"
+      ''$x.root.array_example | if (is_array) then empty else "root.array_example is not an array") end | halt_error''
+      ''$x.root.object_example | if (is_object) then empty else "root.object_example is not an object") end | halt_error''
     ];
   };
 
@@ -123,9 +123,9 @@ with rec {
       ". as $x"
       "$x.string_example | if . then empty else \"missing string_example\" end | halt_error"
       "$x.integer_example | if . then empty else \"missing integer_example\" end | halt_error"
-      "$x.float_example | if . then empty else \"missing float_example\" end | halt_error"
-      "$x.boolean_true | if (is_boolean) then empty else \"boolean_true is not a boolean\") end | halt_error"
-      "$x.boolean_false | if (is_boolean) then empty else \"boolean_false is not a boolean\") end | halt_error"
+      ''$x.float_example | if . then empty else "missing float_example" end | halt_error''
+      ''$x.boolean_true | if (is_boolean) then empty else "boolean_true is not a boolean") end | halt_error''
+      ''$x.boolean_false | if (is_boolean) then empty else "boolean_false is not a boolean") end | halt_error''
     ];
   };
 
@@ -174,10 +174,10 @@ with rec {
     # Check for presence of key elements in the XML-to-JSON structure
     filter = [
       ". as $x"
-      "$x.root.string_key.\"#text\" | if . then empty else \"missing root.string_key.#text\" end | halt_error"
-      "$x.root.integer_key.\"#text\" | if . then empty else \"missing root.integer_key.#text\" end | halt_error"
-      "$x.root.list_of_strings | if (is_array) then empty else \"root.list_of_strings is not an array\") end | halt_error"
-      "$x.root.nested_map | if (is_object) then empty else \"root.nested_map is not an object\") end | halt_error"
+      ''$x.root.string_key."#text" | if . then empty else "missing root.string_key.#text" end | halt_error''
+      ''$x.root.integer_key."#text" | if . then empty else "missing root.integer_key.#text" end | halt_error''
+      ''$x.root.list_of_strings | if (is_array) then empty else "root.list_of_strings is not an array") end | halt_error''
+      ''$x.root.nested_map | if (is_object) then empty else "root.nested_map is not an object") end | halt_error''
     ];
   };
 
@@ -199,9 +199,9 @@ with rec {
       "$x.integer_key | if . then empty else \"missing integer_key\" end | halt_error"
       "$x.float_key | if . then empty else \"missing float_key\" end | halt_error"
       "$x.boolean_true | if (is_boolean) then empty else \"boolean_true is not a boolean\") end | halt_error"
-      "$x.boolean_false | if (is_boolean) then empty else \"boolean_false is not a boolean\") end | halt_error"
-      "$x.list_of_numbers | if (is_array) then empty else \"list_of_numbers is not an array\") end | halt_error"
-      "$x.nested_map.level1.level2.key | if . then empty else \"missing nested_map.level1.level2.key\" end | halt_error"
+      ''$x.boolean_false | if (is_boolean) then empty else "boolean_false is not a boolean") end | halt_error''
+      ''$x.list_of_numbers | if (is_array) then empty else "list_of_numbers is not an array") end | halt_error''
+      ''$x.nested_map.level1.level2.key | if . then empty else "missing nested_map.level1.level2.key" end | halt_error''
     ];
   };
 
@@ -277,9 +277,9 @@ with rec {
     # Check for presence of key elements that TOML can represent
     filter = [
       ". as $x"
-      "$x.root.element1.\"#text\" | if . then empty else \"missing root.element1.#text\" end | halt_error"
-      "$x.root.element1.\"@attribute1\" | if . then empty else \"missing root.element1.@attribute1\" end | halt_error"
-      "$x.root.element2.\"test:namespacedElement\".\"#text\" | if . then empty else \"missing root.element2.test:namespacedElement.#text\" end | halt_error"
+      ''$x.root.element1."#text" | if . then empty else "missing root.element1.#text" end | halt_error''
+      ''$x.root.element1."@attribute1" | if . then empty else "missing root.element1.@attribute1" end | halt_error''
+      ''$x.root.element2."test:namespacedElement"."#text" | if . then empty else "missing root.element2.test:namespacedElement.#text" end | halt_error''
     ];
   };
 
