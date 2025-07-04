@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This is a sample XML document for testing -->
+<root xmlns:test="http://example.com/test">
+    <element1 attribute1="value1" attribute2="value2">
+        This is some text content.
+        <nestedElement>Nested text &amp; entity.</nestedElement>
+    </element1>
+    <element2>
+        <test:namespacedElement test:nsAttribute="nsValue">
+            Content within a namespace.
+        </test:namespacedElement>
+    </element2>
+    <element3>
+        <![CDATA[This is a CDATA section containing <tags> and &entities; literally.]]>
+    </element3>
+    <emptyElement/>
+    <?processingInstruction target="data"?>
+</root>
