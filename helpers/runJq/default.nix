@@ -38,11 +38,13 @@ with rec {
   };
 
   # How to parse each input format. These also run the filter, and output JSON.
-  inCommands = {
+  inCommands = nth: {
     json = "jq";
     toml = "tomlq";
     xml = "xq";
-    yaml = "yq";
+    # Pick the nth document from a multi-document YAML file. Uses the compact
+    # output mode '-c', which writes one whole (JSON) document per line.
+    yaml = "yq -c '.' | head -n${toString (nth + 1)} | tail -n1 | yq";
   };
 
   # How to convert the resulting JSON into each output format.
@@ -79,7 +81,7 @@ with rec {
   mkFilter =
     level:
     if isString level then
-      "(" + level + ")"
+      level
     else if isList level then
       "(" + concatMapStringsSep " | " mkFilter level + ")"
     else
@@ -110,11 +112,19 @@ with rec {
   ],
   extraArgs ? [ ],
 
+  # Arguments given to output-processing command.
+  outArgs ? [],
+
+  # Which document to use when given a multi-document YAML
+  nth ? 0,
+
   # When 'true', shows the input, output and intermediate data on stderr
   debug ? false,
 }:
 with {
   argString = concatMapStringsSep " " escapeShellArg args;
+
+  outArgString = concatMapStringsSep " " escapeShellArg outArgs;
 
   input = orElse "" (mapNull (f: "< ${inputFile}") inputFile);
 };
@@ -150,9 +160,9 @@ runCommand name
         ""
     }
     ${concatStringsSep " | " (catNull [
-      ''${inCommands.${from}} ${argString} ${input}''
+      ''${input} ${(inCommands nth).${from}} ${argString}''
       (if debug then "tee >(cat 1>&2)" else null)
-      ''${outCommands.${to}} > "$out"''
+      ''${outCommands.${to}} ${outArgString} > "$out"''
     ])}
     ${
       if debug then
