@@ -1,15 +1,17 @@
-{ callMvn2nix, lib, mapNull, mkJar }:
+{ callMvn2nix, catNull, lib, mapNull, mkJar }:
 {
   pname,
   version,
   src,
-  binaries ? [],
-  repository ? callMvn2nix { inherit src; },
+  depsHash ? abort "mkMavenPackage needs depsHash or repository",
+  repository ? callMvn2nix { inherit mvnCommands src; hash = depsHash; },
+  jarName ? null,
+  binaries ? null,
   mvnArgs ? null,
+  extraMvnArgs ? null,
   mvnCommands ? null,
+  installSteps ? null,
 }:
-mkJar {
-  inherit binaries pname version repository src;
-  ${mapNull (_: "mvnArgs") mvnArgs} = mvnArgs;
-  ${mapNull (_: "mvnCommands") mvnCommands} = mvnCommands;
-}
+mkJar ({ inherit pname version repository src; } // catNull {
+  inherit binaries extraMvnArgs installSteps jarName mvnArgs mvnCommands;
+})

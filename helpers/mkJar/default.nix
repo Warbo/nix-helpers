@@ -4,31 +4,28 @@
   version,
   repository,
   src,
+  jarName ? "${pname}-${version}.jar",
   binaries ? [],
   mvnArgs ? [ "--offline" "-Dmaven.repo.local=${repository}" ] ++ mvnCommands,
   mvnCommands ? [ "package" ],
-}:
-stdenv.mkDerivation rec {
-  inherit pname version src;
-  name = "${pname}-${version}";
-  buildInputs = [ jdk makeWrapper maven ];
-  buildPhase = ''
-    mvn ${lib.concatMapStringsSep " " lib.escapeShellArg mvnArgs}
-  '';
-  installPhase = ''
-    mkdir "$out"
-    cp target/${name}.jar "$out/"
-    ln -s ${repository} $out/lib
-    ${
-      lib.concatMapStringsSep
-        "\n"
-        (b: ''
-          makeWrapper ${jdk}/bin/java "$out/bin/${b}" \
-            --add-flags "-jar $out/${name}.jar" \
+  extraMvnArgs ? [],
+  extraAttrs ? {},
+  installSteps ? [ ''cp target/${jarName} "$out/"'' ] ++ map
+    (b: ''makeWrapper ${jdk}/bin/java "$out/bin/${b}" \
+            --add-flags "-jar $out/${jarName}" \
             --set M2_HOME ${maven} \
             --set JAVA_HOME ${jdk}
         '')
-        binaries
-    }
-  '';
-}
+    binaries,
+  installPhase ? lib.concatStringsSep "\n"
+    ([''mkdir "$out"; ln -s ${repository} $out/lib''] ++ installSteps)
+}:
+stdenv.mkDerivation (rec {
+  inherit installPhase pname version src;
+  name = "${pname}-${version}";
+  buildInputs = [ jdk makeWrapper maven ];
+  buildPhase = lib.concatMapStringsSep
+    " "
+    lib.escapeShellArg
+    (["mvn"] ++ mvnArgs ++ extraMvnArgs);
+} // extraAttrs)
