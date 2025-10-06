@@ -3,6 +3,8 @@
   fetchgit,
   hasBinary,
   racketWithPackages,
+  runCommand,
+  writeScript,
 }:
 
 with {
@@ -11,12 +13,24 @@ with {
     (fetchFromGitHub {
       owner = "willghatch";
       repo = "racket-shell-pipeline";
-      rev = "5f4232b58552c0affee15612f93629c5d66db7ea";
-      sha256 = "1kn3aflv7z44m65qj1jjjvvkh1d3sbwywscqd6y9gqpjkvfxwib3";
+      rev = "a3a49248cca038e21ca489d757c4794737310ce7";
+      sha256 = "sha256:0x1fhgzkj4xr7q5yplqbngk6cdwg85kmnc28hfmmsxvn8vismqsm";
     })
   ];
 };
 {
   example-usage = result;
   example-has-racket = hasBinary result "racket";
+  example-can-load-package =
+    runCommand "test-racketWithPackages-can-load-package" { }
+      "${writeScript "test-racketWithPackages-can-load-package.rkt" ''
+        #!${result}/bin/racket
+        #lang racket
+        (require shell/pipeline)
+        (define content "success")
+        (define out (getenv "out"))
+        (run-pipeline/out
+          `(echo ,content)
+          `(tee ,out))
+      ''}";
 }

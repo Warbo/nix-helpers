@@ -55,7 +55,7 @@ with {
         for PROG in "$racket"/bin/*
         do
           NAME=$(basename "$PROG")
-          makeWrapper "$PROG" "$out/bin/$NAME" --set HOME "$out/etc"
+          makeWrapper "$PROG" "$out/bin/$NAME" --set HOME "$HOME"
         done
       '';
 };
