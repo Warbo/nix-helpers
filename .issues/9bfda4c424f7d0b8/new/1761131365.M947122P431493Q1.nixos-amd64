@@ -1,0 +1,13 @@
+From: Chris Warburton
+Date: Wed, 22 Oct 2025 12:08:04 +0100
+Subject: Re: Avoid /bin/sh in callCabal2nixWithPlan
+Message-Id: <9bfda4c424f7d0b8-de9cf8fb3e87bafc-artemis@nixos-amd64>
+References: <9bfda4c424f7d0b8-0-artemis@nixos-amd64>
+In-Reply-To: <9bfda4c424f7d0b8-0-artemis@nixos-amd64>
+
+Use ${bash}/bin/bash
+
+This makes the fakeCurl script depend on bash, which may cause more rebuilding;
+however, it already depends on jq, and presumably that depends on bash (for its
+build, at least), so shouldn't be too bad. It's not like we're using
+content-addressed outputs yet...

@@ -1,11 +1,12 @@
 {
+  bash,
   hackageIndex,
   jq,
   lib,
   writeScriptBin,
 }:
 writeScriptBin "curl" ''
-  #!/bin/sh
+  #!${bash}/bin/bash
   set -e
   set -o pipefail
   export PATH="${jq}/bin:$PATH"
