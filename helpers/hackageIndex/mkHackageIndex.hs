@@ -28,7 +28,7 @@ fixEntry x xs = case (Tar.entryContent x, path) of
 
     -- Keep other files as-is, but drop the leading dir from their path
     (Tar.NormalFile _ _, _) ->
-      x { Tar.entryTarPath = tarPath (join "/" (tail path)) } : xs
+      x { Tar.entryTarPath = tarPath (join "/" (drop 1 path)) } : xs
 
     -- Anything other than NormalFile gets dropped (directories, etc.)
     _ -> xs
