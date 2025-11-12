@@ -1,0 +1,18 @@
+From: Chris Warburton
+Date: Wed, 29 Oct 2025 18:19:43 +0000
+State: new
+Subject: Add shell hooks mechanism
+Message-Id: <8412b6c0567e6576-0-artemis@nixos-amd64>
+
+Provide an extensible collection of shell-hooks, for use in mkShell.
+Hooks should include:
+
+ - Ensuring the existence of `.gitignore`
+ - Ensuring standard lines exist in `.gitignore`. Projects can choose to
+   override these on subsequent lines via negation.
+   - To begin with, let's just have the line `/.editorconfig`
+ - If `.editorconfig` is git-ignored (run `git check-ignore`), and
+   there isn't such a file on the filesystem, put a default one in
+   place.
+ - If `.editorconfig` is git-ignores, and there is such a file in place,
+   but it differs from our default, replace it.
