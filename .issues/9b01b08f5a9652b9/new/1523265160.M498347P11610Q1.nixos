@@ -1,8 +1,9 @@
 From: Chris Warburton
 Date: Mon, 09 Apr 2018 10:09:53 +0100
-State: new
+State: resolved
 Subject: Add IPFS fallbacks for latestGit and other URLs
 Message-Id: <9b01b08f5a9652b9-0-artemis@nixos>
+resolution: fixed
 
 We want to eventually wean ourselves off HTTP altogether, since IPFS is
 more robust (we keep hosting it ourselves even if the original server
