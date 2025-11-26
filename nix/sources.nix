@@ -177,7 +177,8 @@ let
     {
       url,
       name ? null,
-    }@attrs:
+      sha256,
+    }:
     let
       inherit (builtins) lessThan nixVersion fetchTarball;
     in
@@ -186,23 +187,22 @@ let
         { inherit url; } // (optionalAttrs (null != name) { inherit name; })
       )
     else
-      assert attrs ? sha256;
-      fetchTarball attrs;
+      fetchTarball { inherit url name sha256; };
 
   # fetchurl version that is compatible between all the versions of Nix
   builtins_fetchurl =
     {
       url,
       name ? null,
-    }@attrs:
+      sha256,
+    }:
     let
       inherit (builtins) lessThan nixVersion fetchurl;
     in
     if lessThan nixVersion "1.12" then
       fetchurl ({ inherit url; } // (optionalAttrs (null != name) { inherit name; }))
     else
-      assert attrs ? sha256;
-      fetchurl attrs;
+      fetchurl { inherit url name sha256; };
 
   # Create the final "sources" from the config
   mkSources =
