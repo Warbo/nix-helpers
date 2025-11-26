@@ -6,4 +6,5 @@ with {
 };
 shellWithHooks {
   name = "nix-helpers";
+  src = ./.;
 }
