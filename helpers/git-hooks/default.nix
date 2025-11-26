@@ -8,17 +8,16 @@ with rec {
     tree = "dc6f9fcfad80b7f4cfde53759452959a8853255d";
   };
 
-  overlay = scopedImport
-    {
-      import = x: if x == null
-                  then ({ overlays, ... }: head overlays)
-                  else import x;
-    }
-    "${src}/nix"
-    {
-      nixpkgs = null;
-      gitignore-nix-src = abort "gitignore-nix-src";
-    };
+  overlay =
+    scopedImport
+      {
+        import = x: if x == null then ({ overlays, ... }: head overlays) else import x;
+      }
+      "${src}/nix"
+      {
+        nixpkgs = null;
+        gitignore-nix-src = abort "gitignore-nix-src";
+      };
 
   defs = overlay (pkgs // defs) pkgs;
 };

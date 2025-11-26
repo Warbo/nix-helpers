@@ -9,7 +9,6 @@
   nixfmt-rfc-style.enable = true;
   nixfmt.settings.width = 80;
   pretty-format-json.enable = true;
-  proselint.enable = true;
   pylint.enable = true;
   rustfmt.enable = true;
   shellcheck.enable = true;
