@@ -21,30 +21,38 @@ mkMavenPackage rec {
   src = import ./source.nix;
   binaries = [ "mvn2nix" ];
   # Use a "bootstrap" version of mvn2nix in order to get its own dependencies
-  repository = callPackage
-    ../callMvn2nix
-    {
-      # runJq is only needed if we don't provide pname & version
-      runJq = null;
+  repository =
+    callPackage ../callMvn2nix
+      {
+        # runJq is only needed if we don't provide pname & version
+        runJq = null;
 
-      # This comes from the mvn2nix repo but it doesn't depend on mvn2nix itself
-      buildMavenRepositoryFromLockFile =
-        callPackage ../buildMavenRepositoryFromLockFile {};
+        # This comes from the mvn2nix repo but it doesn't depend on mvn2nix itself
+        buildMavenRepositoryFromLockFile =
+          callPackage ../buildMavenRepositoryFromLockFile
+            { };
 
-      # The mvn2nix executable provided by its repo does essentially the same as
-      # this (but using 'makeWrapper' instead of 'writeShellApplication').
-      mvn2nix = writeShellApplication {
-        name = pname;
-        runtimeEnv = {
-          # Hard-code the versions we're given, rather than the old pinned ones
-          M2_HOME = "${maven}";
-          JAVA_HOME = "${jdk}";
+        # The mvn2nix executable provided by its repo does essentially the same as
+        # this (but using 'makeWrapper' instead of 'writeShellApplication').
+        mvn2nix = writeShellApplication {
+          name = pname;
+          runtimeEnv = {
+            # Hard-code the versions we're given, rather than the old pinned ones
+            M2_HOME = "${maven}";
+            JAVA_HOME = "${jdk}";
+          };
+          runtimeInputs = [ jdk ];
+          text = ''
+            exec java -jar ${(import src { }).mvn2nix}/mvn2nix-0.1.jar "$@"
+          '';
         };
-        runtimeInputs = [ jdk ];
-        text = ''
-          exec java -jar ${(import src {}).mvn2nix}/mvn2nix-0.1.jar "$@"
-        '';
+      }
+      {
+        inherit
+          hash
+          pname
+          src
+          version
+          ;
       };
-    }
-    { inherit hash pname src version; };
 }

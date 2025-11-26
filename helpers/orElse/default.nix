@@ -1,2 +1,1 @@
-{}:
-fallback: x: if x == null then fallback else x
+{ }: fallback: x: if x == null then fallback else x

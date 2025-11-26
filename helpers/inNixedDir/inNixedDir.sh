@@ -7,26 +7,24 @@ set -e
 # content hash).
 
 NAME="nixed-dir"
-[[ -z "$2" ]] || NAME="$2"
+[[ -z $2 ]] || NAME="$2"
 
-if [[ "$SKIP_NIX" -eq 1 ]]
-then
-    INNER="$NAME"
+if [[ $SKIP_NIX -eq 1 ]]; then
+  INNER="$NAME"
 else
-    SCRATCH=$(mktemp -d)
-    # shellcheck disable=SC2064
-    trap "rm -rf $SCRATCH" EXIT
-    INNER="$SCRATCH/$NAME"
+  SCRATCH=$(mktemp -d)
+  # shellcheck disable=SC2064
+  trap "rm -rf $SCRATCH" EXIT
+  INNER="$SCRATCH/$NAME"
 fi
 
 mkdir -p "$INNER"
-pushd "$INNER" > /dev/null
+pushd "$INNER" >/dev/null
 out="$PWD" "$1"
-popd           > /dev/null
+popd >/dev/null
 
-if [[ "$SKIP_NIX" -eq 1 ]]
-then
-    readlink -f "$INNER"
+if [[ $SKIP_NIX -eq 1 ]]; then
+  readlink -f "$INNER"
 else
-    nix-store --add "$INNER"
+  nix-store --add "$INNER"
 fi

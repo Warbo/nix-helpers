@@ -50,7 +50,10 @@ with rec {
     name: yaml:
     runCommand "normalised-${name}.yaml" {
       inherit yaml;
-      buildInputs = [ yamlfix yq ];
+      buildInputs = [
+        yamlfix
+        yq
+      ];
     } ''< "$yaml" yq -Y '.' | yamlfix - > "$out"'';
 
   # TOML can't represent null, so this is useful to filter them out
@@ -70,7 +73,8 @@ with rec {
   # Various notions of equality/equivalence since each encoding can be formatted
   # in ways that don't affect the meaning.
 
-  sameBy = normalise: label: x: y:
+  sameBy =
+    normalise: label: x: y:
     runCommand "${label}-are-same"
       {
         x = normalise "${label}-x" x;
@@ -117,13 +121,12 @@ with rec {
   recurseForDerivations = true;
 
   # JSON tests
-  json-to-json-identity =
-    sameJson "json-to-json-identity" exampleJsonFile (run {
-      inputFile = exampleJsonFile;
-      from = "json";
-      to = "json";
-      filter = ".";
-    });
+  json-identity = sameJson "json-identity" exampleJsonFile (run {
+    inputFile = exampleJsonFile;
+    from = "json";
+    to = "json";
+    filter = ".";
+  });
 
   # JSON to other formats (check conversion by converting back to JSON)
   json-to-yaml = run {
@@ -154,7 +157,10 @@ with rec {
       inputFile = exampleJsonFile;
       from = "json";
       to = "xml";
-      outArgs = ["--xml-root" "root"];
+      outArgs = [
+        "--xml-root"
+        "root"
+      ];
       filter = ".";
     };
     from = "xml";
@@ -201,23 +207,24 @@ with rec {
       });
 
   # YAML tests
-  yaml-to-json = sameJson "yaml-to-json"
-    (run {
-      name = "yaml-to-json-intermediate";
-      inputFile = exampleYamlFile;
-      from = "yaml";
-      to = "json";
-      filter = ".";
-    })
-    (run {
-      inputFile = exampleYamlFile;
-      from = "yaml";
-      to = "json";
-      filter = ".";
-    });
+  yaml-to-json =
+    sameJson "yaml-to-json"
+      (run {
+        name = "yaml-to-json-intermediate";
+        inputFile = exampleYamlFile;
+        from = "yaml";
+        to = "json";
+        filter = ".";
+      })
+      (run {
+        inputFile = exampleYamlFile;
+        from = "yaml";
+        to = "json";
+        filter = ".";
+      });
 
   # Some discrepancies
-  # yaml-to-yaml-identity = sameYaml "yaml-to-yaml-identity"
+  # yaml-identity = sameYaml "yaml-identity"
   #   exampleYamlFile
   #   (run {
   #     inputFile = exampleYamlFile;
@@ -234,7 +241,10 @@ with rec {
       inputFile = exampleYamlFile;
       from = "yaml";
       to = "xml";
-      outArgs = ["--xml-root" "root"];
+      outArgs = [
+        "--xml-root"
+        "root"
+      ];
       filter = ".";
     };
     from = "xml";
@@ -283,24 +293,25 @@ with rec {
       });
 
   # XML tests (comparing JSON output for identity)
-  xml-to-json = sameJson "xml-to-json"
-    (run {
-      name = "xml-to-json-intermediate";
-      inputFile = exampleXmlFile;
-      from = "xml";
-      to = "json";
-      filter = ".";
-    })
-    (run {
-      inputFile = exampleXmlFile;
-      from = "xml";
-      to = "json";
-      filter = ".";
-    });
+  xml-to-json =
+    sameJson "xml-to-json"
+      (run {
+        name = "xml-to-json-intermediate";
+        inputFile = exampleXmlFile;
+        from = "xml";
+        to = "json";
+        filter = ".";
+      })
+      (run {
+        inputFile = exampleXmlFile;
+        from = "xml";
+        to = "json";
+        filter = ".";
+      });
 
   # XML->XML doesn't preserve processing instructions, the position of child
   # elements within text, CDATA wrappers, or the presence of whitespace.
-  # xml-to-xml-identity = sameXml "xml-to-xml-identity"
+  # xml-identity = sameXml "xml-identity"
   #   exampleXmlFile
   #   (run {
   #     inputFile = exampleXmlFile;
@@ -403,7 +414,10 @@ with rec {
       inputFile = exampleTomlFile;
       from = "toml";
       to = "xml";
-      outArgs = ["--xml-root" "root"];
+      outArgs = [
+        "--xml-root"
+        "root"
+      ];
       filter = ".";
     };
     from = "xml";

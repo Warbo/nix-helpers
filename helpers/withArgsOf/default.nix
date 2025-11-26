@@ -1,6 +1,6 @@
 {
-  lib ? import ../nixpkgs-lib {},
-  withArgs ? import ../withArgs { inherit lib; }
+  lib ? import ../nixpkgs-lib { },
+  withArgs ? import ../withArgs { inherit lib; },
 }:
 
 # Return an eta-expanded wrapper around "g", which accepts the same named

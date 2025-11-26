@@ -113,7 +113,7 @@ with rec {
   extraArgs ? [ ],
 
   # Arguments given to output-processing command.
-  outArgs ? [],
+  outArgs ? [ ],
 
   # Which document to use when given a multi-document YAML
   nth ? 0,

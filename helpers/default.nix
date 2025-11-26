@@ -46,9 +46,11 @@ with rec {
 
   # Takes its (lazy) values from defs.pinnedNixpkgs, but its (strict) keys from
   # bootPinnedNixpkgs; so it can be spliced into our result without looping.
-  pinnedNixpkgs = builtins.mapAttrs
-    (n: _: getAttr n defs.pinnedNixpkgs)
-    (bootPinnedNixpkgs { inherit nixpkgs-lib; });
+  pinnedNixpkgs =
+    builtins.mapAttrs (n: _: getAttr n defs.pinnedNixpkgs)
+      (bootPinnedNixpkgs {
+        inherit nixpkgs-lib;
+      });
 
   # Combine everything and tie the knot
   nix-helpers =

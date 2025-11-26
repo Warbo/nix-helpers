@@ -1,6 +1,6 @@
 # Useful in places where nixpkgs.fetchFromGitHub would cause an infinite loop.
 # Calling this fetchFromGitHub makes it work with update-nix-fetchgit.
-{}:
+{ }:
 {
   owner,
   repo,

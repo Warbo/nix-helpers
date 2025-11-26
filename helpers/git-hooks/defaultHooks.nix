@@ -7,7 +7,7 @@
   markdownlint.enable = true;
   mypy.enable = true;
   nixfmt-rfc-style.enable = true;
-  nixfmt.settings.width = 80;
+  nixfmt-rfc-style.settings.width = 80;
   pretty-format-json.enable = true;
   pylint.enable = true;
   rustfmt.enable = true;

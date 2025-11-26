@@ -22,11 +22,13 @@ with {
     all (x: elem x ys) xs;
 };
 assert go [ ] [ ];
-assert go [ ] [
-  1
-  2
-  3
-];
+assert go
+  [ ]
+  [
+    1
+    2
+    3
+  ];
 assert go
   [
     2
@@ -38,10 +40,13 @@ assert go
     3
   ];
 assert
-  !(go [
-    2
-    1
-  ] [ ]);
+  !(go
+    [
+      2
+      1
+    ]
+    [ ]
+  );
 assert
   !(go
     [

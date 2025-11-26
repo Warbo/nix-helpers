@@ -1,2 +1,1 @@
-{}:
-f: x: if x == null then x else f x
+{ }: f: x: if x == null then x else f x

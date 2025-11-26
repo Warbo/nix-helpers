@@ -1,7 +1,7 @@
 # Pinned nixpkgs repos
 {
   nixpkgs-lib ? import ../nixpkgs-lib { },
-  getNixpkgs ? import ../getNixpkgs {}
+  getNixpkgs ? import ../getNixpkgs { },
 }:
 with rec {
   inherit (builtins)

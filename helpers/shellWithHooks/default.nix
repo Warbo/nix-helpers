@@ -10,7 +10,9 @@ with {
     (args.pre-commit or { })
     // {
       inherit src;
-      hooks = lib.recursiveUpdate git-hooks.defaultHooks (args.pre-commit.hooks or { });
+      hooks = lib.recursiveUpdate git-hooks.defaultHooks (
+        args.pre-commit.hooks or { }
+      );
     }
   );
 };

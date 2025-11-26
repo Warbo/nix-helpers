@@ -2,7 +2,12 @@
 # This only works when 'rev' is a Git tree, not a Git commit; to find the tree
 # associated with a commit X, use 'git rev-parse X^{tree}'.
 { nixpkgs }:
-{ owner, repo, tree }: (nixpkgs.fetchFromGitHub {
+{
+  owner,
+  repo,
+  tree,
+}:
+(nixpkgs.fetchFromGitHub {
   inherit owner repo;
   rev = tree;
   hash = builtins.convertHash {
@@ -10,4 +15,7 @@
     hashAlgo = "sha1";
     toHashFormat = "sri";
   };
-}).overrideAttrs (_: { outputHashMode = "git"; })
+}).overrideAttrs
+  (_: {
+    outputHashMode = "git";
+  })
