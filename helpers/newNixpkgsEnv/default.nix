@@ -1,4 +1,4 @@
-{ }:
+_:
 with builtins;
 with {
   nixpkgs =

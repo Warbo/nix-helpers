@@ -1,1 +1,2 @@
-{ }: f: x: if x == null then x else f x
+_: f: x:
+if x == null then x else f x

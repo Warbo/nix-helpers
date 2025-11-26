@@ -1,4 +1,4 @@
-args@{ ... }:
+args:
 with {
   inherit (import ./. (removeAttrs args [ "inNixShell" ]))
     shellWithHooks

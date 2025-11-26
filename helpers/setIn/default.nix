@@ -18,7 +18,7 @@ with rec {
         else
           go {
             inherit value;
-            path = (tail path);
+            path = tail path;
             set = set."${name}" or { };
           };
     };

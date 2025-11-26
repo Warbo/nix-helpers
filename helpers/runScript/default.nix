@@ -14,7 +14,7 @@ let
   nixEnv = env // {
     NIX_REMOTE = "daemon";
     NIX_PATH = builtins.getEnv "NIX_PATH";
-    buildInputs = [ nix ] ++ (if env ? buildInputs then env.buildInputs else [ ]);
+    buildInputs = [ nix ] ++ (env.buildInputs or [ ]);
   };
   script = writeScript "script" text;
   runner = runCommand "runner" nixEnv script;

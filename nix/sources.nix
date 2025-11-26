@@ -42,14 +42,14 @@ let
     name: spec:
     let
       ref =
-        if spec ? ref then
-          spec.ref
-        else if spec ? branch then
-          "refs/heads/${spec.branch}"
-        else if spec ? tag then
-          "refs/tags/${spec.tag}"
-        else
-          abort "In git source '${name}': Please specify `ref`, `tag` or `branch`!";
+        spec.ref or (
+          if spec ? branch then
+            "refs/heads/${spec.branch}"
+          else if spec ? tag then
+            "refs/tags/${spec.tag}"
+          else
+            abort "In git source '${name}': Please specify `ref`, `tag` or `branch`!"
+        );
     in
     builtins.fetchGit {
       url = spec.repo;
@@ -131,7 +131,7 @@ let
     name: drv:
     let
       saneName = stringAsChars (
-        c: if isNull (builtins.match "[a-zA-Z0-9]" c) then "_" else c
+        c: if null == builtins.match "[a-zA-Z0-9]" c then "_" else c
       ) name;
       ersatz = builtins.getEnv "NIV_OVERRIDE_${saneName}";
     in
@@ -184,7 +184,7 @@ let
     in
     if lessThan nixVersion "1.12" then
       fetchTarball (
-        { inherit url; } // (optionalAttrs (!isNull name) { inherit name; })
+        { inherit url; } // (optionalAttrs (null != name) { inherit name; })
       )
     else
       fetchTarball attrs;
@@ -200,7 +200,7 @@ let
       inherit (builtins) lessThan nixVersion fetchurl;
     in
     if lessThan nixVersion "1.12" then
-      fetchurl ({ inherit url; } // (optionalAttrs (!isNull name) { inherit name; }))
+      fetchurl ({ inherit url; } // (optionalAttrs (null != name) { inherit name; }))
     else
       fetchurl attrs;
 
@@ -221,7 +221,7 @@ let
       sourcesFile ?
         if builtins.pathExists ./sources.json then ./sources.json else null,
       sources ?
-        if isNull sourcesFile then
+        if null == sourcesFile then
           { }
         else
           builtins.fromJSON (builtins.readFile sourcesFile),

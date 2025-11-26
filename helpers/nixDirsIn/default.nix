@@ -5,7 +5,7 @@
 # file, e.g. "${dir}/subdir/default.nix".
 #
 # Note that this is used to bootstrap nix-helpers, so it should work standalone.
-{ }:
+_:
 
 {
   dir,
