@@ -1,3 +1,4 @@
+---
 # This is a sample YAML file demonstrating various features
 
 # Basic key-value pairs
@@ -6,8 +7,8 @@ integer_key: 123
 float_key: 45.67
 boolean_true: true
 boolean_false: false
-null_key: null # Explicit null
-another_null_key: ~ # Shorthand null
+null_key: null  # Explicit null
+another_null_key: ~  # Shorthand null
 
 # Lists (Sequences)
 list_of_strings:
@@ -15,13 +16,13 @@ list_of_strings:
   - item 2
   - item 3
 
-list_of_numbers: [10, 20, 30] # Flow style list
+list_of_numbers: [10, 20, 30]  # Flow style list
 
 list_of_mixed_types:
   - a string
   - 100
   - true
-  - { key: value } # Nested map in list
+  - {key: value,}  # Nested map in list
 
 # Nested Maps (Objects)
 nested_map:
@@ -34,9 +35,10 @@ nested_map:
 quoted_string_single: 'This is a single-quoted string.'
 quoted_string_double: "This is a double-quoted string with \"quotes\" inside."
 folded_string: >
-  This is a long string that
-  will be folded into a single line
-  when parsed.
+  This is a long string that needs to be padded with lots of content in
+  order to prevent yamlfmt from turning it into a single line, but will
+  nevertheless be folded into a single line when parsed by a conforming
+  yaml implementation.
 
 literal_string: |
   This is a literal string.
@@ -44,7 +46,7 @@ literal_string: |
   It can span multiple lines.
 
 # Binary data (base64 encoded)
-binary_data: !!binary aGVsbG8gd29ybGQ= # Base64 encoding of "hello world"
+binary_data: !!binary aGVsbG8gd29ybGQ=  # Base64 encoding of "hello world"
 
 # Anchors and Aliases (for reusing content)
 common_data: &shared_content
@@ -53,7 +55,7 @@ common_data: &shared_content
 
 item_with_shared_data:
   name: Item A
-  <<: *shared_content # Merge shared_content here
+  <<: *shared_content  # Merge shared_content here
   specific_key: specific_value
 
 another_item_with_shared_data:
@@ -63,7 +65,7 @@ another_item_with_shared_data:
 
 # Dates and Timestamps (standard formats)
 date: 2023-10-27
-datetime: 2023-10-27T10:30:00Z # ISO 8601
+datetime: 2023-10-27T10:30:00Z  # ISO 8601
 
 # Multiple documents in one file
 ---
@@ -73,4 +75,3 @@ title: Monthly Summary
 data:
   - value1
   - value2
-... # End of document marker
