@@ -1,52 +1,52 @@
 {
-    "debian-image": {
-        "branch": "master",
-        "description": "Official builds of debuerreotype-generated Debian tarballs for use in Docker",
-        "homepage": "https://doi-janky.infosiftr.net/job/tianon/job/debuerreotype/",
-        "owner": "debuerreotype",
-        "release": "stretch",
-        "repo": "docker-debian-artifacts",
-        "rev": "214c0ec70b968a33e1a8aefed4245c260dc533c7",
-        "sha256": "1ff2qjvfj6fbwwj17wgmn3a4mlka1xv1p3jyj465dbf4qf3x0ijm",
-        "type": "file",
-        "url": "https://github.com/debuerreotype/docker-debian-artifacts/raw/67a0101a76eed558d4b61a484a27c9f9d7a119f4/stretch/rootfs.tar.xz",
-        "url_template": "https://github.com/<owner>/<repo>/raw/<version>/<release>/rootfs.tar.xz",
-        "version": "67a0101a76eed558d4b61a484a27c9f9d7a119f4"
-    },
-    "haskell-nix": {
-        "branch": "master",
-        "description": "Alternative Haskell Infrastructure for Nixpkgs",
-        "homepage": "https://input-output-hk.github.io/haskell.nix",
-        "owner": "warbo",
-        "repo": "haskell.nix",
-        "rev": "499a76172d28d1ec401b971352736afcf5268d5b",
-        "sha256": "1pnkywswfa71hgc2c3g2cijfk9nysbpyh6jjh455h810n4yhs522",
-        "type": "tarball",
-        "url": "https://github.com/warbo/haskell.nix/archive/499a76172d28d1ec401b971352736afcf5268d5b.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "niv": {
-        "branch": "master",
-        "description": "Easy dependency management for Nix projects",
-        "homepage": "https://github.com/nmattia/niv",
-        "owner": "nmattia",
-        "repo": "niv",
-        "rev": "e0ca65c81a2d7a4d82a189f1e23a48d59ad42070",
-        "sha256": "1pq9nh1d8nn3xvbdny8fafzw87mj7gsmp6pxkdl65w2g18rmcmzx",
-        "type": "tarball",
-        "url": "https://github.com/nmattia/niv/archive/e0ca65c81a2d7a4d82a189f1e23a48d59ad42070.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "nixgl": {
-        "branch": "master",
-        "description": "A wrapper tool for nix OpenGL application",
-        "homepage": null,
-        "owner": "guibou",
-        "repo": "nixGL",
-        "rev": "04a6b0833fbb46a0f7e83ab477599c5f3eb60564",
-        "sha256": "0z1zafkb02sxng91nsx0gclc7n7sv3d5f23gp80s3mc07p22m1k5",
-        "type": "tarball",
-        "url": "https://github.com/guibou/nixGL/archive/04a6b0833fbb46a0f7e83ab477599c5f3eb60564.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    }
+  "debian-image": {
+    "branch": "master",
+    "description": "Official builds of debuerreotype-generated Debian tarballs for use in Docker",
+    "homepage": "https://doi-janky.infosiftr.net/job/tianon/job/debuerreotype/",
+    "owner": "debuerreotype",
+    "release": "stretch",
+    "repo": "docker-debian-artifacts",
+    "rev": "214c0ec70b968a33e1a8aefed4245c260dc533c7",
+    "sha256": "1ff2qjvfj6fbwwj17wgmn3a4mlka1xv1p3jyj465dbf4qf3x0ijm",
+    "type": "file",
+    "url": "https://github.com/debuerreotype/docker-debian-artifacts/raw/67a0101a76eed558d4b61a484a27c9f9d7a119f4/stretch/rootfs.tar.xz",
+    "url_template": "https://github.com/<owner>/<repo>/raw/<version>/<release>/rootfs.tar.xz",
+    "version": "67a0101a76eed558d4b61a484a27c9f9d7a119f4"
+  },
+  "haskell-nix": {
+    "branch": "master",
+    "description": "Alternative Haskell Infrastructure for Nixpkgs",
+    "homepage": "https://input-output-hk.github.io/haskell.nix",
+    "owner": "warbo",
+    "repo": "haskell.nix",
+    "rev": "499a76172d28d1ec401b971352736afcf5268d5b",
+    "sha256": "1pnkywswfa71hgc2c3g2cijfk9nysbpyh6jjh455h810n4yhs522",
+    "type": "tarball",
+    "url": "https://github.com/warbo/haskell.nix/archive/499a76172d28d1ec401b971352736afcf5268d5b.tar.gz",
+    "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+  },
+  "niv": {
+    "branch": "master",
+    "description": "Easy dependency management for Nix projects",
+    "homepage": "https://github.com/nmattia/niv",
+    "owner": "nmattia",
+    "repo": "niv",
+    "rev": "e0ca65c81a2d7a4d82a189f1e23a48d59ad42070",
+    "sha256": "1pq9nh1d8nn3xvbdny8fafzw87mj7gsmp6pxkdl65w2g18rmcmzx",
+    "type": "tarball",
+    "url": "https://github.com/nmattia/niv/archive/e0ca65c81a2d7a4d82a189f1e23a48d59ad42070.tar.gz",
+    "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+  },
+  "nixgl": {
+    "branch": "master",
+    "description": "A wrapper tool for nix OpenGL application",
+    "homepage": null,
+    "owner": "guibou",
+    "repo": "nixGL",
+    "rev": "04a6b0833fbb46a0f7e83ab477599c5f3eb60564",
+    "sha256": "0z1zafkb02sxng91nsx0gclc7n7sv3d5f23gp80s3mc07p22m1k5",
+    "type": "tarball",
+    "url": "https://github.com/guibou/nixGL/archive/04a6b0833fbb46a0f7e83ab477599c5f3eb60564.tar.gz",
+    "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+  }
 }

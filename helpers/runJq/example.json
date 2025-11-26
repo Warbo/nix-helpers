@@ -1,10 +1,4 @@
 {
-  "string_example": "This is a string with \"quotes\", a \\backslash\\, a \nnewline, a \ttab, and unicode characters like \u20AC (Euro symbol).",
-  "integer_example": 12345,
-  "float_example": -987.65e-2,
-  "boolean_true": true,
-  "boolean_false": false,
-  "null_example": null,
   "array_example": [
     1,
     "two",
@@ -18,17 +12,23 @@
       true
     ]
   ],
+  "boolean_false": false,
+  "boolean_true": true,
+  "empty_array": [],
+  "empty_object": {},
+  "float_example": -9.8765,
+  "integer_example": 12345,
+  "null_example": null,
   "object_example": {
-    "nested_string": "another string",
-    "nested_number": 3.14159,
     "nested_array_in_object": [
       "item1",
       "item2"
     ],
+    "nested_number": 3.14159,
     "nested_object_in_object": {
       "deeply_nested": "value"
-    }
+    },
+    "nested_string": "another string"
   },
-  "empty_object": {},
-  "empty_array": []
+  "string_example": "This is a string with \"quotes\", a \\backslash\\, a \nnewline, a \ttab, and unicode characters like \u20ac (Euro symbol)."
 }
