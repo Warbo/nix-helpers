@@ -1,3 +1,4 @@
 /result*
 /nixpkgs-gcroot
 /.pre-commit-config.yaml
+/.editorconfig

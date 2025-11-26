@@ -8,6 +8,7 @@ with rec {
 combined // {
   defaults = builtins.attrValues {
     inherit (combined)
+      editorConfig
       haveGitIgnore
     ;
   };
