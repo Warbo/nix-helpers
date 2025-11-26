@@ -16,7 +16,7 @@ import Data.String.Utils (join, split)
 
 -- Pipe stdio through Tar.read/Tar.write, running fixEntry on each entry
 main = LB.interact pipeTar
-pipeTar = Tar.write . (Tar.foldEntries fixEntry [] throw) . Tar.read
+pipeTar = Tar.write . Tar.foldEntries fixEntry [] throw . Tar.read
 
 -- Use these to abort the process if any error occurs
 err = either error id
