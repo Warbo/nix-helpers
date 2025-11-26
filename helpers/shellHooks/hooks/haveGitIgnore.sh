@@ -10,6 +10,7 @@
   PRESETS=()
   PRESETS+=('/.pre-commit-config.yaml')
   PRESETS+=('/.editorconfig')
+  PRESETS+=('/.yamlfmt')
   for LINE in "${PRESETS[@]}"; do
     grep -q -Fx "$LINE" <"$GI" ||
       printf '%s\n' "$LINE" >>"$GI"

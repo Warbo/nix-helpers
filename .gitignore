@@ -2,3 +2,4 @@
 /nixpkgs-gcroot
 /.pre-commit-config.yaml
 /.editorconfig
+/.yamlfmt

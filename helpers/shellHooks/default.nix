@@ -16,6 +16,7 @@ combined
     inherit (combined)
       editorConfig
       haveGitIgnore
+      yamlfmt
       ;
   };
 }
