@@ -1,12 +1,9 @@
 {
-  bash,
-  coreutils,
   lib,
   makeSetupHook,
   nixListToBashArray,
   repo1609,
   runCommand,
-  stdenv,
   patchShebang,
   writeScript,
 }:

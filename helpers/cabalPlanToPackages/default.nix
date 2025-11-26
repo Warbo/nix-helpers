@@ -27,7 +27,7 @@ with rec {
     )
   );
 
-  fixes = self: super: {
+  fixes = _: super: {
     # TODO: Disable all tests, to prevent circular dependencies
     mkDerivation =
       lib.setFunctionArgs (

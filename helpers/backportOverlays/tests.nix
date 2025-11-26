@@ -13,7 +13,7 @@
         repo = repo1603;
       };
 
-      got = import repo { overlays = [ (self: super: { inherit dummyBuild; }) ]; };
+      got = import repo { overlays = [ (_: _: { inherit dummyBuild; }) ]; };
     };
     assert
       got ? dummyBuild

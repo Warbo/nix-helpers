@@ -1,8 +1,6 @@
 {
   callMvn2nix,
   catNull,
-  lib,
-  mapNull,
   mkJar,
 }:
 {

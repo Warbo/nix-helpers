@@ -1,6 +1,5 @@
 {
   die,
-  dummyBuild,
   getType,
   isAttrSet,
   lexSort,

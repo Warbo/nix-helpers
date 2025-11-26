@@ -31,7 +31,7 @@ with {
 with rec {
   planPackages = cabalPlanToPackages { inherit cabalPlan haskellPackages; };
   extendedPackages = planPackages.extend (
-    self: super: {
+    self: _: {
       "${name}" =
         self.callCabal2nix name src
           # cabalPlanToPackages overrides mkDerivation to disable tests, to prevent

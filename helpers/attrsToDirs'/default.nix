@@ -3,20 +3,14 @@
 # a directory, whose contents is generated with attrsToDirs on that value.
 {
   addPathToStore,
-  asPath,
   die,
   dummyBuild,
-  foldAttrs',
   getType,
-  hello,
   isPath,
   lib,
   nixListToBashArray,
-  nothing,
   runCmd,
-  runCommand,
   sanitiseName,
-  writeScript,
 }:
 
 with builtins;

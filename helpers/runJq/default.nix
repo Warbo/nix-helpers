@@ -126,7 +126,7 @@ with {
 
   outArgString = concatMapStringsSep " " escapeShellArg outArgs;
 
-  input = orElse "" (mapNull (f: "< ${inputFile}") inputFile);
+  input = orElse "" (mapNull (_: "< ${inputFile}") inputFile);
 };
 runCommand name
   {

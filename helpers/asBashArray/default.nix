@@ -5,9 +5,7 @@
 # nixListToBashArray (this may or may not be true...)
 {
   die,
-  fail,
   lib,
-  runCommand,
 }:
 
 with builtins;

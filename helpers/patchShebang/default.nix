@@ -1,14 +1,9 @@
 # Replaces /usr/bin/env in shebangs, since it doesn't exist in sandboxes
 {
-  attrsToDirs',
   coreutils,
   die,
-  dummyBuild,
-  fail,
   lib,
   runCommand,
-  sanitiseName,
-  writeScript,
 }:
 
 with builtins;

@@ -1,9 +1,6 @@
 {
   fail,
-  haskellPackages,
-  nixpkgs1803,
   runCommand,
-  unpack',
 }:
 
 with builtins;

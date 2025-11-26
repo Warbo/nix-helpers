@@ -1,5 +1,5 @@
 # Remove a layer of attrset nesting, prefixing the outer names to the inner ones
-{ die, lib }:
+{ lib }:
 
 with lib;
 attrs:

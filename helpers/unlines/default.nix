@@ -1,3 +1,3 @@
-{ runCommand }:
+_:
 
 builtins.concatStringsSep "\n"

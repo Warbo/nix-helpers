@@ -1,8 +1,6 @@
 # Shorthand for making a script via 'wrap' and installing it to a bin/ directory
 {
   attrsToDirs',
-  bash,
-  runCommand,
   sanitiseName,
   wrap,
 }:

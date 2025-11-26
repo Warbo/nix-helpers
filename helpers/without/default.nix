@@ -1,11 +1,7 @@
 {
   bash,
   coreutils,
-  fail,
-  hello,
   lib,
-  mupdf,
-  runCommand,
   writeScript,
 }:
 

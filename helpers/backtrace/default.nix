@@ -2,7 +2,6 @@
 {
   bash,
   mkBin,
-  runCommand,
 }:
 
 mkBin {

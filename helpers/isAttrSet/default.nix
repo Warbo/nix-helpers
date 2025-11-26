@@ -1,6 +1,4 @@
 {
-  callPackage,
-  hello,
   isCallable,
   lib,
 }:

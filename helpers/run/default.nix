@@ -1,8 +1,4 @@
 {
-  bash,
-  ghc,
-  nixpkgs1609,
-  python,
   runCommand,
   wrap,
 }:

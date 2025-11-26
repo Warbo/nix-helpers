@@ -1,7 +1,5 @@
 # Turns nested attribute sets into a single level, with dot-separated names.
 {
-  die,
-  hello,
   lib,
 }:
 

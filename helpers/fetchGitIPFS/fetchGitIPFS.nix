@@ -270,7 +270,7 @@ with rec {
         }" | tar -x -C "$out"
       '';
     }).overrideAttrs
-      (old: {
+      (_: {
         outputHashMode = "git";
       });
 

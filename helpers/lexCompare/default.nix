@@ -1,8 +1,5 @@
 {
-  bash,
-  dummyBuild,
   getType,
-  hello,
   lib,
 }:
 

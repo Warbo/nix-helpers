@@ -1,8 +1,5 @@
 {
-  die,
-  hello,
   lib,
-  nothing,
 }:
 
 with builtins;

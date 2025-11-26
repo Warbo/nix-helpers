@@ -5,7 +5,6 @@
   die,
   fail,
   mkBin,
-  runCommand,
   nixpkgs,
 }:
 

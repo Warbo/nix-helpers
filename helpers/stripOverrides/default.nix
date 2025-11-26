@@ -7,10 +7,10 @@
 with builtins;
 with lib;
 with rec {
-  go = a: if isAttrs a then mapAttrs (n: go) (filterAttrs notOverride a) else a;
+  go = a: if isAttrs a then mapAttrs (_: go) (filterAttrs notOverride a) else a;
 
   notOverride =
-    n: v:
+    n: _:
     !(elem n [
       "override"
       "overrideDerivation"

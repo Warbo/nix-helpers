@@ -1,5 +1,4 @@
 {
-  callPackage,
   lib,
   withArgsOf,
 }:

@@ -9,11 +9,9 @@
 #    are built when needed and not garbage collected from under us.
 {
   asPath,
-  hello,
   lib,
   runCommand,
   sanitiseName,
-  writeScript,
 }:
 
 with builtins;

@@ -1,7 +1,6 @@
 {
   applyPatches,
   fetchFromGitHub,
-  fetchgit,
   hasBinary,
   racketWithPackages,
   runCommand,

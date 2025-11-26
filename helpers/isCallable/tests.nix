@@ -4,5 +4,5 @@
   nothing,
 }:
 
-assert isCallable (callPackage (_: (x: abort "shouldn't force")) { });
+assert isCallable (callPackage (_: (_: abort "shouldn't force")) { });
 nothing

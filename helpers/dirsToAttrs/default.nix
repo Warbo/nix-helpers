@@ -17,7 +17,6 @@
 #     };
 #
 {
-  attrsToDirs',
   die,
   isPath,
   lib,

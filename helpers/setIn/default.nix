@@ -1,5 +1,5 @@
 # Add a value somewhere inside a nested set of attributes, based on a path
-{ dummyWithEnv, lib }:
+{ lib }:
 with builtins;
 with lib;
 with rec {
