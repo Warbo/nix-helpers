@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if [[ "x$1" == "x-h" ]] || [[ "x$1" == "x--help" ]] || [[ "x$1" == "x-?" ]]; then
+if [[ $1 == "-h" ]] || [[ $1 == "--help" ]] || [[ $1 == "-?" ]]; then
   {
     echo "nix_release: Find and build all Nix derivations defined in a file"
     echo
@@ -30,7 +30,7 @@ else
   echo "Won't make GC roots. If you want them, give an \$ADD_ROOT dir" 1>&2
 fi
 
-DRVPATHS=$("$nix_release_eval") || fail "Failed to get paths, aborting"
+DRVPATHS=$("$NIX_RELEASE_EVAL") || fail "Failed to get paths, aborting"
 
 function build {
   nix-store --show-trace --realise "$@"

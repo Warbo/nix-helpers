@@ -77,9 +77,7 @@ with rec {
       git
       gnutar
     ];
-    vars = {
-      inherit nix_release_eval;
-    };
+    vars.NIX_RELEASE_EVAL = nix_release_eval;
   };
 };
 attrsToDirs' "nix_release" {
