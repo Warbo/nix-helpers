@@ -10,9 +10,6 @@
     }
 
     pattern=$'[[shell]]\nindent_style = space\nindent_size = 2'
-    rg -lUF -- "$pattern" "$EC" >/dev/null || {
-      echo "Adding [[shell]] to '$EC'" 1>&2
-      printf '%s\n' "$pattern" >>"$EC"
-    }
+    printf '%s\n' "$pattern" >"$EC"
   fi
 )
