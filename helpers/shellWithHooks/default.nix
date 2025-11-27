@@ -10,7 +10,7 @@ with {
     (args.pre-commit or { })
     // {
       inherit src;
-      hooks = lib.recursiveUpdate git-hooks.defaultHooks (
+      hooks = lib.recursiveUpdate (git-hooks.defaultHooks (args.hookArgs or { })) (
         args.pre-commit.hooks or { }
       );
     }
@@ -18,6 +18,7 @@ with {
 };
 mkShell (
   removeAttrs args [
+    "hookArgs"
     "pre-commit"
     "src"
   ]

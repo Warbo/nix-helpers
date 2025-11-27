@@ -21,4 +21,8 @@ with rec {
 
   defs = overlay (pkgs // defs) pkgs;
 };
-{ defaultHooks = import ./defaultHooks.nix; } // defs
+{
+  defaultHooks =
+    hookArgs: import ./defaultHooks.nix ({ inherit (pkgs) python3; } // hookArgs);
+}
+// defs

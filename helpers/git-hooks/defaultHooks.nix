@@ -1,4 +1,7 @@
 {
+  python3,
+}:
+{
   black.enable = true;
   cabal-fmt.enable = true;
   cargo-check.enable = true;
