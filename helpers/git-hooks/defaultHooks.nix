@@ -1,5 +1,12 @@
 {
   python3,
+  pyDeps ? (
+    p: [
+      p.mypy
+      p.pylint
+    ]
+  ),
+  pyEnv ? python3.withPackages pyDeps,
 }:
 {
   black.enable = true;
@@ -24,7 +31,10 @@
   html-tidy.enable = true;
   markdownlint.enable = true;
   mixed-line-endings.enable = true;
-  mypy.enable = true;
+  mypy = {
+    enable = true;
+    settings.binPath = "${pyEnv}/bin/mypy";
+  };
   nixfmt-rfc-style = {
     enable = true;
     settings.width = 80;
@@ -33,7 +43,10 @@
     enable = true;
     settings.autofix = true;
   };
-  pylint.enable = true;
+  pylint = {
+    enable = true;
+    settings.binPath = "${pyEnv}/bin/pylint";
+  };
   rustfmt.enable = true;
   shellcheck.enable = true;
   shfmt.enable = true;
