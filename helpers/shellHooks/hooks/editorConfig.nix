@@ -1,0 +1,5 @@
+_: ''
+  (
+    ${builtins.readFile ./editorConfig}
+  )
+''
