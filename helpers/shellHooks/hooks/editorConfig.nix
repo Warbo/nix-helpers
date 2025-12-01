@@ -1,5 +1,10 @@
 _: ''
   (
+    DEFAULT=${builtins.toFile "editorconfig" ''
+      [[shell]]
+      indent_style = space
+      indent_size = 2
+    ''}
     ${builtins.readFile ./editorConfig}
   )
 ''
