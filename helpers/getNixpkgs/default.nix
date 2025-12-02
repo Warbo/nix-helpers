@@ -4,7 +4,7 @@ with {
 };
 {
   fetchFromGitHub ? import ../fetchFromGitHub { },
-  fetchTreeFromGitHub ? null,
+  fetchTreeFromGitHub ? import ../fetchTreeFromGitHub { },
 }:
 {
   rev ? null,
