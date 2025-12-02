@@ -49,7 +49,10 @@
   };
   rustfmt.enable = true;
   shellcheck.enable = true;
-  shfmt.enable = true;
+  shfmt = {
+    enable = true;
+    settings.simplify = false; # Prevents honoring EditorConfig
+  };
   statix.enable = true;
   trim-trailing-whitespace.enable = true;
   yamlfmt.enable = true;

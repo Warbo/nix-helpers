@@ -5,6 +5,7 @@ _: ''
       indent_style = space
       indent_size = 2
       charset = utf-8
+      simplify = true
     ''}
     ${builtins.readFile ./editorConfig}
   )
