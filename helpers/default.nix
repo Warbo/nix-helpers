@@ -39,16 +39,17 @@ with rec {
   defs = allFiles "default.nix";
   tests = allFiles "tests.nix";
 
-  # Takes its (lazy) values from defs.pinnedNixpkgs, but its (strict) keys from
-  # pinnedNixpkgs; so it can be spliced into our result without looping.
-  defPkgs = builtins.mapAttrs (n: _: defs.pinnedNixpkgs.${n}) pinnedNixpkgs;
-
   # Combine everything and tie the knot
   nix-helpers =
-    defPkgs
+    pinnedNixpkgs
     // defs
     // {
-      inherit nix-helpers nixpkgs nixpkgs-lib;
+      inherit
+        nix-helpers
+        nixpkgs
+        nixpkgs-lib
+        pinnedNixpkgs
+        ;
       nix-helpers-tests = {
         recurseForDerivations = true;
       }
