@@ -164,6 +164,8 @@ with rec {
     convertHash
     elem
     filter
+    getAttr
+    hasAttr
     head
     length
     mapAttrs
@@ -323,7 +325,7 @@ with rec {
       sha256Dupes = occuringIn sha256Paths (sha1Paths ++ hashPaths);
       hashDupes = occuringIn hashPaths (sha1Paths ++ sha256Paths);
       noDupes =
-        label: ds: ds == [ ] || throw "${label} has duplicate names ${toJSON ds}";
+        attr: ds: ds == [ ] || throw "${attr} has duplicate names ${toJSON ds}";
     };
     assert noDupes "sha1" sha1Dupes;
     assert noDupes "sha256" sha256Dupes;
@@ -352,12 +354,16 @@ with rec {
       with rec {
         # The fetcher we want, which uses all of the given overrides
         fetcher = makeFetcher deps;
+        pick =
+          name: fallback:
+          if hasAttr name args then
+            (_: getAttr name args)
+          else
+            (args.${fallback} or prevDeps.${fallback});
         deps = {
           gateways = args.gateways or prevDeps.gateways;
-          mkPkgs =
-            if args ? pkgs then (_: args.pkgs) else (args.mkPkgs or prevDeps.mkPkgs);
-          mkGoCar =
-            if args ? go-car then (_: args.go-car) else (args.mkGoCar or prevDeps.mkGoCar);
+          mkPkgs = pick "pkgs" "mkPkgs";
+          mkGoCar = pick "go-car" "mkGoCar";
         };
 
         # Fetch any hashes we've been given this time
@@ -386,11 +392,11 @@ with rec {
             };
           };
         };
+        isDrv = (fetched.type or null) == "derivation";
       };
       rec {
         fetchGitIPFS = fetcher;
-        ${if (fetched.type or null) == "derivation" then null else "__functor"} =
-          _: fetchGitIPFS;
+        ${if isDrv then null else "__functor"} = _: fetchGitIPFS;
       }
       // fetched;
   };
