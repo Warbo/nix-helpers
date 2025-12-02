@@ -1,13 +1,8 @@
-with {
-  # Instance of pinnedNixpkgs that doesn't depend on anything else; useful to
-  # avoid infinite recursion while bootstrapping.
-  bootPinnedNixpkgs = import ./pinnedNixpkgs;
-};
 {
   nixpkgs-lib ? import ./nixpkgs-lib { },
-  nixpkgs ? (bootPinnedNixpkgs { inherit nixpkgs-lib; }).nixpkgsLatest,
+  nixpkgs ? pinnedNixpkgs.nixpkgsLatest,
+  pinnedNixpkgs ? import ./pinnedNixpkgs { inherit nixpkgs-lib; },
 }:
-
 with rec {
   inherit (builtins) attrNames getAttr isAttrs;
   inherit (nixpkgs-lib) fold mapAttrs;
@@ -26,7 +21,7 @@ with rec {
         name: previous:
         previous
         // {
-          # Using 'callPackage' ensures derivations get appropriate 'override' attrs
+          # 'callPackage' ensures derivations get appropriate 'override' attrs
           "${name}" = callPackage (getAttr name found) { };
         };
 
@@ -45,16 +40,12 @@ with rec {
   tests = allFiles "tests.nix";
 
   # Takes its (lazy) values from defs.pinnedNixpkgs, but its (strict) keys from
-  # bootPinnedNixpkgs; so it can be spliced into our result without looping.
-  pinnedNixpkgs =
-    builtins.mapAttrs (n: _: getAttr n defs.pinnedNixpkgs)
-      (bootPinnedNixpkgs {
-        inherit nixpkgs-lib;
-      });
+  # pinnedNixpkgs; so it can be spliced into our result without looping.
+  defPkgs = builtins.mapAttrs (n: _: defs.pinnedNixpkgs.${n}) pinnedNixpkgs;
 
   # Combine everything and tie the knot
   nix-helpers =
-    pinnedNixpkgs
+    defPkgs
     // defs
     // {
       inherit nix-helpers nixpkgs nixpkgs-lib;
