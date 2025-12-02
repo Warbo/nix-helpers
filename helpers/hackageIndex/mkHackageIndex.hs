@@ -44,7 +44,7 @@ fixFile name version bytes = Tar.fileEntry path (A.encode pkg)
     existing = err (A.eitherDecode bytes)
     -- Parse required metadata from existing .json entry
     (size :: Int, md5 :: String, sha :: String) =
-        err . ($ existing) . A.parseEither $ \obj -> do
+        err . flip A.parseEither existing $ \obj -> do
             hashes <- obj .: "package-hashes"
             (,,)
                 <$> obj .: "package-size"
