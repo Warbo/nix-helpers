@@ -1,5 +1,5 @@
 /*
-  fetchGitIPFS.nix version >= 2025-12-02T00:00:00Z
+  fetchGitIPFS.nix version >= 2025-12-02T12:00:00Z
 
   This file provides a Nix function called 'fetchGitIPFS' to fetch Git trees
   from IPFS HTTP gateways. It has the following design goals:
@@ -400,6 +400,162 @@ with rec {
       }
       // fetched;
   };
+
+  fetchTreeFromGitHub =
+    {
+      owner,
+      repo,
+      tree,
+    }:
+    with {
+      inherit (builtins)
+        convertHash
+        fetchurl
+        hashFile
+        path
+        ;
+      channelName = "${owner}-${repo}";
+    };
+    "${
+      derivation {
+        inherit channelName;
+        name = "${owner}-${repo}-${tree}-unpacked";
+        builder = "builtin:unpack-channel";
+        system = "builtin";
+        outputHashAlgo = "sha1";
+        outputHashMode = "git";
+        outputHash = convertHash {
+          # The output of unpack-channel won't have tree as its SHA1 since it
+          # will be wrapped in a directory (whose name matches channelName).
+          # However, we can calculate the SHA1 of that wrapper, using tree and
+          # channelName!
+          hash = hashFile "sha1" (gitTreeSingleton {
+            name = channelName;
+            sha1 = tree;
+          });
+          hashAlgo = "sha1";
+          toHashFormat = "sri";
+        };
+        src = fetchurl {
+          name = "${owner}-${repo}-${tree}.tar.gz";
+          url = "https://github.com/${owner}/${repo}/archive/${tree}.tar.gz";
+        };
+      }
+    }/${channelName}";
+
+  gitTreeSingleton =
+    { name, sha1 }:
+
+    with rec {
+      inherit (builtins)
+        concatStringsSep
+        convertHash
+        div
+        toFile
+        genList
+        getAttr
+        map
+        stringLength
+        substring
+        toString
+        ;
+
+      # Convert hex SHA1 string to binary bytes
+      hexToBin =
+        hex:
+        with rec {
+          pairCount = div (stringLength hex) 2;
+          hexPairs = genList (i: substring (i * 2) 2 hex) pairCount;
+          hexToDec =
+            c:
+            getAttr c {
+              "0" = 0;
+              "1" = 1;
+              "2" = 2;
+              "3" = 3;
+              "4" = 4;
+              "5" = 5;
+              "6" = 6;
+              "7" = 7;
+              "8" = 8;
+              "9" = 9;
+              "a" = 10;
+              "b" = 11;
+              "c" = 12;
+              "d" = 13;
+              "e" = 14;
+              "f" = 15;
+            };
+          pairToByte =
+            pair:
+            with {
+              high = hexToDec (substring 0 1 pair);
+              low = hexToDec (substring 1 1 pair);
+            };
+            high * 16 + low;
+        };
+        map pairToByte hexPairs;
+
+      sha1Bytes = hexToBin (convertHash {
+        hash = sha1;
+        hashAlgo = "sha1";
+        toHashFormat = "base16";
+      });
+      mode = "40000"; # For a subdirectory (tree), mode is "40000"
+
+      # mode (5) + space (1) + name length + null (1) + sha1 (20)
+      entryLen = 5 + 1 + (stringLength name) + 1 + 20;
+
+      # Convert byte to hex for printf
+      byteToHex =
+        byte:
+        with rec {
+          toHexChar =
+            n:
+            if n < 10 then
+              toString n
+            else if n == 10 then
+              "a"
+            else if n == 11 then
+              "b"
+            else if n == 12 then
+              "c"
+            else if n == 13 then
+              "d"
+            else if n == 14 then
+              "e"
+            else
+              "f";
+          high = div byte 16;
+          low = byte - (high * 16);
+        };
+        "${toHexChar high}${toHexChar low}";
+
+      builder = toFile "builder.sh" ''
+        printf 'tree %s\x00' "${toString entryLen}" > "$out"
+
+        # Write mode and space
+        printf '%s' "${mode} " >> "$out"
+
+        # Write name
+        printf '%s' "${name}" >> "$out"
+
+        # Write null byte after name
+        printf '\x00' >> "$out"
+
+        # Write SHA1 as binary bytes
+        ${concatStringsSep "\n    " (
+          map (byte: "printf '\\x${byteToHex byte}' >> \"$out\"") sha1Bytes
+        )}
+      '';
+
+    };
+    derivation {
+      name = "git-tree-${name}";
+      system = builtins.currentSystem;
+      builder = "/bin/sh";
+      args = [ builder ];
+    };
 };
 makeFetcher {
   # Default arguments; if overridden, all subsequent fetchers will use those.
@@ -419,23 +575,24 @@ makeFetcher {
       modRoot = "cmd";
       subPackages = [ "car" ];
       vendorHash = "sha256-woC3y3F+JFwhHvEhWRecTRPzXAyElvORXefIjbOIpHE=";
-      src = import <nix/fetchurl.nix> {
-        url = "https://github.com/ipld/go-car/archive/bb5432c1de5582e4b1f2859b429062d86ac71dab.tar.gz";
-        hash = "sha256-E2B59qUkBEHiF8+HEaRjPtt0UFIB6zr7zeeWS0iM7HQ=";
-        unpack = true;
+      src = fetchTreeFromGitHub {
+        owner = "ipld";
+        repo = "go-car";
+        tree = "7adb728aa46d3b04e17e5986b072353038e6e93f";
       };
     });
 
   mkPkgs =
-    _:
-    import
-      (import <nix/fetchurl.nix> {
-        url = "https://github.com/nixos/nixpkgs/archive/62c435d93bf046a5396f3016472e8f7c8e2aed65.tar.gz";
-        hash = "sha256-F7thesZPvAMSwjRu0K8uFshTk3ZZSNAsXTIFvXBT+34=";
-        unpack = true;
-      })
-      {
-        config = { };
-        overlays = [ ];
+    with {
+      src = fetchTreeFromGitHub {
+        owner = "nixos";
+        repo = "nixpkgs";
+        tree = "b40ca3074463ec424cc75c8d856dc37db12886f8";
       };
+    };
+    _:
+    import src {
+      config = { };
+      overlays = [ ];
+    };
 }
