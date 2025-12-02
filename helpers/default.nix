@@ -58,13 +58,12 @@ with rec {
     // defs
     // {
       inherit nix-helpers nixpkgs nixpkgs-lib;
-      nix-helpers-tests =
-        {
-          recurseForDerivations = true;
-        }
-        // mapAttrs (
-          _: x: if isAttrs x then { recurseForDerivations = true; } // x else x
-        ) tests;
+      nix-helpers-tests = {
+        recurseForDerivations = true;
+      }
+      // mapAttrs (
+        _: x: if isAttrs x then { recurseForDerivations = true; } // x else x
+      ) tests;
     };
 };
 nix-helpers
