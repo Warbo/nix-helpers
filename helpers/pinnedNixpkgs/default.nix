@@ -40,6 +40,7 @@ with rec {
     repo2405.tree = "c3fb626cbbc8856839bda7b43254204fa5d5f509";
     repo2411.tree = "c8e1d096eca8970320a1d6157b84c2f695426000";
     repo2505.tree = "69a1ca569cb1d40f275bfbdefc5b69843abea40e";
+    repo2511.tree = "b40ca3074463ec424cc75c8d856dc37db12886f8";
   };
 
   pkgSets = mapAttrs' (n: v: {
