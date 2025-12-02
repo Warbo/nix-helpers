@@ -21,7 +21,7 @@
   check-xml.enable = true;
   check-yaml.enable = true;
   deadnix.enable = true;
-  editorconfig-checker.enable = true;
+  eclint.enable = true;
   end-of-file-fixer.enable = true;
   eslint.enable = true;
   flake8.enable = true;
