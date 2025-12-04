@@ -16,6 +16,7 @@ with rec {
     substring
     toString
     ;
+  rem = a: b: if a < b then a else rem (a - b) b;
 
   # Convert hex SHA1 string to binary bytes
   hexToBin =
@@ -62,33 +63,19 @@ with rec {
   # mode (5) + space (1) + name length + null (1) + sha1 (20)
   entryLen = 5 + 1 + (stringLength name) + 1 + 20;
 
-  # Convert byte to hex for printf
-  byteToHex =
+  # Convert byte to octal for printf
+  byteToOctal =
     byte:
     with rec {
-      toHexChar =
-        n:
-        if n < 10 then
-          toString n
-        else if n == 10 then
-          "a"
-        else if n == 11 then
-          "b"
-        else if n == 12 then
-          "c"
-        else if n == 13 then
-          "d"
-        else if n == 14 then
-          "e"
-        else
-          "f";
-      high = div byte 16;
-      low = byte - (high * 16);
+      d1 = div byte 64;
+      r1 = rem byte 64;
+      d2 = div r1 8;
+      d3 = rem r1 8;
     };
-    "${toHexChar high}${toHexChar low}";
+    "${toString d1}${toString d2}${toString d3}";
 
   builder = toFile "builder.sh" ''
-    printf 'tree %s\x00' "${toString entryLen}" > "$out"
+    printf 'tree %s\000' "${toString entryLen}" > "$out"
 
     # Write mode and space
     printf '%s' "${mode} " >> "$out"
@@ -97,11 +84,11 @@ with rec {
     printf '%s' "${name}" >> "$out"
 
     # Write null byte after name
-    printf '\x00' >> "$out"
+    printf '\000' >> "$out"
 
     # Write SHA1 as binary bytes
     ${concatStringsSep "\n    " (
-      map (byte: "printf '\\x${byteToHex byte}' >> \"$out\"") sha1Bytes
+      map (byte: "printf '\\${byteToOctal byte}' >> \"$out\"") sha1Bytes
     )}
   '';
 
