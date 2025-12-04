@@ -519,7 +519,7 @@ with rec {
         "${toString d1}${toString d2}${toString d3}";
 
       builder = toFile "builder.sh" ''
-        printf 'tree %s\x00' "${toString entryLen}" > "$out"
+        printf 'tree %s\000' "${toString entryLen}" > "$out"
 
         # Write mode and space
         printf '%s' "${mode} " >> "$out"
@@ -528,7 +528,7 @@ with rec {
         printf '%s' "${name}" >> "$out"
 
         # Write null byte after name
-        printf '\x00' >> "$out"
+        printf '\000' >> "$out"
 
         # Write SHA1 as binary bytes
         ${concatStringsSep "\n    " (
