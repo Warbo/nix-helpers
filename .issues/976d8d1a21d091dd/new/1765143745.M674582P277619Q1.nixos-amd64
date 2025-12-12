@@ -1,0 +1,13 @@
+From: Chris Warburton
+Date: Sun, 07 Dec 2025 21:40:41 +0000
+State: new
+Subject: Add racket-fmt to git-hooks
+Message-Id: <976d8d1a21d091dd-0-artemis@nixos-amd64>
+
+Could use racketWithPackages, but would need to package the dependencies
+manually too. Otherwise could use racket2nix, but would obviously need
+to get that working in order to use it.
+
+https://github.com/sorawee/fmt/tree/master
+https://pkgs.racket-lang.org/package/fmt
+https://docs.racket-lang.org/fmt/

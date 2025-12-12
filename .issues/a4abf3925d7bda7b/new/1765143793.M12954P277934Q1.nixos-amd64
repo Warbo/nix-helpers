@@ -1,0 +1,9 @@
+From: Chris Warburton
+Date: Sun, 07 Dec 2025 21:42:29 +0000
+State: new
+Subject: Add racket-review to git-hooks
+Message-Id: <a4abf3925d7bda7b-0-artemis@nixos-amd64>
+
+Similar to racket-fmt, could either use racketWithPackages or racket2nix
+
+https://github.com/Bogdanp/racket-review
