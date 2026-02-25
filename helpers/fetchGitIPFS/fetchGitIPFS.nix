@@ -146,15 +146,6 @@
   pkgs, so may cause that to be downloaded; however, that can be
   garbage-collected once the desired Nixpkgs has been "bootstrapped" into your
   store or a cache.
-
-  fetchGitIPFS uses a program called go-car which is not provided by its default
-  pkgs attrset. A specific implementation can be given via the 'go-car'
-  argument; or a 'mkGoCar' argument can be given as a function from
-  '{ pkgs, fetchGitIPFS }' to a go-car implementation. The default 'mkGoCar'
-  will return 'pkgs.go-car', if that exists; or otherwise use 'pkgs' to build a
-  particular version. Its 'pkgs' argument will be the overridden version, so you
-  can also use 'pkgs' or 'mkPkgs' to provide a 'go-car' attribute, instead of
-  overriding 'go-car' or 'mkGoCar'.
 */
 with rec {
   inherit (builtins)
@@ -174,11 +165,31 @@ with rec {
     typeOf
     ;
 
+  sriToCid =
+    codec: sriHash:
+    with {
+      type = head (split "-" sriHash);
+      codecs = {
+        "git-raw" = "78";
+        "raw" = "55";
+      };
+      hashCode = {
+        sha256 = "1220";
+        sha1 = "1114";
+      };
+    };
+    "f01${codecs."${codec}"}${hashCode."${type}"}${
+      convertHash {
+        hash = sriHash;
+        toHashFormat = "base16";
+      }
+    }";
+
   fetchOne =
     {
       pkgs,
       gateways,
-      go-car,
+      car2git,
     }:
     {
       sha1 ? null,
@@ -218,18 +229,7 @@ with rec {
         )
       );
 
-      # Turn SRI hash into CID
-      type = head (split "-" sriHash);
-      hashCode = {
-        sha256 = "1220";
-        sha1 = "1114";
-      };
-      cid = "f0178${hashCode."${type}"}${
-        convertHash {
-          hash = sriHash;
-          toHashFormat = "base16";
-        }
-      }";
+      cid = sriToCid "git-raw" sriHash;
     };
     (pkgs.fetchurl {
       name = cid;
@@ -243,29 +243,13 @@ with rec {
       hash = sriHash;
       nativeBuildInputs = with pkgs; [
         git
-        go-car
-        kubo
-        qpdf
+        perl
       ];
       postFetch = ''
         # TODO: Gateway might give empty/incomplete CAR; try next URL?
-        car inspect "$downloadedFile" |
-          grep -q 'Root blocks present in data: Yes' || {
-            echo "ERROR: CAR has no root (maybe the block was not found)"
-            car inspect "$downloadedFile"
-            false
-          } 1>&2
-
-        # Extract blocks from CAR into an empty git repo's objects dir
+        # Extract blocks from CAR into an empty git repo via a packfile
         git init --quiet
-        while read -r CID
-        do
-          FULL=$(ipfs cid format -b base16 -f '%D' "$CID")
-          DEST=".git/objects/$(echo "$FULL" | cut -c-2)/$(echo "$FULL" | cut -c3-)"
-          mkdir -p "$(dirname "$DEST")"
-          car get-block "$downloadedFile" "$CID" |
-            zlib-flate -compress > "$DEST"
-        done < <(car ls "$downloadedFile")
+        perl ${car2git} < "$downloadedFile" | git unpack-objects
 
         # Realise git tree object in $out
         mkdir -p "$out"
@@ -362,8 +346,8 @@ with rec {
             (args.${fallback} or prevDeps.${fallback});
         deps = {
           gateways = args.gateways or prevDeps.gateways;
+          mkCar2git = pick "car2git" "mkCar2git";
           mkPkgs = pick "pkgs" "mkPkgs";
-          mkGoCar = pick "go-car" "mkGoCar";
         };
 
         # Fetch any hashes we've been given this time
@@ -371,24 +355,11 @@ with rec {
           # Plug together the overrides in various combinations, so our result
           # uses them all; but their definitions don't hit an infinite loop.
           inherit (deps) gateways;
+          car2git = deps.mkCar2git { inherit gateways pkgs; };
           pkgs = deps.mkPkgs {
             fetchGitIPFS = makeFetcher {
-              inherit (deps) gateways mkGoCar;
-              inherit (prevDeps) mkPkgs;
-            };
-          };
-          go-car = deps.mkGoCar {
-            # Allow mkGoCar to use overridden pkgs
-            pkgs = deps.mkPkgs {
-              fetchGitIPFS = makeFetcher {
-                inherit (deps) gateways;
-                # Use previous versions of both to avoid loops
-                inherit (prevDeps) mkGoCar mkPkgs;
-              };
-            };
-            fetchGitIPFS = makeFetcher {
-              inherit (deps) gateways mkPkgs;
-              inherit (prevDeps) mkGoCar;
+              inherit (deps) car2git gateways;
+              inherit (prevDeps) mkCar2git mkPkgs;
             };
           };
         };
@@ -535,7 +506,6 @@ with rec {
           map (byte: "printf '\\${byteToOctal byte}' >> \"$out\"") sha1Bytes
         )}
       '';
-
     };
     derivation {
       name = "git-tree-${name}";
@@ -555,19 +525,20 @@ makeFetcher {
     "https://ipfs.infura.io"
   ];
 
-  mkGoCar =
-    { pkgs, ... }:
-    pkgs.go-car or (pkgs.buildGoModule {
-      name = "go-car";
-      modRoot = "cmd";
-      subPackages = [ "car" ];
-      vendorHash = "sha256-woC3y3F+JFwhHvEhWRecTRPzXAyElvORXefIjbOIpHE=";
-      src = fetchTreeFromGitHub {
-        owner = "ipld";
-        repo = "go-car";
-        tree = "7adb728aa46d3b04e17e5986b072353038e6e93f";
-      };
-    });
+  # Converts an IPFS CAR (of git-raw blocks) into an git packfile
+  mkCar2git =
+    {
+      gateways,
+      pkgs,
+      sriHash ? "sha256-WFhpOGioLIBqL+apHqjre5wnIY689v7nNfB3JSYEWyI=",
+    }:
+    pkgs.fetchurl rec {
+      name = "car2git.pl";
+      urls = map (base: "${base}/ipfs/${sriToCid "raw" sriHash}") gateways;
+      recursiveHash = false;
+      downloadToTemp = false;
+      hash = sriHash;
+    };
 
   mkPkgs =
     with {
